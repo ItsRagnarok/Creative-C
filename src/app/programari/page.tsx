@@ -24,15 +24,21 @@ export default async function ProgramariPage() {
   const role = profile.role as AppRole;
   const hasAccess = role === "admin" || role === "manager" || role === "vanzari";
 
+  // Wide enough for the calendar's week-back/week-forward navigation, not
+  // just "from now on" — otherwise earlier days in the *current* week
+  // (already past) silently vanish from their own week view.
   // eslint-disable-next-line react-hooks/purity -- server-rendered per request anyway (cookies() forces dynamic rendering)
-  const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const since = new Date(Date.now() - 35 * 86_400_000).toISOString();
+  // eslint-disable-next-line react-hooks/purity
+  const until = new Date(Date.now() + 35 * 86_400_000).toISOString();
   const { data: bookings } = hasAccess
     ? await supabase
         .from("bookings")
         .select("*, owner:profiles(id, full_name, initials)")
         .gte("scheduled_at", since)
+        .lt("scheduled_at", until)
         .order("scheduled_at", { ascending: true })
-        .limit(100)
+        .limit(300)
     : { data: null };
 
   const { data: owners } = await supabase.from("profiles").select("id, full_name, initials").order("full_name");

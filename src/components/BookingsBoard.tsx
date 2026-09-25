@@ -31,6 +31,20 @@ type FormState = {
   notes: string;
 };
 
+const START_HOUR = 9;
+const END_HOUR = 19; // exclusive
+const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
+const ROW_H = 56; // px per hour
+const DAY_LABELS = ["Luni", "Marți", "Miercuri", "Joi", "Vineri"];
+
+function startOfWeek(base: Date) {
+  const d = new Date(base);
+  const isoDay = (d.getDay() + 6) % 7; // Mon=0..Sun=6
+  d.setDate(d.getDate() - isoDay);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 function emptyForm(owners: Owner[]): FormState {
   const now = new Date();
   now.setDate(now.getDate() + 1);
@@ -45,9 +59,6 @@ function emptyForm(owners: Owner[]): FormState {
   };
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("ro-RO", { weekday: "long", day: "numeric", month: "long" });
-}
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" });
 }
@@ -66,20 +77,49 @@ export default function BookingsBoard({
   const [modal, setModal] = useState<null | { mode: "create" | "edit"; form: FormState }>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [weekOffset, setWeekOffset] = useState(0);
 
-  const grouped = useMemo(() => {
-    const active = bookings.filter((b) => b.status === "confirmat");
-    const byDay = new Map<string, BookingRow[]>();
-    active
-      .slice()
-      .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))
+  // Fixed once at mount — every downstream calculation derives from this
+  // instead of calling `new Date()` again during render.
+  const [today] = useState(() => new Date());
+
+  const weekStart = useMemo(() => {
+    const base = new Date(today);
+    base.setDate(base.getDate() + weekOffset * 7);
+    return startOfWeek(base);
+  }, [today, weekOffset]);
+
+  const days = useMemo(
+    () => Array.from({ length: 5 }, (_, i) => {
+      const d = new Date(weekStart);
+      d.setDate(d.getDate() + i);
+      return d;
+    }),
+    [weekStart],
+  );
+
+  const rangeLabel = `${days[0].toLocaleDateString("ro-RO", { day: "numeric", month: "long" })} – ${days[4].toLocaleDateString("ro-RO", { day: "numeric", month: "long", year: "numeric" })}`;
+
+  const weekEnd = useMemo(() => {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + 5);
+    return d;
+  }, [weekStart]);
+
+  const bookingsByDay = useMemo(() => {
+    const map = new Map<number, BookingRow[]>();
+    bookings
+      .filter((b) => b.status === "confirmat")
       .forEach((b) => {
-        const key = new Date(b.scheduled_at).toDateString();
-        if (!byDay.has(key)) byDay.set(key, []);
-        byDay.get(key)!.push(b);
+        const dt = new Date(b.scheduled_at);
+        if (dt < weekStart || dt >= weekEnd) return;
+        const dayIndex = Math.floor((dt.getTime() - weekStart.getTime()) / 86_400_000);
+        if (dayIndex < 0 || dayIndex > 4) return;
+        if (!map.has(dayIndex)) map.set(dayIndex, []);
+        map.get(dayIndex)!.push(b);
       });
-    return Array.from(byDay.entries());
-  }, [bookings]);
+    return map;
+  }, [bookings, weekStart, weekEnd]);
 
   function openCreate() {
     setError(null);
@@ -169,6 +209,8 @@ export default function BookingsBoard({
     setModal(null);
   }
 
+  const gridHeight = HOURS.length * ROW_H;
+
   return (
     <>
       <div className="page-head">
@@ -184,30 +226,72 @@ export default function BookingsBoard({
         </div>
       </div>
 
-      <div className="card">
-        {grouped.length === 0 && <div className="empty-note">Nicio programare activă momentan.</div>}
-        {grouped.map(([day, items]) => (
-          <div key={day} style={{ marginBottom: 22 }}>
-            <div className="nav-label" style={{ padding: "0 4px 8px", textTransform: "capitalize" }}>
-              {fmtDate(items[0].scheduled_at)}
-            </div>
-            <div className="list">
-              {items.map((b) => (
-                <div key={b.id} className="list-row" style={{ cursor: "pointer" }} onClick={() => openEdit(b)}>
-                  <span className="tag mono">{fmtTime(b.scheduled_at)}</span>
-                  <div style={{ flex: 1 }}>
-                    <div className="p-name">{b.name}</div>
-                    {b.notes && <div className="p-sub">{b.notes}</div>}
-                  </div>
-                  {b.owner && (
-                    <div className="p-avatar" style={{ width: 26, height: 26, fontSize: 10 }}>{b.owner.initials}</div>
-                  )}
-                  <span className="faint" style={{ fontSize: 11.5 }}>{b.duration_minutes} min</span>
+      <div className="card" style={{ padding: 18 }}>
+        <div className="cal-toolbar">
+          <div className="cal-range">Săptămâna {rangeLabel}</div>
+          <div className="cal-nav-btns">
+            <button className="btn sm ghost" onClick={() => setWeekOffset((w) => w - 1)}>← Săpt. trecută</button>
+            <button className="btn sm ghost" onClick={() => setWeekOffset(0)}>Azi</button>
+            <button className="btn sm ghost" onClick={() => setWeekOffset((w) => w + 1)}>Săpt. următoare →</button>
+          </div>
+        </div>
+
+        <div style={{ overflowX: "auto" }}>
+          <div className="cal-grid" style={{ minWidth: 640 }}>
+            <div className="cal-time-col">
+              <div className="cal-head-cell" style={{ visibility: "hidden" }}>·</div>
+              {HOURS.map((h) => (
+                <div key={h} className="cal-hour-label" style={{ height: ROW_H }}>
+                  {String(h).padStart(2, "0")}:00
                 </div>
               ))}
             </div>
+            {days.map((d, dayIndex) => {
+              const isToday = d.toDateString() === today.toDateString();
+              const items = bookingsByDay.get(dayIndex) ?? [];
+              return (
+                <div key={dayIndex} className="cal-day-col-wrap">
+                  <div className={`cal-head-cell ${isToday ? "today" : ""}`}>
+                    {DAY_LABELS[dayIndex]}
+                    <div className="faint" style={{ fontSize: 10.5, fontWeight: 500 }}>
+                      {d.toLocaleDateString("ro-RO", { day: "numeric", month: "short" })}
+                    </div>
+                  </div>
+                  <div className="cal-day-col" style={{ height: gridHeight }}>
+                    {HOURS.map((h) => (
+                      <div key={h} className="cal-hour-line" style={{ height: ROW_H }} />
+                    ))}
+                    {items.map((b) => {
+                      const dt = new Date(b.scheduled_at);
+                      const hourFloat = dt.getHours() + dt.getMinutes() / 60;
+                      const top = Math.max(0, (hourFloat - START_HOUR) * ROW_H);
+                      const height = Math.max(22, (b.duration_minutes / 60) * ROW_H - 2);
+                      const oneLine = height < 40;
+                      return (
+                        <button
+                          key={b.id}
+                          className={`cal-booking ${oneLine ? "one-line" : ""}`}
+                          style={{ top, height }}
+                          onClick={() => openEdit(b)}
+                          title={`${fmtTime(b.scheduled_at)} — ${b.name}`}
+                        >
+                          {oneLine ? (
+                            <div className="n"><span className="t">{fmtTime(b.scheduled_at)}</span> {b.name}</div>
+                          ) : (
+                            <>
+                              <div className="t">{fmtTime(b.scheduled_at)}</div>
+                              <div className="n">{b.name}</div>
+                            </>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        ))}
+        </div>
       </div>
 
       <div className="section-title"><h2>Reguli de sincronizare</h2></div>
