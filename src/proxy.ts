@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = ["/login", "/programeaza"];
 
 export async function proxy(request: NextRequest) {
   // Collected separately from the response so that whichever response we

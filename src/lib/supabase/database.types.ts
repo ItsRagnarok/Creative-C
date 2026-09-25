@@ -12,6 +12,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          created_at: string
+          duration_minutes: number
+          email: string | null
+          id: string
+          lead_id: string | null
+          name: string
+          notes: string | null
+          owner_id: string | null
+          phone: string | null
+          scheduled_at: string
+          status: Database["public"]["Enums"]["booking_status"]
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number
+          email?: string | null
+          id?: string
+          lead_id?: string | null
+          name: string
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          scheduled_at: string
+          status?: Database["public"]["Enums"]["booking_status"]
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number
+          email?: string | null
+          id?: string
+          lead_id?: string | null
+          name?: string
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          scheduled_at?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           created_at: string
@@ -123,10 +180,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_public_booking: {
+        Args: {
+          p_email: string
+          p_name: string
+          p_phone: string
+          p_scheduled_at: string
+        }
+        Returns: string
+      }
+      current_role_name: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      list_taken_slots: {
+        Args: { p_from: string; p_to: string }
+        Returns: { scheduled_at: string }[]
+      }
     }
     Enums: {
       app_role: "admin" | "manager" | "vanzari" | "editor"
+      booking_status: "confirmat" | "anulat"
       lead_stage: "nou" | "discutie" | "confirmat" | "lucru" | "finalizat"
     }
     CompositeTypes: {

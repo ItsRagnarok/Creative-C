@@ -35,7 +35,7 @@ export const NAV: NavGroup[] = [
     items: [
       { key: "dashboard", label: "Pipeline & Dashboard", href: "/dashboard", icon: "◆", roles: ["admin", "manager", "vanzari"], enabled: true },
       { key: "clienti", label: "Clienți", href: "/clienti", icon: "◇", roles: ["admin", "manager", "vanzari"], enabled: true },
-      { key: "programari", label: "Programări", href: "/programari", icon: "◔", roles: ["admin", "manager", "vanzari"], enabled: false },
+      { key: "programari", label: "Programări", href: "/programari", icon: "◔", roles: ["admin", "manager", "vanzari"], enabled: true },
     ],
   },
   {
