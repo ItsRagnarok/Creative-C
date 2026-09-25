@@ -7,32 +7,16 @@ import type { AppRole } from "@/lib/roles";
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const { data, error } = await supabase.auth.getUser();
-  const user = data.user;
-  console.log(
-    "[dashboard-page]",
-    "error=",
-    error ? { name: error.name, message: error.message, status: error.status } : null,
-    "user=",
-    user ? user.id : user,
-  );
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
-
-  console.log(
-    "[dashboard-page] profile fetch",
-    "error=",
-    profileError
-      ? { message: profileError.message, code: profileError.code, details: profileError.details }
-      : null,
-    "profile=",
-    profile,
-  );
 
   if (!profile) redirect("/login");
 
