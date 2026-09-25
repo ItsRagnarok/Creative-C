@@ -18,11 +18,21 @@ export default async function DashboardPage() {
   );
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
+
+  console.log(
+    "[dashboard-page] profile fetch",
+    "error=",
+    profileError
+      ? { message: profileError.message, code: profileError.code, details: profileError.details }
+      : null,
+    "profile=",
+    profile,
+  );
 
   if (!profile) redirect("/login");
 
