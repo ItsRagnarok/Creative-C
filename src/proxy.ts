@@ -1,10 +1,16 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_PATHS = ["/login"];
 
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  // Collected separately from the response so that whichever response we
+  // end up returning (a redirect or a pass-through) always carries any
+  // refreshed session cookies. Building a *new* NextResponse.redirect(...)
+  // after the fact — without copying these over — silently drops the
+  // refreshed tokens and breaks the session on the very next request,
+  // which is what caused the /login <-> /dashboard redirect loop.
+  const pendingCookies: { name: string; value: string; options?: CookieOptions }[] = [];
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,10 +22,7 @@ export async function proxy(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
-          );
+          pendingCookies.push(...cookiesToSet);
         },
       },
     },
@@ -28,36 +31,34 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isPublic = PUBLIC_PATHS.some((p) => path === p);
 
-  let user = null;
+  // Three states: a user (signed in), null (definitely no session), or
+  // undefined (couldn't tell — a transient error talking to Supabase).
+  // Only the first two decide a redirect; "undefined" fails open so a
+  // hiccup never bounces someone between /login and /dashboard.
+  let user;
   try {
     const { data, error } = await supabase.auth.getUser();
-    // A cookie-less request is a real "logged out" — but a network/server
-    // hiccup talking to Supabase is not the same thing. Treating it as
-    // logged-out would bounce the user between /login and /dashboard on
-    // every flaky request. Fail open here; the page itself re-checks auth
-    // server-side and will redirect if the user truly isn't signed in.
-    if (error && error.name !== "AuthSessionMissingError") {
-      return response;
-    }
-    user = data.user;
+    user = error && error.name !== "AuthSessionMissingError" ? undefined : data.user;
   } catch {
-    return response;
+    user = undefined;
   }
 
-  if (!user && !isPublic) {
+  let response: NextResponse;
+  if (user === null && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirectTo", path);
-    return NextResponse.redirect(url);
-  }
-
-  if (user && path === "/login") {
+    response = NextResponse.redirect(url);
+  } else if (user && path === "/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     url.searchParams.delete("redirectTo");
-    return NextResponse.redirect(url);
+    response = NextResponse.redirect(url);
+  } else {
+    response = NextResponse.next({ request });
   }
 
+  pendingCookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
   return response;
 }
 
