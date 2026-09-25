@@ -34,6 +34,18 @@ export const STAGE_LABEL: Record<LeadStage, string> = Object.fromEntries(
   STAGES.map((s) => [s.key, s.label]),
 ) as Record<LeadStage, string>;
 
+export const STAGE_BADGE: Record<LeadStage, string> = {
+  nou: "blue",
+  discutie: "amber",
+  confirmat: "violet",
+  lucru: "green",
+  finalizat: "gray",
+};
+
+export function monthYear(iso: string) {
+  return new Date(iso).toLocaleDateString("ro-RO", { month: "long", year: "numeric" });
+}
+
 export function daysSince(iso: string) {
   return (Date.now() - new Date(iso).getTime()) / 86_400_000;
 }

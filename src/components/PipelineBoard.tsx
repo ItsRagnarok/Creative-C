@@ -41,9 +41,11 @@ const EMPTY_FORM: FormState = {
 export default function PipelineBoard({
   initialLeads,
   owners,
+  canDelete,
 }: {
   initialLeads: LeadRow[];
   owners: Owner[];
+  canDelete: boolean;
 }) {
   const [leads, setLeads] = useState(initialLeads);
   const [modal, setModal] = useState<null | { mode: "create" | "edit"; form: FormState }>(null);
@@ -336,7 +338,7 @@ export default function PipelineBoard({
               {formError && <div className="field-error">{formError}</div>}
 
               <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
-                {modal.mode === "edit" && (
+                {modal.mode === "edit" && canDelete && (
                   <button type="button" className="btn danger" onClick={handleDelete} disabled={saving}>
                     Șterge
                   </button>

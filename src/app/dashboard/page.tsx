@@ -52,7 +52,11 @@ export default async function DashboardPage() {
           Setări. Canalul tău de editor vine într-o iterație viitoare.
         </div>
       ) : (
-        <PipelineBoard initialLeads={(leads ?? []) as LeadRow[]} owners={(owners ?? []) as Owner[]} />
+        <PipelineBoard
+          initialLeads={(leads ?? []) as LeadRow[]}
+          owners={(owners ?? []) as Owner[]}
+          canDelete={role === "admin" || role === "manager"}
+        />
       )}
     </AppShell>
   );
