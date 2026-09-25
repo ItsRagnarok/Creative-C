@@ -34,7 +34,7 @@ type FormState = {
 const START_HOUR = 9;
 const END_HOUR = 19; // exclusive
 const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
-const ROW_H = 56; // px per hour
+const ROW_H = 40; // px per hour
 const DAY_LABELS = ["Luni", "Marți", "Miercuri", "Joi", "Vineri"];
 
 function startOfWeek(base: Date) {
@@ -120,6 +120,17 @@ export default function BookingsBoard({
       });
     return map;
   }, [bookings, weekStart, weekEnd]);
+
+  const kpis = useMemo(() => {
+    const confirmed = bookings.filter((b) => b.status === "confirmat");
+    const thisWeekCount = Array.from(bookingsByDay.values()).reduce((sum, arr) => sum + arr.length, 0);
+    const upcoming = confirmed
+      .filter((b) => new Date(b.scheduled_at) >= today)
+      .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at));
+    const next = upcoming[0] ?? null;
+    const fromPublicPage = upcoming.filter((b) => b.notes === "Rezervat din pagina publică").length;
+    return { thisWeekCount, next, fromPublicPage };
+  }, [bookings, bookingsByDay, today]);
 
   function openCreate() {
     setError(null);
@@ -223,6 +234,26 @@ export default function BookingsBoard({
             Vezi pagina publică ↗
           </a>
           <button className="btn primary" onClick={openCreate}>+ Programare</button>
+        </div>
+      </div>
+
+      <div className="grid g-3" style={{ marginBottom: 18 }}>
+        <div className="card kpi">
+          <div className="label">Programări săptămâna afișată</div>
+          <div className="value">{kpis.thisWeekCount}</div>
+          <div className="delta up">confirmate, fără cele anulate</div>
+        </div>
+        <div className="card kpi">
+          <div className="label">Următorul apel</div>
+          <div className="value" style={{ fontSize: 18 }}>
+            {kpis.next ? new Date(kpis.next.scheduled_at).toLocaleDateString("ro-RO", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}
+          </div>
+          <div className="delta up">{kpis.next ? kpis.next.name : "niciunul programat"}</div>
+        </div>
+        <div className="card kpi">
+          <div className="label">Din pagina publică</div>
+          <div className="value">{kpis.fromPublicPage}</div>
+          <div className="delta up">rezervate direct de lead-uri, viitoare</div>
         </div>
       </div>
 
