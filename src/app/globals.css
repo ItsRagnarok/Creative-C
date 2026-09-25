@@ -235,33 +235,30 @@ table{ width:100%; border-collapse:collapse; }
 .switch.on{ background:var(--accent-soft); border-color:var(--accent); }
 .switch.on::after{ left:18px; background:var(--accent); }
 
-/* weekly booking calendar */
+/* weekly booking calendar — compact day columns, no hour grid.
+   With only a handful of fixed slots/day, an hour-by-hour grid was mostly
+   empty rows; stacking each day's actual bookings takes far less space. */
 .cal-toolbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
 .cal-range{ font-family:var(--font-display); font-weight:600; font-size:14.5px; text-transform:capitalize; }
 .cal-nav-btns{ display:flex; gap:6px; }
-.cal-grid{ display:grid; grid-template-columns:56px repeat(5,1fr); }
-.cal-head-cell{
-  height:44px; padding:6px 8px; text-align:center; font-size:12px; font-weight:700; color:var(--text-muted);
-  border-bottom:1px solid var(--border); display:flex; flex-direction:column; align-items:center; justify-content:center;
+.cal-cols{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+@media (max-width:900px){ .cal-cols{ grid-template-columns:repeat(5,150px); overflow-x:auto; } }
+.cal-col{ background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px; min-height:64px; }
+.cal-col-head{
+  text-align:center; font-size:12px; font-weight:700; color:var(--text-muted); padding:4px 0 8px;
+  border-bottom:1px solid var(--border); margin-bottom:8px;
 }
-.cal-head-cell.today{ color:var(--accent-2); }
-.cal-hour-label{ display:flex; align-items:flex-start; justify-content:flex-end; padding:0 8px 0 0; font-size:10.5px; color:var(--text-faint); box-sizing:border-box; transform:translateY(-6px); }
-.cal-day-col-wrap{ border-left:1px solid var(--border); }
-.cal-day-col{ position:relative; background:var(--bg-soft); }
-.cal-hour-line{ border-top:1px solid var(--border); box-sizing:border-box; }
-.cal-day-col .cal-hour-line:first-child{ border-top:none; }
-.cal-booking{
-  position:absolute; left:4px; right:4px; background:var(--surface); border:1px solid var(--border);
-  border-left:3px solid var(--accent); border-radius:6px; padding:4px 7px; font-size:11px; overflow:hidden;
-  cursor:pointer; text-align:left; box-shadow:var(--shadow-sm);
+.cal-col-head.today{ color:var(--accent-2); }
+.cal-col-empty{ text-align:center; font-size:11px; color:var(--text-faint); padding:8px 0; }
+.cal-card{
+  display:flex; align-items:center; gap:7px; width:100%; text-align:left; background:var(--surface);
+  border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:7px; padding:7px 9px;
+  font-size:11.5px; margin-bottom:6px; cursor:pointer;
 }
-.cal-booking:hover{ border-color:var(--accent); border-left-color:var(--accent-2); }
-.cal-booking .t{ font-weight:700; font-family:var(--font-mono); font-size:10.5px; }
-.cal-booking .n{ color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.cal-booking.one-line{ padding:3px 7px; display:flex; align-items:center; }
-.cal-booking.one-line .n{ color:var(--text); font-size:11px; }
-.cal-booking.one-line .t{ color:var(--accent-2); margin-right:2px; }
-@media (max-width:900px){ .cal-grid{ grid-template-columns:48px repeat(5,140px); } }
+.cal-card:last-child{ margin-bottom:0; }
+.cal-card:hover{ border-color:var(--accent); }
+.cal-card .t{ font-family:var(--font-mono); font-weight:700; color:var(--accent-2); flex:0 0 auto; }
+.cal-card .n{ color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 /* info tooltip ("?") used to explain pipeline stages, KPIs, etc. */
 .info-tip{ position:relative; display:inline-flex; }

@@ -31,10 +31,6 @@ type FormState = {
   notes: string;
 };
 
-const START_HOUR = 9;
-const END_HOUR = 19; // exclusive
-const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
-const ROW_H = 40; // px per hour
 const DAY_LABELS = ["Luni", "Marți", "Miercuri", "Joi", "Vineri"];
 
 function startOfWeek(base: Date) {
@@ -118,6 +114,7 @@ export default function BookingsBoard({
         if (!map.has(dayIndex)) map.set(dayIndex, []);
         map.get(dayIndex)!.push(b);
       });
+    map.forEach((arr) => arr.sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at)));
     return map;
   }, [bookings, weekStart, weekEnd]);
 
@@ -220,8 +217,6 @@ export default function BookingsBoard({
     setModal(null);
   }
 
-  const gridHeight = HOURS.length * ROW_H;
-
   return (
     <>
       <div className="page-head">
@@ -267,61 +262,28 @@ export default function BookingsBoard({
           </div>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
-          <div className="cal-grid" style={{ minWidth: 640 }}>
-            <div className="cal-time-col">
-              <div className="cal-head-cell" style={{ visibility: "hidden" }}>·</div>
-              {HOURS.map((h) => (
-                <div key={h} className="cal-hour-label" style={{ height: ROW_H }}>
-                  {String(h).padStart(2, "0")}:00
+        <div className="cal-cols">
+          {days.map((d, dayIndex) => {
+            const isToday = d.toDateString() === today.toDateString();
+            const items = bookingsByDay.get(dayIndex) ?? [];
+            return (
+              <div key={dayIndex} className="cal-col">
+                <div className={`cal-col-head ${isToday ? "today" : ""}`}>
+                  {DAY_LABELS[dayIndex]}
+                  <span className="faint" style={{ fontWeight: 500 }}>
+                    {" "}{d.toLocaleDateString("ro-RO", { day: "numeric", month: "short" })}
+                  </span>
                 </div>
-              ))}
-            </div>
-            {days.map((d, dayIndex) => {
-              const isToday = d.toDateString() === today.toDateString();
-              const items = bookingsByDay.get(dayIndex) ?? [];
-              return (
-                <div key={dayIndex} className="cal-day-col-wrap">
-                  <div className={`cal-head-cell ${isToday ? "today" : ""}`}>
-                    {DAY_LABELS[dayIndex]}
-                    <div className="faint" style={{ fontSize: 10.5, fontWeight: 500 }}>
-                      {d.toLocaleDateString("ro-RO", { day: "numeric", month: "short" })}
-                    </div>
-                  </div>
-                  <div className="cal-day-col" style={{ height: gridHeight }}>
-                    {HOURS.map((h) => (
-                      <div key={h} className="cal-hour-line" style={{ height: ROW_H }} />
-                    ))}
-                    {items.map((b) => {
-                      const dt = new Date(b.scheduled_at);
-                      const hourFloat = dt.getHours() + dt.getMinutes() / 60;
-                      const top = Math.max(0, (hourFloat - START_HOUR) * ROW_H);
-                      const height = Math.max(22, (b.duration_minutes / 60) * ROW_H - 2);
-                      const oneLine = height < 40;
-                      return (
-                        <button
-                          key={b.id}
-                          className={`cal-booking ${oneLine ? "one-line" : ""}`}
-                          style={{ top, height }}
-                          onClick={() => openEdit(b)}
-                          title={`${fmtTime(b.scheduled_at)} — ${b.name}`}
-                        >
-                          {oneLine ? (
-                            <div className="n"><span className="t">{fmtTime(b.scheduled_at)}</span> {b.name}</div>
-                          ) : (
-                            <>
-                              <div className="t">{fmtTime(b.scheduled_at)}</div>
-                              <div className="n">{b.name}</div>
-                            </>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                {items.length === 0 && <div className="cal-col-empty">liber</div>}
+                {items.map((b) => (
+                  <button key={b.id} className="cal-card" onClick={() => openEdit(b)}>
+                    <span className="t">{fmtTime(b.scheduled_at)}</span>
+                    <span className="n">{b.name}</span>
+                  </button>
+                ))}
+              </div>
+            );
+          })}
         </div>
       </div>
 
