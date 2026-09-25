@@ -7,9 +7,15 @@ import type { AppRole } from "@/lib/roles";
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getUser();
+  const user = data.user;
+  console.log(
+    "[dashboard-page]",
+    "error=",
+    error ? { name: error.name, message: error.message, status: error.status } : null,
+    "user=",
+    user ? user.id : user,
+  );
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase

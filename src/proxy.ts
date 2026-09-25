@@ -39,8 +39,19 @@ export async function proxy(request: NextRequest) {
   try {
     const { data, error } = await supabase.auth.getUser();
     user = error && error.name !== "AuthSessionMissingError" ? undefined : data.user;
-  } catch {
+    console.log(
+      "[proxy]",
+      path,
+      "cookies=",
+      request.cookies.getAll().map((c) => c.name),
+      "error=",
+      error ? { name: error.name, message: error.message, status: error.status } : null,
+      "user=",
+      user ? user.id : user,
+    );
+  } catch (e) {
     user = undefined;
+    console.log("[proxy]", path, "THROW", e instanceof Error ? e.message : e);
   }
 
   let response: NextResponse;
