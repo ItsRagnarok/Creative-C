@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Fișă client</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — fișă client cu istoric complet</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <a href="clienti.html" class="faint" style="font-size:12.5px;">← Înapoi la Clienți</a>
+
+      <div class="page-head" style="margin-top:10px;">
+        <div style="display:flex; gap:14px; align-items:center;">
+          <div class="p-avatar" style="width:52px;height:52px;font-size:18px; border-radius:14px;">AF</div>
+          <div>
+            <h1>Andreea Fashion Boutique</h1>
+            <p>Client din mai 2025 · sursă: <span class="badge blue">Site</span> · responsabil <b style="color:var(--text);">Alex</b></p>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn ghost">Generează contract</button>
+          <button class="btn ghost">Emite factură</button>
+          <button class="btn primary">+ Notă / interacțiune</button>
+        </div>
+      </div>
+
+      <div class="grid g-4" style="margin-bottom:10px;">
+        <div class="card kpi"><div class="label">Valoare lunară</div><div class="value mono">3.800 lei</div><div class="delta up">client din mai 2025</div></div>
+        <div class="card kpi"><div class="label">Total încasat</div><div class="value mono">19.000 lei</div><div class="delta up">5 facturi plătite</div></div>
+        <div class="card kpi"><div class="label">Proiecte finalizate</div><div class="value">4</div><div class="delta up">1 activ acum</div></div>
+        <div class="card kpi"><div class="label">Satisfacție</div><div class="value">★★★★★</div><div class="delta up">testimonial trimis</div></div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active">Prezentare generală</div>
+        <div class="tab">Istoric interacțiuni</div>
+        <div class="tab">Proiecte (4)</div>
+        <div class="tab">Documente</div>
+        <div class="tab">Facturi</div>
+      </div>
+
+      <div class="grid g-2">
+        <div class="card">
+          <div class="card-title"><h3>Ce a cumpărat</h3></div>
+          <div class="list">
+            <div class="list-row"><span style="flex:1;">Pachet Reels lunar (12 clipuri/lună)</span><span class="badge green">activ</span></div>
+            <div class="list-row"><span style="flex:1;">Sesiune foto produs — one-time</span><span class="badge gray">finalizat</span></div>
+            <div class="list-row"><span style="flex:1;">Rebranding social media</span><span class="badge gray">finalizat</span></div>
+          </div>
+
+          <div class="card-title" style="margin-top:20px;"><h3>Preferințe & note</h3></div>
+          <p style="font-size:13px;">Preferă tonuri calde, fără muzică electronică. Nu vrea fața fondatoarei în cadru — doar produsul și mâini. Livrare preferată: joi, pentru postare vineri. Contact principal: Andreea (WhatsApp), decizii rapide.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><h3>Sursă & achiziție</h3></div>
+          <div class="list">
+            <div class="list-row"><span class="faint" style="flex:1;">Canal</span><span>Formular de contact — site</span></div>
+            <div class="list-row"><span class="faint" style="flex:1;">Prima interacțiune</span><span>2 mai 2025</span></div>
+            <div class="list-row"><span class="faint" style="flex:1;">Apel de strategie</span><span>6 mai 2025, cu Alex</span></div>
+            <div class="list-row"><span class="faint" style="flex:1;">Contract semnat</span><span>10 mai 2025</span></div>
+            <div class="list-row"><span class="faint" style="flex:1;">Pachet</span><span>Reels lunar — Standard</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title"><h2>Istoric complet — cronologic</h2></div>
+      <div class="card">
+        <div class="list">
+          <div class="list-row">
+            <span class="tag mono">azi</span>
+            <span style="flex:1;">Editor a încărcat 4 clipuri noi pentru revizuire (proiect „Reels septembrie”).</span>
+            <span class="faint">Marius</span>
+          </div>
+          <div class="list-row">
+            <span class="tag mono">acum 4 zile</span>
+            <span style="flex:1;">Client a aprobat scenariul lunii pentru septembrie.</span>
+            <span class="faint">Andreea → Alex</span>
+          </div>
+          <div class="list-row">
+            <span class="tag mono">acum 2 săpt.</span>
+            <span style="flex:1;">Factură #2025-0091 emisă și achitată (3.800 lei).</span>
+            <span class="faint">automat</span>
+          </div>
+          <div class="list-row">
+            <span class="tag mono">acum 1 lună</span>
+            <span style="flex:1;">Apel lunar de strategie — discutat extindere spre TikTok.</span>
+            <span class="faint">Alex</span>
+          </div>
+          <div class="list-row">
+            <span class="tag mono">10 mai 2025</span>
+            <span style="flex:1;">Contract de colaborare semnat electronic.</span>
+            <span class="faint">automat</span>
+          </div>
+          <div class="list-row">
+            <span class="tag mono">2 mai 2025</span>
+            <span style="flex:1;">Lead nou — formular de contact de pe site.</span>
+            <span class="faint">automat</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>AppShell.init({active:'clienti', title:'Andreea Fashion Boutique', sub:'Fișă client'});</script>
+</body>
+</html>

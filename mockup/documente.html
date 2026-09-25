@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Documente</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — semnătura electronică e simulată, fără integrare reală</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Documente & Contracte</h1>
+          <p>Template-uri completate automat cu datele clientului + semnătură electronică din link.</p>
+        </div>
+        <button class="btn primary">+ Generează document</button>
+      </div>
+
+      <div class="section-title"><h2>Template-uri de contract</h2></div>
+      <div class="grid g-3" style="margin-bottom:8px;">
+        <div class="card">
+          <div class="card-title"><h3>Acord de colaborare — Standard</h3><span class="tag">v3</span></div>
+          <p style="font-size:12.5px;">Pachet lunar de conținut. Câmpuri auto: nume client, CUI, pachet, valoare, durată, cont bancar.</p>
+          <button class="btn sm ghost" style="width:100%; justify-content:center; margin-top:8px;">Folosește pentru client</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><h3>Acord de colaborare — Proiect unic</h3><span class="tag">v2</span></div>
+          <p style="font-size:12.5px;">Video / foto o singură dată. Câmpuri auto: livrabile, termen predare, avans.</p>
+          <button class="btn sm ghost" style="width:100%; justify-content:center; margin-top:8px;">Folosește pentru client</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><h3>Acord de confidențialitate (NDA)</h3><span class="tag">v1</span></div>
+          <p style="font-size:12.5px;">Pentru clienți din domeniul medical / financiar. Se atașează automat la contract.</p>
+          <button class="btn sm ghost" style="width:100%; justify-content:center; margin-top:8px;">Folosește pentru client</button>
+        </div>
+      </div>
+
+      <div class="section-title"><h2>Documente generate</h2></div>
+      <div class="card" style="padding:0; margin-bottom:24px;">
+        <table class="table">
+          <thead><tr><th>Document</th><th>Client</th><th>Tip</th><th>Semnătură</th><th>Generat</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="p-name">Acord colaborare — Andreea Fashion Boutique.pdf</div></td>
+              <td>Andreea Fashion Boutique</td>
+              <td><span class="tag">Standard</span></td>
+              <td><span class="badge green">● Semnat de ambele părți</span></td>
+              <td class="faint">10 mai 2025</td>
+              <td><button class="btn sm ghost">Deschide</button></td>
+            </tr>
+            <tr>
+              <td><div class="p-name">Acord colaborare — Vlad Marin.pdf</div></td>
+              <td>Vlad Marin</td>
+              <td><span class="tag">Standard</span></td>
+              <td><span class="badge amber">● Trimis, în așteptare</span></td>
+              <td class="faint">acum 2 zile</td>
+              <td><button class="btn sm ghost">Retrimite link</button></td>
+            </tr>
+            <tr>
+              <td><div class="p-name">Ofertă + contract — Popescu Dental Clinic.pdf</div></td>
+              <td>Popescu Dental Clinic</td>
+              <td><span class="tag">Proiect unic</span></td>
+              <td><span class="badge gray">● Ciornă — nesemnat</span></td>
+              <td class="faint">acum 3 zile</td>
+              <td><button class="btn sm ghost">Editează</button></td>
+            </tr>
+            <tr>
+              <td><div class="p-name">NDA — Clinica Vita Med.pdf</div></td>
+              <td>Clinica Vita Med</td>
+              <td><span class="tag">NDA</span></td>
+              <td><span class="badge green">● Semnat de ambele părți</span></td>
+              <td class="faint">ian. 2024</td>
+              <td><button class="btn sm ghost">Deschide</button></td>
+            </tr>
+            <tr>
+              <td><div class="p-name">Acord colaborare — Grup Auto Service.pdf</div></td>
+              <td>Grup Auto Service</td>
+              <td><span class="tag">Proiect unic</span></td>
+              <td><span class="badge red">● Expirat — retrimite</span></td>
+              <td class="faint">acum 3 săpt.</td>
+              <td><button class="btn sm ghost">Retrimite link</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid g-2">
+        <div class="card">
+          <div class="card-title"><h3>Cum funcționează semnătura electronică</h3></div>
+          <div class="list">
+            <div class="list-row"><span class="tag mono">1</span><span>Alegi template-ul, câmpurile se completează automat din fișa clientului.</span></div>
+            <div class="list-row"><span class="tag mono">2</span><span>Clientul primește un link unic — deschide, citește, semnează cu degetul/mouse-ul.</span></div>
+            <div class="list-row"><span class="tag mono">3</span><span>Documentul semnat se salvează automat la dosarul clientului. Fără print, scan sau email.</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><h3>Stocare centralizată</h3><span class="hint">orice document, în &lt;10 secunde</span></div>
+          <div class="search" style="max-width:none; margin-bottom:12px;">🔍 <span>ex: „NDA Vita Med” sau „contract mai 2025”</span></div>
+          <p style="font-size:12.5px;">Toate documentele sunt indexate după client, tip și dată — căutare instant, fără de căutat prin email sau foldere separate.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>AppShell.init({active:'documente', title:'Documente & Contracte', sub:'Business'});</script>
+</body>
+</html>

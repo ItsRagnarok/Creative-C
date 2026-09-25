@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Clienți</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — date fictive · click pe un rând deschide fișa clientului</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Clienți</h1>
+          <p>32 clienți · istoric complet, sursă, status și proiecte legate.</p>
+        </div>
+        <button class="btn primary">+ Client nou</button>
+      </div>
+
+      <div class="card" style="margin-bottom:18px; display:flex; gap:10px; flex-wrap:wrap; padding:14px 18px;">
+        <div class="search" style="max-width:260px;">🔍 <span>Caută client…</span></div>
+        <span class="tag">Status: Toate</span>
+        <span class="tag">Sursă: Toate</span>
+        <span class="tag">Responsabil: Toți</span>
+        <span class="tag" style="margin-left:auto;">32 rezultate</span>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <table class="table">
+          <thead><tr>
+            <th>Client</th><th>Sursă</th><th>Status</th><th>Proiect activ</th><th>Valoare/lună</th><th>Responsabil</th><th>Ultima activitate</th>
+          </tr></thead>
+          <tbody>
+            <tr class="row-link" onclick="location.href='client-detaliu.html'">
+              <td><div class="person"><div class="p-avatar">AF</div><div><div class="p-name">Andreea Fashion Boutique</div><div class="p-sub">client din mai 2025</div></div></div></td>
+              <td><span class="badge blue">Site</span></td>
+              <td><span class="badge green">Activ</span></td>
+              <td>Reels lunare — septembrie</td>
+              <td class="mono">3.800 lei</td>
+              <td><div class="p-avatar" style="width:26px;height:26px;font-size:10px;">M</div></td>
+              <td class="faint">acum 4 ore</td>
+            </tr>
+            <tr class="row-link" onclick="location.href='client-detaliu.html'">
+              <td><div class="person"><div class="p-avatar">CV</div><div><div class="p-name">Clinica Vita Med</div><div class="p-sub">client din ian. 2024</div></div></div></td>
+              <td><span class="tag">Recomandare</span></td>
+              <td><span class="badge green">Activ</span></td>
+              <td>Conținut social — recurent</td>
+              <td class="mono">5.200 lei</td>
+              <td><div class="p-avatar" style="width:26px;height:26px;font-size:10px;">M</div></td>
+              <td class="faint">ieri</td>
+            </tr>
+            <tr class="row-link" onclick="location.href='client-detaliu.html'">
+              <td><div class="person"><div class="p-avatar">GA</div><div><div class="p-name">Grup Auto Service</div><div class="p-sub">client din mar. 2025</div></div></div></td>
+              <td><span class="badge gray">Andy</span></td>
+              <td><span class="badge amber">Proiect în lucru</span></td>
+              <td>Video prezentare service</td>
+              <td class="mono">2.400 lei</td>
+              <td><div class="p-avatar" style="width:26px;height:26px;font-size:10px;">A</div></td>
+              <td class="faint">acum 2 zile</td>
+            </tr>
+            <tr class="row-link" onclick="location.href='client-detaliu.html'">
+              <td><div class="person"><div class="p-avatar">BC</div><div><div class="p-name">Byte Café</div><div class="p-sub">client din aug. 2025</div></div></div></td>
+              <td><span class="badge gray">Social media</span></td>
+              <td><span class="badge gray">Inactiv</span></td>
+              <td>—</td>
+              <td class="mono faint">—</td>
+              <td><div class="p-avatar" style="width:26px;height:26px;font-size:10px;">S</div></td>
+              <td class="faint">acum 3 săpt.</td>
+            </tr>
+            <tr class="row-link" onclick="location.href='client-detaliu.html'">
+              <td><div class="person"><div class="p-avatar">VM</div><div><div class="p-name">Vlad Marin — coach online</div><div class="p-sub">client din iun. 2025</div></div></div></td>
+              <td><span class="badge gray">Stef</span></td>
+              <td><span class="badge red">Factură restantă</span></td>
+              <td>Pachet clipuri lunar x20</td>
+              <td class="mono">4.500 lei</td>
+              <td><div class="p-avatar" style="width:26px;height:26px;font-size:10px;">S</div></td>
+              <td class="faint">acum 6 zile</td>
+            </tr>
+            <tr class="row-link" onclick="location.href='client-detaliu.html'">
+              <td><div class="person"><div class="p-avatar">PD</div><div><div class="p-name">Popescu Dental Clinic</div><div class="p-sub">lead — necontractat</div></div></div></td>
+              <td><span class="badge gray">Andy</span></td>
+              <td><span class="badge amber">În discuție</span></td>
+              <td>—</td>
+              <td class="mono faint">ofertă: 3.200 lei</td>
+              <td><div class="p-avatar" style="width:26px;height:26px;font-size:10px;">A</div></td>
+              <td class="faint">acum 3 zile</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>AppShell.init({active:'clienti', title:'Clienți', sub:'Vânzări'});</script>
+</body>
+</html>

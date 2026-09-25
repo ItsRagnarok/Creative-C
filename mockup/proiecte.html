@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Proiecte</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — board Kanban proiecte, legat automat de client și task-uri</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Proiecte</h1>
+          <p>Fiecare proiect e legat automat de client → task-uri → fișiere. Alex vede tot dintr-un loc.</p>
+        </div>
+        <button class="btn primary">+ Proiect nou</button>
+      </div>
+
+      <div class="card">
+        <div class="kanban">
+          <div class="kanban-col">
+            <div class="kanban-col-head"><h4>De pornit</h4><span class="kanban-count">2</span></div>
+            <div class="kcard">
+              <div class="title">Popescu Dental — video prezentare</div>
+              <div class="faint" style="font-size:12px;">client: Popescu Dental Clinic</div>
+              <div class="meta"><span class="badge gray">fără deadline</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">A</div></div>
+            </div>
+            <div class="kcard">
+              <div class="title">Casa Verde — pachet lansare</div>
+              <div class="faint" style="font-size:12px;">client: Casa Verde Imobiliare</div>
+              <div class="meta"><span class="badge gray">fără deadline</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">A</div></div>
+            </div>
+          </div>
+
+          <div class="kanban-col">
+            <div class="kanban-col-head"><h4>În filmare</h4><span class="kanban-count">1</span></div>
+            <div class="kcard">
+              <div class="title">Grup Auto — video service</div>
+              <div class="faint" style="font-size:12px;">client: Grup Auto Service</div>
+              <div style="margin-top:8px;"><div class="progress"><span style="width:20%;"></span></div></div>
+              <div class="meta"><span class="badge amber">deadline 28 sept.</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">M</div></div>
+            </div>
+          </div>
+
+          <div class="kanban-col">
+            <div class="kanban-col-head"><h4>În montaj</h4><span class="kanban-count">3</span></div>
+            <div class="kcard">
+              <div class="title">Reels septembrie</div>
+              <div class="faint" style="font-size:12px;">client: Andreea Fashion Boutique</div>
+              <div style="margin-top:8px;"><div class="progress"><span style="width:65%;"></span></div></div>
+              <div class="meta"><span class="badge amber">deadline 3 oct.</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">M</div></div>
+            </div>
+            <div class="kcard">
+              <div class="title">Conținut social — septembrie</div>
+              <div class="faint" style="font-size:12px;">client: Clinica Vita Med</div>
+              <div style="margin-top:8px;"><div class="progress"><span style="width:80%;"></span></div></div>
+              <div class="meta"><span class="badge amber">deadline 30 sept.</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">S</div></div>
+            </div>
+            <div class="kcard">
+              <div class="title">Pachet clipuri x20</div>
+              <div class="faint" style="font-size:12px;">client: Vlad Marin</div>
+              <div style="margin-top:8px;"><div class="progress"><span style="width:40%;"></span></div></div>
+              <div class="meta"><span class="badge red">întârziat 2 zile</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">M</div></div>
+            </div>
+          </div>
+
+          <div class="kanban-col">
+            <div class="kanban-col-head"><h4>În revizuire client</h4><span class="kanban-count">1</span></div>
+            <div class="kcard">
+              <div class="title">Rebranding social — draft final</div>
+              <div class="faint" style="font-size:12px;">client: Byte Café</div>
+              <div class="meta"><span class="badge blue">așteaptă aprobare</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">S</div></div>
+            </div>
+          </div>
+
+          <div class="kanban-col">
+            <div class="kanban-col-head"><h4>Finalizat</h4><span class="kanban-count">12</span></div>
+            <div class="kcard">
+              <div class="title">Conținut social — august</div>
+              <div class="faint" style="font-size:12px;">client: Clinica Vita Med</div>
+              <div class="meta"><span class="badge green">predat 30 aug.</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">S</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title"><h2>Reels septembrie — Andreea Fashion Boutique</h2></div>
+      <div class="grid g-2">
+        <div class="card">
+          <div class="card-title"><h3>Task-uri</h3></div>
+          <div class="list">
+            <div class="list-row"><input type="checkbox" checked style="width:auto;"><span style="flex:1; text-decoration:line-through; color:var(--text-faint);">Scenariu aprobat de client</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">A</div></div>
+            <div class="list-row"><input type="checkbox" checked style="width:auto;"><span style="flex:1; text-decoration:line-through; color:var(--text-faint);">Filmare produse — 4 clipuri</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">M</div></div>
+            <div class="list-row"><input type="checkbox" style="width:auto;"><span style="flex:1;">Montaj final 4 clipuri</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">M</div></div>
+            <div class="list-row"><input type="checkbox" style="width:auto;"><span style="flex:1;">Trimis spre aprobare client</span><span class="faint">-</span></div>
+            <div class="list-row"><input type="checkbox" style="width:auto;"><span style="flex:1;">Livrare finală + factură</span><span class="faint">-</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><h3>Fișiere proiect</h3><span class="hint">atașate direct, nu în Drive separat</span></div>
+          <div class="list">
+            <div class="list-row"><span class="ic">📁</span><span style="flex:1;">Drive — filmări brute (12 sept.)</span><button class="btn sm ghost">Deschide</button></div>
+            <div class="list-row"><span class="ic">🎬</span><span style="flex:1;">clip_01_reels_sept.mp4</span><span class="badge green">complet</span></div>
+            <div class="list-row"><span class="ic">🎬</span><span style="flex:1;">clip_02_reels_sept.mp4</span><span class="badge blue">în revizuire</span></div>
+            <div class="list-row"><span class="ic">📄</span><span style="flex:1;">Scenariu_septembrie.pdf</span><button class="btn sm ghost">Deschide</button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>AppShell.init({active:'proiecte', title:'Proiecte', sub:'Livrare'});</script>
+</body>
+</html>

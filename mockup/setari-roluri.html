@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Roluri & securitate</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — vizibil doar rangului Admin</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Setări & Roluri</h1>
+          <p>Ce vede și ce poate face fiecare rang, plus utilizatorii și securitatea contului.</p>
+        </div>
+        <button class="btn primary">+ Invită utilizator</button>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active">Roluri & permisiuni</div>
+        <div class="tab">Utilizatori</div>
+        <div class="tab">Securitate</div>
+        <div class="tab">Integrări</div>
+      </div>
+
+      <div class="card" style="padding:0; margin-bottom:26px; overflow-x:auto;">
+        <table class="table perm-grid">
+          <thead><tr>
+            <th>Modul</th><th>Admin</th><th>Manager</th><th>Vânzări<br><span class="faint" style="font-weight:400; font-size:10.5px;">(Andy/Stef)</span></th><th>Editor</th><th>Client<br><span class="faint" style="font-weight:400; font-size:10.5px;">(portal separat)</span></th>
+          </tr></thead>
+          <tbody>
+            <tr><td>Pipeline & Clienți</td><td><span class="check yes">✓</span></td><td><span class="check yes">✓</span></td><td><span class="check yes">✓</span></td><td><span class="check no">—</span></td><td><span class="check no">—</span></td></tr>
+            <tr><td>Documente & Contracte</td><td><span class="check yes">✓</span></td><td><span class="check yes">✓</span></td><td><span class="check partial">•</span></td><td><span class="check no">—</span></td><td><span class="check partial">•</span></td></tr>
+            <tr><td>Financiar (facturi & profit)</td><td><span class="check yes">✓</span></td><td><span class="check partial">•</span></td><td><span class="check no">—</span></td><td><span class="check no">—</span></td><td><span class="check partial">•</span></td></tr>
+            <tr><td>Proiecte</td><td><span class="check yes">✓</span></td><td><span class="check yes">✓</span></td><td><span class="check partial">•</span></td><td><span class="check partial">•</span></td><td><span class="check partial">•</span></td></tr>
+            <tr><td>Echipă (monitorizare)</td><td><span class="check yes">✓</span></td><td><span class="check yes">✓</span></td><td><span class="check no">—</span></td><td><span class="check no">—</span></td><td><span class="check no">—</span></td></tr>
+            <tr><td>Canale editori</td><td><span class="check yes">✓</span></td><td><span class="check yes">✓</span></td><td><span class="check no">—</span></td><td><span class="check partial">•</span></td><td><span class="check no">—</span></td></tr>
+            <tr><td>Programări</td><td><span class="check yes">✓</span></td><td><span class="check yes">✓</span></td><td><span class="check yes">✓</span></td><td><span class="check no">—</span></td><td><span class="check partial">•</span></td></tr>
+            <tr><td>Automatizări</td><td><span class="check yes">✓</span></td><td><span class="check yes">✓</span></td><td><span class="check no">—</span></td><td><span class="check no">—</span></td><td><span class="check no">—</span></td></tr>
+            <tr><td>Setări & Roluri</td><td><span class="check yes">✓</span></td><td><span class="check no">—</span></td><td><span class="check no">—</span></td><td><span class="check no">—</span></td><td><span class="check no">—</span></td></tr>
+          </tbody>
+        </table>
+        <div style="display:flex; gap:18px; padding:14px 18px; border-top:1px solid var(--border); font-size:11.5px;" class="faint">
+          <span><span class="check yes" style="margin-right:6px;">✓</span>acces complet</span>
+          <span><span class="check partial" style="margin-right:6px;">•</span>acces limitat (doar ce e al lui)</span>
+          <span><span class="check no" style="margin-right:6px;">—</span>fără acces</span>
+        </div>
+      </div>
+
+      <div class="section-title"><h2>Utilizatori</h2></div>
+      <div class="card" style="padding:0; margin-bottom:26px;">
+        <table class="table">
+          <thead><tr><th>Nume</th><th>Email</th><th>Rang</th><th>2FA</th><th>Ultima autentificare</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><div class="person"><div class="p-avatar">AX</div><span class="p-name">Alex</span></div></td><td class="faint mono">alex@creative-c.ro</td><td><span class="tag">Admin</span></td><td><span class="badge green">activ</span></td><td class="faint">acum 12 min</td><td><button class="btn sm ghost">Editează</button></td></tr>
+            <tr><td><div class="person"><div class="p-avatar">M</div><span class="p-name">Manager (tu)</span></div></td><td class="faint mono">manager@creative-c.ro</td><td><span class="tag">Manager</span></td><td><span class="badge green">activ</span></td><td class="faint">acum 1 oră</td><td><button class="btn sm ghost">Editează</button></td></tr>
+            <tr><td><div class="person"><div class="p-avatar">A</div><span class="p-name">Andy</span></div></td><td class="faint mono">andy@creative-c.ro</td><td><span class="tag">Vânzări</span></td><td><span class="badge green">activ</span></td><td class="faint">azi, 09:20</td><td><button class="btn sm ghost">Editează</button></td></tr>
+            <tr><td><div class="person"><div class="p-avatar">S</div><span class="p-name">Stef</span></div></td><td class="faint mono">stef@creative-c.ro</td><td><span class="tag">Vânzări</span></td><td><span class="badge amber">neactivat</span></td><td class="faint">ieri</td><td><button class="btn sm ghost">Editează</button></td></tr>
+            <tr><td><div class="person"><div class="p-avatar">M</div><span class="p-name">Marius</span></div></td><td class="faint mono">marius@creative-c.ro</td><td><span class="tag">Editor</span></td><td><span class="badge green">activ</span></td><td class="faint">azi, 16:41</td><td><button class="btn sm ghost">Editează</button></td></tr>
+            <tr><td><div class="person"><div class="p-avatar">S</div><span class="p-name">Sorin</span></div></td><td class="faint mono">sorin@creative-c.ro</td><td><span class="tag">Editor</span></td><td><span class="badge green">activ</span></td><td class="faint">azi, 11:03</td><td><button class="btn sm ghost">Editează</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-title"><h2>Securitate</h2></div>
+      <div class="grid g-2">
+        <div class="card">
+          <div class="list">
+            <div class="list-row"><span style="flex:1;">Autentificare în doi factori obligatorie (toate rangurile interne)</span><div class="switch on"></div></div>
+            <div class="list-row"><span style="flex:1;">Expirare sesiune după 30 min de inactivitate</span><div class="switch on"></div></div>
+            <div class="list-row"><span style="flex:1;">Blocare cont după 5 încercări eșuate</span><div class="switch on"></div></div>
+            <div class="list-row"><span style="flex:1;">Restricție acces doar din România (IP allowlist opțional)</span><div class="switch"></div></div>
+            <div class="list-row"><span style="flex:1;">Notificare pe email la autentificare din dispozitiv nou</span><div class="switch on"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><h3>Jurnal de audit (ultimele acțiuni)</h3></div>
+          <div class="list">
+            <div class="list-row"><span class="tag mono">azi 16:42</span><span style="flex:1;">Alex a emis factura #2025-0122</span></div>
+            <div class="list-row"><span class="tag mono">azi 14:10</span><span style="flex:1;">Manager a bifat „video complet” pentru Marius</span></div>
+            <div class="list-row"><span class="tag mono">ieri 18:02</span><span style="flex:1;">Stef a trimis contractul către Popescu Dental</span></div>
+            <div class="list-row"><span class="tag mono">ieri 09:30</span><span style="flex:1;">Autentificare eșuată (x2) — cont Sorin</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>AppShell.init({active:'setari', title:'Setări & Roluri', sub:'Sistem'});</script>
+</body>
+</html>
