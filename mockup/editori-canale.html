@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Canale editori</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — canale gen Discord, un canal per editor, cu bord de status live</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Canale editori</h1>
+          <p>Fiecare editor are propriul canal — își pune acolo clipurile (Drive + dată + nr. clip), tu descarci direct de acolo.</p>
+        </div>
+      </div>
+
+      <div class="chat-shell">
+        <div class="chan-list">
+          <div class="nav-label" style="padding:4px 10px;">Canale editori</div>
+          <div class="chan-item active"><span class="status-dot" style="background:var(--accent-2);"></span> marius-editor <span class="chan-badge">2</span></div>
+          <div class="chan-item"><span class="status-dot" style="background:var(--accent-2);"></span> sorin-editor</div>
+          <div class="chan-item"><span class="status-dot" style="background:var(--text-faint);"></span> ioana-editor <span class="faint" style="margin-left:auto; font-size:10px;">offline</span></div>
+          <div class="nav-label" style="padding:14px 10px 4px;">Automate</div>
+          <div class="chan-item">🔔 reminder-deadline</div>
+          <div class="chan-item">📣 anunțuri-generale</div>
+        </div>
+
+        <div class="chat-main">
+          <div class="chat-head">
+            <div>
+              <div style="font-weight:700;">#marius-editor</div>
+              <div class="faint" style="font-size:12px;">Deadline clipuri: <b style="color:var(--text-muted);">luni–vineri, ora 17:00</b> · reminder automat la 16:00</div>
+            </div>
+            <span class="badge green">● video complet — azi</span>
+          </div>
+          <div class="chat-msgs">
+
+            <div class="msg">
+              <div class="p-avatar">CC</div>
+              <div>
+                <div class="p-sub"><b style="color:var(--text-muted);">Creative C Bot</b> · 16:00</div>
+                <div class="bubble">⏰ Reminder automat: deadline-ul de azi pentru clipuri e la <b>17:00</b>. Mai ai de urcat clipurile rămase?</div>
+              </div>
+            </div>
+
+            <div class="msg">
+              <div class="p-avatar">M</div>
+              <div>
+                <div class="p-sub"><b style="color:var(--text-muted);">Marius</b> · 16:41</div>
+                <div class="bubble">
+                  Gata, 4 clipuri urcate pentru Andreea Fashion.
+                  <div class="file-chip">📁 Drive — <span class="mono">12_sept_clip_01-04</span> <button class="btn sm ghost" style="margin-left:auto; padding:3px 8px;">Descarcă</button></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="msg">
+              <div class="p-avatar">CC</div>
+              <div>
+                <div class="p-sub"><b style="color:var(--text-muted);">Creative C Bot</b> · 16:42</div>
+                <div class="bubble">📦 Rămân <b style="color:var(--warning);">10 clipuri</b> nealocate în stocul lui Marius pentru luna asta. Notificare trimisă către manager ca să anunțe programarea unei filmări noi.</div>
+              </div>
+            </div>
+
+            <div class="msg">
+              <div class="p-avatar">M</div>
+              <div>
+                <div class="p-sub"><b style="color:var(--text-muted);">Marius</b> · azi, 09:12</div>
+                <div class="bubble">
+                  Filmările de ieri pentru Grup Auto:
+                  <div class="file-chip">📁 Drive — <span class="mono">27_sept_clip_01-06</span> <button class="btn sm ghost" style="margin-left:auto; padding:3px 8px;">Descarcă</button></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="chat-input">
+            <input placeholder="Scrie un mesaj în #marius-editor…">
+            <button class="btn primary sm">Trimite</button>
+          </div>
+        </div>
+
+        <div class="chat-side">
+          <h4>Status zilnic — bifat de manager</h4>
+          <div class="list">
+            <div class="list-row">
+              <div style="flex:1;"><div class="p-name" style="font-size:12.5px;">Marius</div><div class="faint" style="font-size:11px;">azi</div></div>
+              <span class="badge green">Video complet</span>
+            </div>
+            <div class="list-row">
+              <div style="flex:1;"><div class="p-name" style="font-size:12.5px;">Sorin</div><div class="faint" style="font-size:11px;">azi</div></div>
+              <span class="badge blue">În revizuire</span>
+            </div>
+            <div class="list-row">
+              <div style="flex:1;"><div class="p-name" style="font-size:12.5px;">Ioana</div><div class="faint" style="font-size:11px;">azi</div></div>
+              <span class="badge gray">Neactualizat</span>
+            </div>
+          </div>
+
+          <h4 style="margin-top:22px;">Bifează pentru Marius</h4>
+          <div class="field"><select><option>Selectează ziua</option><option selected>Azi, 25 sept.</option></select></div>
+          <div style="display:flex; gap:8px; margin-bottom:16px;">
+            <button class="btn sm" style="flex:1; background:var(--accent-2-soft); color:var(--accent-2); border-color:transparent;">✓ Video complet</button>
+            <button class="btn sm ghost" style="flex:1;">◔ În revizuire</button>
+          </div>
+
+          <h4>Stoc clipuri lună curentă</h4>
+          <div class="card" style="padding:12px; background:var(--surface);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="faint" style="font-size:12px;">Rămase din pachet</span>
+              <span class="mono" style="font-weight:700; color:var(--warning);">10 / 40</span>
+            </div>
+            <div class="progress" style="margin-top:8px;"><span style="width:25%; background:var(--warning);"></span></div>
+            <div class="faint" style="font-size:11px; margin-top:8px;">Sub 10 → alertă automată către manager pentru a programa filmarea următoare.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>AppShell.init({active:'editori', title:'Canale editori', sub:'Livrare'});</script>
+</body>
+</html>

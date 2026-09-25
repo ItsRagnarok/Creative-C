@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Automatizări</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — regulile care economisesc timp, comutabile individual</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Automatizări</h1>
+          <p>Reguli „dacă se întâmplă X → CRM-ul face automat Y”.</p>
+        </div>
+        <button class="btn primary">+ Regulă nouă</button>
+      </div>
+
+      <div class="list" style="display:flex; flex-direction:column; gap:12px;">
+
+        <div class="card" style="display:flex; align-items:center; gap:16px;">
+          <div class="switch on"></div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:13.5px;">Lead nou de pe site → intră în CRM → email de bun venit</div>
+            <div class="faint" style="font-size:12px;">Trigger: formular de contact trimis · Acțiune: card nou în Pipeline (Nou) + email automat către client</div>
+          </div>
+          <span class="badge green">activă</span>
+        </div>
+
+        <div class="card" style="display:flex; align-items:center; gap:16px;">
+          <div class="switch on"></div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:13.5px;">Nu a răspuns de 3 zile → notifică responsabilul</div>
+            <div class="faint" style="font-size:12px;">Trigger: fără activitate 3 zile pe un lead „În discuție” · Acțiune: notificare + task follow-up</div>
+          </div>
+          <span class="badge green">activă</span>
+        </div>
+
+        <div class="card" style="display:flex; align-items:center; gap:16px;">
+          <div class="switch on"></div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:13.5px;">Proiect marcat „finalizat” → cerere de review/testimonial</div>
+            <div class="faint" style="font-size:12px;">Trigger: proiect mutat pe Finalizat · Acțiune: email către client cu link de recenzie, la 2 zile după livrare</div>
+          </div>
+          <span class="badge green">activă</span>
+        </div>
+
+        <div class="card" style="display:flex; align-items:center; gap:16px;">
+          <div class="switch on"></div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:13.5px;">Factură restantă de 7 zile → reminder automat</div>
+            <div class="faint" style="font-size:12px;">Trigger: factură neplătită 7 zile · Acțiune: email reminder către client + alertă internă</div>
+          </div>
+          <span class="badge green">activă</span>
+        </div>
+
+        <div class="card" style="display:flex; align-items:center; gap:16px;">
+          <div class="switch on"></div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:13.5px;">Rezervare booking → lead nou în pipeline</div>
+            <div class="faint" style="font-size:12px;">Trigger: apel de strategie confirmat · Acțiune: card nou (sursă „Booking site”) + notificare Andy/Stef</div>
+          </div>
+          <span class="badge green">activă</span>
+        </div>
+
+        <div class="card" style="display:flex; align-items:center; gap:16px;">
+          <div class="switch on"></div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:13.5px;">Stoc clipuri sub 10 → alertă manager</div>
+            <div class="faint" style="font-size:12px;">Trigger: clipuri rămase din pachetul lunar &lt; 10 · Acțiune: notificare către manager pentru programare filmare nouă</div>
+          </div>
+          <span class="badge green">activă</span>
+        </div>
+
+        <div class="card" style="display:flex; align-items:center; gap:16px;">
+          <div class="switch on"></div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:13.5px;">Reminder zilnic deadline editori</div>
+            <div class="faint" style="font-size:12px;">Trigger: luni–vineri, ora 16:00 · Acțiune: mesaj în canalul fiecărui editor — deadline clipuri la 17:00</div>
+          </div>
+          <span class="badge green">activă</span>
+        </div>
+
+        <div class="card" style="display:flex; align-items:center; gap:16px;">
+          <div class="switch"></div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:13.5px;">Contract nesemnat de 5 zile → reminder + escaladare</div>
+            <div class="faint" style="font-size:12px;">Trigger: document trimis, nesemnat 5 zile · Acțiune: reminder client, apoi alertă către Alex la 7 zile</div>
+          </div>
+          <span class="badge gray">dezactivată</span>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>AppShell.init({active:'automatizari', title:'Automatizări', sub:'Business'});</script>
+</body>
+</html>

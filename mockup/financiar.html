@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Financiar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — sume fictive · pagină vizibilă doar pentru Admin/Manager</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Financiar</h1>
+          <p>Facturare, plăți și profit real — totul din același loc unde ai oferta acceptată.</p>
+        </div>
+        <button class="btn primary">+ Emite factură</button>
+      </div>
+
+      <div class="grid g-4" style="margin-bottom:24px;">
+        <div class="card kpi"><div class="label">Venit brut (sept.)</div><div class="value mono">42.300 lei</div><div class="delta up">▲ 8% vs. august</div></div>
+        <div class="card kpi"><div class="label">Costuri echipă</div><div class="value mono">16.900 lei</div><div class="delta down">editori + colaboratori</div></div>
+        <div class="card kpi"><div class="label">Profit real</div><div class="value mono" style="color:var(--accent-2);">25.400 lei</div><div class="delta up">marjă 60%</div></div>
+        <div class="card kpi"><div class="label">Restanțe la plată</div><div class="value" style="color:var(--danger);">6.700 lei</div><div class="delta down">2 facturi întârziate</div></div>
+      </div>
+
+      <div class="section-title"><h2>Facturi</h2></div>
+      <div class="card" style="padding:0; margin-bottom:26px;">
+        <table class="table">
+          <thead><tr><th>Factură</th><th>Client</th><th>Sumă</th><th>Emisă</th><th>Scadență</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="mono">#2025-0114</td><td>Andreea Fashion Boutique</td><td class="mono">3.800 lei</td>
+              <td class="faint">1 sept.</td><td class="faint">15 sept.</td>
+              <td><span class="badge green">Plătită</span></td><td><button class="btn sm ghost">Vezi PDF</button></td>
+            </tr>
+            <tr>
+              <td class="mono">#2025-0115</td><td>Clinica Vita Med</td><td class="mono">5.200 lei</td>
+              <td class="faint">2 sept.</td><td class="faint">16 sept.</td>
+              <td><span class="badge green">Plătită</span></td><td><button class="btn sm ghost">Vezi PDF</button></td>
+            </tr>
+            <tr>
+              <td class="mono">#2025-0119</td><td>Vlad Marin</td><td class="mono">4.500 lei</td>
+              <td class="faint">10 sept.</td><td class="faint">17 sept.</td>
+              <td><span class="badge red">Restantă — 8 zile</span></td><td><button class="btn sm ghost">Trimite reminder</button></td>
+            </tr>
+            <tr>
+              <td class="mono">#2025-0121</td><td>Grup Auto Service</td><td class="mono">2.200 lei</td>
+              <td class="faint">18 sept.</td><td class="faint">25 sept.</td>
+              <td><span class="badge amber">Scadentă în 2 zile</span></td><td><button class="btn sm ghost">Trimite reminder</button></td>
+            </tr>
+            <tr>
+              <td class="mono">#2025-0122</td><td>Byte Café</td><td class="mono">1.500 lei</td>
+              <td class="faint">20 sept.</td><td class="faint">27 sept.</td>
+              <td><span class="badge gray">Emisă</span></td><td><button class="btn sm ghost">Vezi PDF</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid g-2">
+        <div class="card">
+          <div class="card-title"><h3>Reminder automat plăți</h3><span class="hint">regulă: 7 zile restanță</span></div>
+          <div class="list">
+            <div class="list-row"><span class="tag mono">ziua 1</span><span style="flex:1;">Factură scadentă → email „Reamintire prietenoasă”</span></div>
+            <div class="list-row"><span class="tag mono">ziua 7</span><span style="flex:1;">Restantă → email + notificare internă către responsabil</span></div>
+            <div class="list-row"><span class="tag mono">ziua 14</span><span style="flex:1;">Restantă persistentă → alertă către Alex, sugestie suspendare livrare</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><h3>Profit lunar (ultimele 6 luni)</h3></div>
+          <div style="display:flex; align-items:flex-end; gap:14px; height:150px; padding:0 6px 4px;">
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <div style="width:100%; height:68px; border-radius:6px 6px 0 0; background:var(--surface-3);"></div><span class="faint mono" style="font-size:10.5px;">Apr</span>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <div style="width:100%; height:82px; border-radius:6px 6px 0 0; background:var(--surface-3);"></div><span class="faint mono" style="font-size:10.5px;">Mai</span>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <div style="width:100%; height:74px; border-radius:6px 6px 0 0; background:var(--surface-3);"></div><span class="faint mono" style="font-size:10.5px;">Iun</span>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <div style="width:100%; height:96px; border-radius:6px 6px 0 0; background:var(--surface-3);"></div><span class="faint mono" style="font-size:10.5px;">Iul</span>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <div style="width:100%; height:110px; border-radius:6px 6px 0 0; background:var(--surface-3);"></div><span class="faint mono" style="font-size:10.5px;">Aug</span>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <div style="width:100%; height:132px; border-radius:6px 6px 0 0; background:linear-gradient(180deg, var(--accent), var(--accent-2));"></div><span class="mono" style="font-size:10.5px;">Sept</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title"><h2>Detaliu costuri — vizibil doar Admin</h2></div>
+      <div class="card" data-roles="admin">
+        <div class="list">
+          <div class="list-row"><span style="flex:1;">Marius — editor video</span><span class="faint">18 clipuri livrate</span><span class="mono" style="width:110px; text-align:right;">6.400 lei</span></div>
+          <div class="list-row"><span style="flex:1;">Sorin — editor video</span><span class="faint">14 clipuri livrate</span><span class="mono" style="width:110px; text-align:right;">5.200 lei</span></div>
+          <div class="list-row"><span style="flex:1;">Andy — comision vânzări</span><span class="faint">3 contracte noi</span><span class="mono" style="width:110px; text-align:right;">3.100 lei</span></div>
+          <div class="list-row"><span style="flex:1;">Stef — comision vânzări</span><span class="faint">2 contracte noi</span><span class="mono" style="width:110px; text-align:right;">2.200 lei</span></div>
+        </div>
+      </div>
+      <div class="empty-note" data-roles="manager" style="display:none;">Detaliul per-colaborator al costurilor este vizibil doar rangului Admin. Managerul vede totalul agregat din cardurile de sus.</div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>AppShell.init({active:'financiar', title:'Financiar', sub:'Business'});</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Programări</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — booking integrat cu pipeline-ul de lead-uri</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Programări</h1>
+          <p>Calendar de rezervare pentru apelul de strategie — lead-ul intră automat în pipeline la rezervare.</p>
+        </div>
+        <button class="btn ghost">Copiază link public de booking</button>
+      </div>
+
+      <div class="grid g-2" style="align-items:start;">
+        <div class="card">
+          <div class="card-title"><h3>Săptămâna 22–26 septembrie</h3><span class="hint">sincronizat cu Google Calendar</span></div>
+
+          <div class="grid" style="grid-template-columns:repeat(5,1fr); gap:8px;">
+            <div>
+              <div class="faint" style="text-align:center; font-size:11px; margin-bottom:8px;">LUNI 22</div>
+              <div class="kcard" style="margin-bottom:8px; padding:8px 10px;"><div style="font-size:11.5px; font-weight:700;">10:00</div><div class="faint" style="font-size:11px;">Apel — Popescu Dental</div></div>
+              <div class="kcard" style="padding:8px 10px; opacity:.4;"><div style="font-size:11.5px;">14:00</div><div class="faint" style="font-size:11px;">liber</div></div>
+            </div>
+            <div>
+              <div class="faint" style="text-align:center; font-size:11px; margin-bottom:8px;">MARȚI 23</div>
+              <div class="kcard" style="margin-bottom:8px; padding:8px 10px;"><div style="font-size:11.5px; font-weight:700;">14:00</div><div class="faint" style="font-size:11px;">Andy — follow-up</div></div>
+            </div>
+            <div>
+              <div class="faint" style="text-align:center; font-size:11px; margin-bottom:8px;">MIERCURI 24</div>
+              <div class="kcard" style="padding:8px 10px; opacity:.4;"><div style="font-size:11.5px;">—</div><div class="faint" style="font-size:11px;">liber toată ziua</div></div>
+            </div>
+            <div>
+              <div class="faint" style="text-align:center; font-size:11px; margin-bottom:8px;">JOI 25</div>
+              <div class="kcard" style="margin-bottom:8px; padding:8px 10px; border-color:var(--accent);"><div style="font-size:11.5px; font-weight:700; color:var(--accent-2);">11:30</div><div class="faint" style="font-size:11px;">NOU — Bella Cosmetics</div></div>
+            </div>
+            <div>
+              <div class="faint" style="text-align:center; font-size:11px; margin-bottom:8px;">VINERI 26</div>
+              <div class="kcard" style="padding:8px 10px;"><div style="font-size:11.5px; font-weight:700;">09:00</div><div class="faint" style="font-size:11px;">Stef — apel lunar Vlad Marin</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><h3>Pagina publică de rezervare</h3><span class="hint">ce vede lead-ul</span></div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius); padding:18px; background:var(--bg-soft);">
+            <div class="tag" style="margin-bottom:10px;">creative-c.ro/programeaza</div>
+            <h3 style="font-size:16px;">Apel de strategie — 20 min, gratuit</h3>
+            <p style="font-size:12.5px;">Discutăm obiectivele tale de conținut și cum arată colaborarea.</p>
+            <div class="grid g-3" style="margin:14px 0;">
+              <div class="btn sm ghost" style="justify-content:center;">Joi, 11:30</div>
+              <div class="btn sm ghost" style="justify-content:center;">Joi, 15:00</div>
+              <div class="btn sm ghost" style="justify-content:center;">Vin, 09:30</div>
+            </div>
+            <button class="btn primary" style="width:100%; justify-content:center;">Confirmă programarea</button>
+          </div>
+          <div class="empty-note" style="margin-top:14px; text-align:left;">
+            La confirmare: lead-ul e creat automat în <b style="color:var(--text-muted);">Pipeline → Nou</b>, sursa se salvează „Booking site”, iar Alex/Andy/Stef primesc notificare.
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title"><h2>Reguli de sincronizare</h2></div>
+      <div class="grid g-3">
+        <div class="card"><h3 style="font-size:13.5px;">Fără suprapuneri</h3><p style="font-size:12px;">Calendarul public arată doar sloturile libere din calendarul lui Alex și al lui Andy/Stef simultan.</p></div>
+        <div class="card"><h3 style="font-size:13.5px;">Buffer 15 min</h3><p style="font-size:12px;">Se lasă automat 15 min pauză între două apeluri consecutive.</p></div>
+        <div class="card"><h3 style="font-size:13.5px;">Reminder client</h3><p style="font-size:12px;">Email + SMS cu 1 oră înainte de apelul programat.</p></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>AppShell.init({active:'programari', title:'Programări', sub:'Vânzări'});</script>
+</body>
+</html>

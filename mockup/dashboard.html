@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Pipeline</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — date fictive · schimbă rolul din dreapta sus ca să vezi ce acces are fiecare</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Pipeline & Dashboard</h1>
+          <p>Toate lead-urile active, de la primul contact până la proiect finalizat.</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn ghost">Exportă CSV</button>
+          <button class="btn primary">+ Lead manual</button>
+        </div>
+      </div>
+
+      <div class="grid g-4" style="margin-bottom:24px;">
+        <div class="card kpi">
+          <div class="label">Lead-uri noi (7 zile) <span class="tag">Toate sursele</span></div>
+          <div class="value">18</div>
+          <div class="delta up">▲ 24% față de săpt. trecută</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">Rată de conversie</div>
+          <div class="value">32%</div>
+          <div class="delta up">▲ 3 pp</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">Valoare pipeline activ</div>
+          <div class="value mono">86.400 lei</div>
+          <div class="delta up">▲ 12.100 lei</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">Follow-up-uri întârziate</div>
+          <div class="value" style="color:var(--danger);">5</div>
+          <div class="delta down">necesită acțiune azi</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:26px;">
+        <div class="card-title">
+          <h3>Pipeline lead-uri</h3>
+          <span class="hint">Trage cardurile între coloane · click pe card = fișă client</span>
+        </div>
+
+        <div class="kanban">
+          <div class="kanban-col">
+            <div class="kanban-col-head"><h4>Nou</h4><span class="kanban-count">6</span></div>
+
+            <div class="kcard">
+              <div class="title">Bella Cosmetics SRL</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span class="badge blue">Site</span></div>
+              <div class="meta"><span class="faint">acum 2 ore</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">A</div></div>
+            </div>
+            <div class="kcard">
+              <div class="title">Studio Nord Fitness</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span class="badge violet">Recomandare</span></div>
+              <div class="meta"><span class="faint">acum 5 ore</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">S</div></div>
+            </div>
+            <div class="kcard">
+              <div class="title">Radu Bălan — imobiliare</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span class="badge gray">Social media</span></div>
+              <div class="meta"><span class="faint">ieri</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">A</div></div>
+            </div>
+          </div>
+
+          <div class="kanban-col">
+            <div class="kanban-col-head"><h4>În discuție</h4><span class="kanban-count">4</span></div>
+            <div class="kcard">
+              <div class="title">Popescu Dental Clinic</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span class="badge gray">Andy</span></div>
+              <div class="meta"><span class="mono" style="color:var(--warning);">3 zile fără răspuns</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">A</div></div>
+            </div>
+            <div class="kcard">
+              <div class="title">FreshBox Meal Prep</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span class="badge blue">Site</span></div>
+              <div class="meta"><span class="faint">acum 1 zi</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">S</div></div>
+            </div>
+          </div>
+
+          <div class="kanban-col">
+            <div class="kanban-col-head"><h4>Confirmat</h4><span class="kanban-count">3</span></div>
+            <div class="kcard">
+              <div class="title">Vlad Marin — coach</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span class="badge gray">Stef</span></div>
+              <div class="meta"><span class="mono">4.500 lei/lună</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">S</div></div>
+            </div>
+            <div class="kcard">
+              <div class="title">Casa Verde Imobiliare</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span class="badge violet">Recomandare</span></div>
+              <div class="meta"><span class="mono">6.200 lei/lună</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">A</div></div>
+            </div>
+          </div>
+
+          <div class="kanban-col">
+            <div class="kanban-col-head"><h4>În lucru</h4><span class="kanban-count">7</span></div>
+            <div class="kcard">
+              <div class="title">Andreea Fashion Boutique</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span class="badge green">Proiect activ</span></div>
+              <div class="meta"><span class="faint">deadline 3 oct.</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">M</div></div>
+            </div>
+            <div class="kcard">
+              <div class="title">Grup Auto Service</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span class="badge green">Proiect activ</span></div>
+              <div class="meta"><span class="faint">deadline 28 sept.</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">M</div></div>
+            </div>
+          </div>
+
+          <div class="kanban-col">
+            <div class="kanban-col-head"><h4>Finalizat</h4><span class="kanban-count">12</span></div>
+            <div class="kcard">
+              <div class="title">Clinica Vita Med</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span class="badge gray">Recurent lunar</span></div>
+              <div class="meta"><span class="faint">predat 12 sept.</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">M</div></div>
+            </div>
+            <div class="kcard">
+              <div class="title">Byte Café</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span class="badge gray">Proiect unic</span></div>
+              <div class="meta"><span class="faint">predat 8 sept.</span><div class="p-avatar" style="width:22px;height:22px;font-size:10px;">M</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid g-2">
+        <div class="card">
+          <div class="card-title">
+            <h3>Remindere automate de follow-up</h3>
+            <span class="hint">Regulă: 3 zile fără răspuns → notificare</span>
+          </div>
+          <div class="list">
+            <div class="list-row">
+              <div class="p-avatar">PD</div>
+              <div style="flex:1;">
+                <div class="p-name">Popescu Dental Clinic</div>
+                <div class="p-sub">Nu a răspuns de 3 zile la oferta trimisă</div>
+              </div>
+              <span class="badge red">→ Alex</span>
+            </div>
+            <div class="list-row">
+              <div class="p-avatar">RB</div>
+              <div style="flex:1;">
+                <div class="p-name">Radu Bălan</div>
+                <div class="p-sub">Nicio activitate de 5 zile de la primul mesaj</div>
+              </div>
+              <span class="badge amber">→ Stef</span>
+            </div>
+            <div class="list-row">
+              <div class="p-avatar">FB</div>
+              <div style="flex:1;">
+                <div class="p-name">FreshBox Meal Prep</div>
+                <div class="p-sub">A cerut ofertă, fără follow-up de 4 zile</div>
+              </div>
+              <span class="badge red">→ Andy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <h3>Surse lead-uri (30 zile)</h3>
+            <span class="hint">de unde vin clienții</span>
+          </div>
+          <div class="list">
+            <div class="list-row"><span style="flex:1;">Site (formular contact)</span><div class="progress" style="width:120px;"><span style="width:70%;"></span></div><span class="mono faint">42%</span></div>
+            <div class="list-row"><span style="flex:1;">Recomandare</span><div class="progress" style="width:120px;"><span style="width:45%;"></span></div><span class="mono faint">27%</span></div>
+            <div class="list-row"><span style="flex:1;">Social media</span><div class="progress" style="width:120px;"><span style="width:30%;"></span></div><span class="mono faint">18%</span></div>
+            <div class="list-row"><span style="flex:1;">Andy (vânzări directe)</span><div class="progress" style="width:120px;"><span style="width:14%;"></span></div><span class="mono faint">8%</span></div>
+            <div class="list-row"><span style="flex:1;">Stef (vânzări directe)</span><div class="progress" style="width:120px;"><span style="width:9%;"></span></div><span class="mono faint">5%</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>AppShell.init({active:'dashboard', title:'Pipeline & Dashboard', sub:'Vânzări'});</script>
+</body>
+</html>

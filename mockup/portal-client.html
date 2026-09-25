@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Portal client</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — ce vede clientul, autentificat printr-un link unic, fără parolă de administrat</div>
+
+<div class="portal-topbar">
+  <div class="brand-mark">CC</div>
+  <div>
+    <div style="font-family:var(--font-display); font-weight:700;">Bine ai revenit, Andreea</div>
+    <div class="faint" style="font-size:12px;">Portal client · Andreea Fashion Boutique</div>
+  </div>
+  <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+    <a href="dashboard.html" class="btn ghost sm">← Înapoi în CRM (vizualizare admin)</a>
+    <div class="avatar">AF</div>
+  </div>
+</div>
+
+<div class="portal-shell">
+
+  <div class="grid g-4" style="margin-bottom:22px;">
+    <div class="card kpi"><div class="label">Clipuri filmate luna asta</div><div class="value">30 / 40</div><div class="delta up">pachet Reels lunar</div></div>
+    <div class="card kpi"><div class="label">Proiect activ</div><div class="value" style="font-size:16px;">Reels septembrie</div><div class="delta up">în montaj — 65%</div></div>
+    <div class="card kpi"><div class="label">Următoarea factură</div><div class="value mono">3.800 lei</div><div class="delta up">scadentă 1 oct.</div></div>
+    <div class="card kpi"><div class="label">Următorul apel</div><div class="value" style="font-size:16px;">Mar. 14:00</div><div class="delta up">apel lunar de strategie</div></div>
+  </div>
+
+  <div class="card" style="display:flex; align-items:center; gap:16px; margin-bottom:22px; border-color:var(--warning);">
+    <span style="font-size:22px;">📦</span>
+    <div style="flex:1;">
+      <b>Mai aveți 10 clipuri rămase din pachetul lunii.</b>
+      <div class="faint" style="font-size:12.5px;">Pentru a nu întrerupe ritmul de postare, hai să stabilim o dată de filmare pentru luna viitoare.</div>
+    </div>
+    <button class="btn primary sm">Programează filmarea</button>
+  </div>
+
+  <div class="grid g-2" style="margin-bottom:22px;">
+    <div class="card">
+      <div class="card-title"><h3>Apeluri cu echipa</h3><span class="hint">1 apel lunar inclus în pachet</span></div>
+      <p style="font-size:12.5px;">Discutăm rezultate, scenariul lunii următoare și orice ajustare de direcție.</p>
+      <button class="btn primary" style="width:100%; justify-content:center;">📅 Rezervă apel de strategie</button>
+    </div>
+    <div class="card">
+      <div class="card-title"><h3>Revizuire clipuri</h3><span class="hint">2 revizuiri incluse / lună · 1 folosită</span></div>
+      <p style="font-size:12.5px;">Ai observații pe un clip livrat? Rezervă 30 min live cu editorul, nu doar mesaje scrise.</p>
+      <button class="btn primary" style="width:100%; justify-content:center;">🎬 Rezervă sesiune de revizuire (30 min)</button>
+    </div>
+  </div>
+
+  <div class="section-title"><h2>Stadiul proiectelor</h2></div>
+  <div class="card" style="padding:0; margin-bottom:26px;">
+    <table class="table">
+      <thead><tr><th>Proiect</th><th>Status</th><th>Progres</th><th>Livrare estimată</th></tr></thead>
+      <tbody>
+        <tr><td>Reels septembrie</td><td><span class="badge amber">În montaj</span></td><td><div class="progress" style="width:140px;"><span style="width:65%;"></span></div></td><td class="faint">3 oct.</td></tr>
+        <tr><td>Sesiune foto produs — august</td><td><span class="badge green">Finalizat</span></td><td><div class="progress" style="width:140px;"><span style="width:100%;"></span></div></td><td class="faint">livrat 30 aug.</td></tr>
+        <tr><td>Rebranding social media</td><td><span class="badge green">Finalizat</span></td><td><div class="progress" style="width:140px;"><span style="width:100%;"></span></div></td><td class="faint">livrat 15 mai</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid g-2" style="margin-bottom:26px;">
+    <div class="card">
+      <div class="card-title"><h3>Fișiere de onboarding</h3></div>
+      <div class="list">
+        <div class="list-row"><span class="ic">📄</span><span style="flex:1;">Ghid „Cum lucrăm împreună”.pdf</span><button class="btn sm ghost">Deschide</button></div>
+        <div class="list-row"><span class="ic">📄</span><span style="flex:1;">Brief inițial de brand.pdf</span><button class="btn sm ghost">Deschide</button></div>
+        <div class="list-row"><span class="ic">📄</span><span style="flex:1;">Contract de colaborare (semnat).pdf</span><button class="btn sm ghost">Deschide</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><h3>Facturi</h3></div>
+      <div class="list">
+        <div class="list-row"><span style="flex:1;">#2025-0114</span><span class="mono">3.800 lei</span><span class="badge green">Plătită</span></div>
+        <div class="list-row"><span style="flex:1;">#2025-0098</span><span class="mono">3.800 lei</span><span class="badge green">Plătită</span></div>
+        <div class="list-row"><span style="flex:1;">#2025-0081</span><span class="mono">3.800 lei</span><span class="badge green">Plătită</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title"><h2>Ghid de pregătire pentru filmare</h2></div>
+  <div class="grid g-3" style="margin-bottom:26px;">
+    <div class="card"><h3 style="font-size:13.5px;">👕 Ce să porți</h3><p style="font-size:12px;">Culori simple, fără modele fine (pot „vibra” pe cameră). Adu 2 variante de outfit.</p></div>
+    <div class="card"><h3 style="font-size:13.5px;">🎒 Ce să aduci</h3><p style="font-size:12px;">Produsele de filmat, încărcătoare, lista de mesaje cheie pe care vrei să le transmiți.</p></div>
+    <div class="card"><h3 style="font-size:13.5px;">🕐 Cum arată ziua</h3><p style="font-size:12px;">Ajungem cu 15 min înainte pt. setup. Filmarea durează 2-3 ore, cu pauze. Fără emoții — reluăm oricând.</p></div>
+  </div>
+
+  <div class="section-title"><h2>Pachete & servicii suplimentare</h2></div>
+  <div class="grid g-3" style="margin-bottom:26px;">
+    <div class="card" style="border-color:var(--accent);">
+      <span class="badge violet" style="margin-bottom:8px;">pachetul tău</span>
+      <h3 style="font-size:14px;">Reels lunar — Standard</h3>
+      <p style="font-size:12px;">40 clipuri/lună, 1 apel de strategie, 2 revizuiri incluse.</p>
+    </div>
+    <div class="card">
+      <h3 style="font-size:14px;">+ Foto produs</h3>
+      <p style="font-size:12px;">Sesiune foto lunară pentru catalog/site, integrată în aceeași zi de filmare.</p>
+      <button class="btn sm ghost" style="width:100%; justify-content:center; margin-top:8px;">Cere detalii</button>
+    </div>
+    <div class="card">
+      <h3 style="font-size:14px;">+ Gestionare social media</h3>
+      <p style="font-size:12px;">Postăm noi conținutul, răspundem la comentarii și mesaje.</p>
+      <button class="btn sm ghost" style="width:100%; justify-content:center; margin-top:8px;">Cere detalii</button>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex; align-items:center; gap:20px; background:linear-gradient(135deg, var(--accent-soft), transparent);">
+    <span style="font-size:26px;">🎁</span>
+    <div style="flex:1;">
+      <h3 style="font-size:15px;">Program de recomandare</h3>
+      <p style="font-size:12.5px; margin:0;">Aduci un prieten care semnează un pachet lunar → primești <b style="color:var(--text);">15% reducere</b> la luna următoare.</p>
+    </div>
+    <button class="btn primary sm">Trimite recomandarea mea</button>
+  </div>
+
+</div>
+
+</body>
+</html>

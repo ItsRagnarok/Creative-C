@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Autentificare</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<div class="mockup-ribbon">MOCKUP DE DESIGN — date fictive, <b>nimic live</b> · flux de autentificare pentru validare</div>
+
+<div class="auth-wrap">
+  <div class="auth-side">
+    <div style="position:relative;">
+      <div class="brand" style="padding:0 0 40px;">
+        <div class="brand-mark" style="width:44px;height:44px;font-size:18px;">CC</div>
+        <div><div class="brand-name" style="font-size:19px;">Creative C</div><div class="brand-sub">CRM intern</div></div>
+      </div>
+      <h1 style="font-size:32px; max-width:460px;">Clienți, proiecte și echipă, într-un singur loc.</h1>
+      <p style="max-width:420px; margin-top:10px;">Pipeline de vânzări, contracte, facturare, proiecte video și canalele editorilor — un singur sistem, cu acces controlat pe roluri.</p>
+
+      <div class="security-list">
+        <div class="item"><span class="ic">🔒</span> Criptare TLS 1.3 în tranzit, date criptate în repaus.</div>
+        <div class="item"><span class="ic">🛡️</span> Autentificare în doi factori obligatorie pentru toate conturile interne.</div>
+        <div class="item"><span class="ic">⛔</span> Blocare automată a contului după 5 încercări eșuate.</div>
+        <div class="item"><span class="ic">📜</span> Jurnal de audit — orice acțiune pe date de client e înregistrată.</div>
+        <div class="item"><span class="ic">⏱️</span> Sesiune expirată automat după 30 min de inactivitate.</div>
+        <div class="item"><span class="ic">🧭</span> Acces pe roluri — fiecare vede exact ce are voie (vezi pagina Setări → Roluri).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-form-wrap">
+    <div class="auth-card">
+
+      <div id="step-credentials">
+        <h2 style="font-size:20px;">Autentificare</h2>
+        <p style="margin-bottom:22px;">Introdu datele contului tău Creative C.</p>
+
+        <div class="field">
+          <label>Email de lucru</label>
+          <input id="loginEmail" type="email" placeholder="alex@creative-c.ro" value="alex@creative-c.ro">
+        </div>
+        <div class="field">
+          <label>Parolă</label>
+          <input type="password" placeholder="••••••••••••" value="••••••••••••">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+          <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-muted);">
+            <input type="checkbox" style="width:auto;"> Ține-mă minte pe acest dispozitiv
+          </label>
+          <a href="#" style="font-size:12.5px; color:var(--accent-2);">Ai uitat parola?</a>
+        </div>
+        <button class="btn primary" style="width:100%; justify-content:center;" onclick="goStep2()">Continuă</button>
+
+        <div class="empty-note" style="margin-top:22px; text-align:left;">
+          <b style="color:var(--text-muted);">Ești client?</b> Nu folosești acest ecran — primești un link unic de acces în
+          <a href="portal-client.html" style="color:var(--accent-2);">Portalul de client</a>, fără parolă de administrat.
+        </div>
+      </div>
+
+      <div id="step-2fa" hidden>
+        <h2 style="font-size:20px;">Verificare în doi pași</h2>
+        <p style="margin-bottom:22px;">Am trimis un cod de 6 cifre la <b class="mono" style="color:var(--text);">alex@creative-c.ro</b>.</p>
+        <div class="field">
+          <label>Cod de verificare</label>
+          <input class="mono" style="letter-spacing:8px; font-size:20px; text-align:center;" maxlength="6" value="482913">
+        </div>
+        <button class="btn primary" style="width:100%; justify-content:center;" onclick="goDashboard()">Autentificare</button>
+        <button class="btn ghost" style="width:100%; justify-content:center; margin-top:8px;" onclick="goStep1()">← Înapoi</button>
+        <p style="margin-top:16px; font-size:12px; text-align:center;">Nu ai primit codul? <a href="#" style="color:var(--accent-2);">Retrimite</a></p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function goStep2(){
+  document.getElementById('step-credentials').hidden = true;
+  document.getElementById('step-2fa').hidden = false;
+}
+function goStep1(){
+  document.getElementById('step-2fa').hidden = true;
+  document.getElementById('step-credentials').hidden = false;
+}
+function goDashboard(){
+  window.location.href = 'dashboard.html';
+}
+</script>
+</body>
+</html>

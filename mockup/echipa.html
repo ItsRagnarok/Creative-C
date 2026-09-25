@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative C · Echipă</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="mockup-ribbon">MOCKUP DE DESIGN — monitorizare echipă, vizibil Admin/Manager</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Echipă</h1>
+          <p>Cine lucrează la ce, cât timp a alocat și ce-l blochează.</p>
+        </div>
+        <button class="btn ghost">Trimite check-in acum</button>
+      </div>
+
+      <div class="card" style="padding:0; margin-bottom:26px;">
+        <table class="table">
+          <thead><tr><th>Membru</th><th>Rol</th><th>Lucrează acum la</th><th>Ore săpt. (alocat/lucrat)</th><th>Următorul deadline</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="person"><div class="p-avatar">M</div><div><div class="p-name">Marius</div><div class="p-sub">editor video</div></div></div></td>
+              <td><span class="tag">Editor</span></td>
+              <td>Reels septembrie — Andreea Fashion</td>
+              <td><div class="progress" style="width:110px;"><span style="width:78%;"></span></div></td>
+              <td class="faint">azi, 17:00</td>
+              <td><span class="badge green">La zi</span></td>
+            </tr>
+            <tr>
+              <td><div class="p-name">Sorin</div></td>
+              <td><span class="tag">Editor</span></td>
+              <td>Conținut social — Clinica Vita Med</td>
+              <td><div class="progress" style="width:110px;"><span style="width:92%;"></span></div></td>
+              <td class="faint">mâine, 17:00</td>
+              <td><span class="badge amber">Aproape de capacitate</span></td>
+            </tr>
+            <tr>
+              <td><div class="p-name">Andy</div></td>
+              <td><span class="tag">Vânzări</span></td>
+              <td>3 lead-uri în discuție + 1 apel programat</td>
+              <td><div class="progress" style="width:110px;"><span style="width:55%;"></span></div></td>
+              <td class="faint">apel — mar. 14:00</td>
+              <td><span class="badge green">La zi</span></td>
+            </tr>
+            <tr>
+              <td><div class="p-name">Stef</div></td>
+              <td><span class="tag">Vânzări</span></td>
+              <td>Follow-up Radu Bălan + ofertă FreshBox</td>
+              <td><div class="progress" style="width:110px;"><span style="width:40%;"></span></div></td>
+              <td class="faint">follow-up — azi</td>
+              <td><span class="badge red">1 întârziere</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid g-2">
+        <div class="card">
+          <div class="card-title"><h3>Check-in săptămânal</h3><span class="hint">se trimite automat vineri, ora 16:00</span></div>
+          <div class="field"><label>Ce ai făcut săptămâna asta</label><textarea rows="2">Montat 14 clipuri pentru 3 clienți, filmare la Grup Auto Service.</textarea></div>
+          <div class="field"><label>Ce te blochează</label><textarea rows="2">Aștept feedback de la Vlad Marin pe scenariul lunii — de 3 zile.</textarea></div>
+          <button class="btn primary">Trimite răspuns</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><h3>Răspunsuri recente</h3></div>
+          <div class="list">
+            <div class="list-row">
+              <div class="p-avatar">M</div>
+              <div style="flex:1;">
+                <div class="p-name">Marius <span class="faint" style="font-weight:500;">· vineri, 16:02</span></div>
+                <div class="p-sub">Blocaj: aștept aprobare scenariu de la client.</div>
+              </div>
+            </div>
+            <div class="list-row">
+              <div class="p-avatar">S</div>
+              <div style="flex:1;">
+                <div class="p-name">Sorin <span class="faint" style="font-weight:500;">· vineri, 16:00</span></div>
+                <div class="p-sub">Fără blocaje, totul la zi.</div>
+              </div>
+            </div>
+            <div class="list-row">
+              <div class="p-avatar">A</div>
+              <div style="flex:1;">
+                <div class="p-name">Andy <span class="faint" style="font-weight:500;">· vineri, 15:48</span></div>
+                <div class="p-sub">Am nevoie de ofertă actualizată pentru pachetul premium.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>AppShell.init({active:'echipa', title:'Echipă', sub:'Livrare'});</script>
+</body>
+</html>
