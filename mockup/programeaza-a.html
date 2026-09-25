@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programare · Varianta A</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/booking-variants.css">
+</head>
+<body>
+
+<nav class="variant-nav">
+  <a href="programeaza-index.html">← Toate variantele</a>
+  <a href="programeaza-a.html" class="active">A · Tab-uri rapide</a>
+  <a href="programeaza-b.html">B · Calendar lunar</a>
+  <a href="programeaza-c.html">C · Landing complet</a>
+  <span class="sp">mockup — nimic conectat la baza de date</span>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-side">
+    <div style="position:relative;">
+      <div class="brand" style="padding:0 0 40px;">
+        <div class="brand-mark" style="width:44px;height:44px;font-size:18px;">CC</div>
+        <div><div class="brand-name" style="font-size:19px;">Creative C</div><div class="brand-sub">Programare apel de strategie</div></div>
+      </div>
+      <h1 style="font-size:30px; max-width:440px;">Apel de strategie — 20 min, gratuit.</h1>
+      <p style="max-width:400px; margin-top:10px;">Discutăm obiectivele tale de conținut și cum arată o colaborare cu noi. Fără obligații.</p>
+      <div class="security-list">
+        <div class="item"><span class="ic">📅</span> Alegi tu ziua și ora, din sloturile libere.</div>
+        <div class="item"><span class="ic">⚡</span> Confirmarea e instant — nu aștepți un răspuns.</div>
+        <div class="item"><span class="ic">🔒</span> Datele tale ajung direct la echipa Creative C, criptat.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-form-wrap">
+    <div class="auth-card" style="max-width:440px;">
+
+      <div id="step-slots">
+        <h2 style="font-size:20px;">Alege un interval</h2>
+        <p style="margin-bottom:18px;">Zilele lucrătoare, sloturi de 20 de minute.</p>
+
+        <div class="day-tabs" id="dayTabs"></div>
+        <div class="slot-grid" id="slotGrid"></div>
+      </div>
+
+      <div id="step-form" hidden>
+        <h2 style="font-size:20px;">Datele tale</h2>
+        <p style="margin-bottom:18px;">Ai ales <b id="chosenLabel" style="color:var(--text);"></b>. <a href="#" id="changeSlot" style="color:var(--accent-2);">Schimbă</a></p>
+        <div class="field"><label>Nume</label><input placeholder="Numele tău"></div>
+        <div class="field"><label>Email</label><input type="email" placeholder="email@afacere.ro"></div>
+        <div class="field"><label>Telefon (opțional)</label><input placeholder="07xx xxx xxx"></div>
+        <button class="btn primary" style="width:100%; justify-content:center;" id="confirmBtn">Confirmă programarea</button>
+      </div>
+
+      <div id="step-done" hidden style="text-align:center;">
+        <div style="font-size:40px; margin-bottom:12px;">✅</div>
+        <h2 style="font-size:20px;">Programare confirmată!</h2>
+        <p>Te așteptăm <b id="doneLabel" style="color:var(--text);"></b>.</p>
+        <p class="faint" style="font-size:12.5px;">Vei primi un email de confirmare. Echipa Creative C a fost anunțată.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_NAMES = ["Luni","Marți","Miercuri","Joi","Vineri"];
+const TIMES = ["10:00","11:30","14:00","15:30"];
+const days = [];
+let cursor = new Date();
+while (days.length < 5) {
+  cursor.setDate(cursor.getDate()+1);
+  const dow = cursor.getDay();
+  if (dow===0||dow===6) continue;
+  days.push(new Date(cursor));
+}
+let selectedDay = 0;
+let selectedTime = null;
+
+function renderTabs(){
+  const el = document.getElementById('dayTabs');
+  el.innerHTML = days.map((d,i)=>`
+    <div class="day-tab ${i===selectedDay?'active':''}" data-i="${i}">
+      <div class="dow">${DAY_NAMES[i]}</div>
+      <div class="num">${d.getDate()}</div>
+    </div>`).join('');
+  el.querySelectorAll('.day-tab').forEach(t=>t.addEventListener('click',()=>{ selectedDay=+t.dataset.i; renderTabs(); renderSlots(); }));
+}
+function renderSlots(){
+  const el = document.getElementById('slotGrid');
+  el.innerHTML = TIMES.map(t=>`<div class="slot-btn" data-t="${t}">${t}</div>`).join('');
+  el.querySelectorAll('.slot-btn').forEach(b=>b.addEventListener('click',()=>{
+    selectedTime = b.dataset.t;
+    const d = days[selectedDay];
+    const label = d.toLocaleDateString('ro-RO',{weekday:'long',day:'numeric',month:'long'}) + ', ' + selectedTime;
+    document.getElementById('chosenLabel').textContent = label;
+    document.getElementById('doneLabel').textContent = label;
+    document.getElementById('step-slots').hidden = true;
+    document.getElementById('step-form').hidden = false;
+  }));
+}
+document.getElementById('changeSlot').addEventListener('click',(e)=>{
+  e.preventDefault();
+  document.getElementById('step-form').hidden = true;
+  document.getElementById('step-slots').hidden = false;
+});
+document.getElementById('confirmBtn').addEventListener('click',()=>{
+  document.getElementById('step-form').hidden = true;
+  document.getElementById('step-done').hidden = false;
+});
+renderTabs(); renderSlots();
+</script>
+</body>
+</html>

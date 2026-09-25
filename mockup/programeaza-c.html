@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programare · Varianta C</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/booking-variants.css">
+</head>
+<body>
+
+<nav class="variant-nav">
+  <a href="programeaza-index.html">← Toate variantele</a>
+  <a href="programeaza-a.html">A · Tab-uri rapide</a>
+  <a href="programeaza-b.html">B · Calendar lunar</a>
+  <a href="programeaza-c.html" class="active">C · Landing complet</a>
+  <span class="sp">mockup — nimic conectat la baza de date</span>
+</nav>
+
+<div class="land-hero">
+  <span class="tag">Programare · apel de strategie</span>
+  <h1>Hai să vedem dacă ne potrivim.</h1>
+  <p style="font-size:15px;">20 de minute, gratuit, fără obligații. Ieși din apel cu un plan clar pentru conținutul afacerii tale.</p>
+  <div class="land-stats">
+    <div class="stat"><b>32</b><span>branduri active</span></div>
+    <div class="stat"><b>1.400+</b><span>clipuri livrate</span></div>
+    <div class="stat"><b>4.9★</b><span>rating clienți</span></div>
+  </div>
+</div>
+
+<div class="land-widget">
+  <div class="card" style="padding:26px;">
+
+    <div id="step-slots">
+      <div class="card-title"><h3 style="font-size:16px;">Alege un interval</h3><span class="hint">sloturi de 20 min</span></div>
+      <div class="day-tabs" id="dayTabs"></div>
+      <div class="slot-grid" id="slotGrid"></div>
+    </div>
+
+    <div id="step-form" hidden>
+      <div class="card-title"><h3 style="font-size:16px;">Datele tale</h3></div>
+      <p style="margin-bottom:14px;">Ai ales <b id="chosenLabel" style="color:var(--text);"></b>. <a href="#" id="changeSlot" style="color:var(--accent-2);">Schimbă</a></p>
+      <div class="grid g-2">
+        <div class="field"><label>Nume</label><input placeholder="Numele tău"></div>
+        <div class="field"><label>Email</label><input type="email" placeholder="email@afacere.ro"></div>
+      </div>
+      <button class="btn primary" style="width:100%; justify-content:center;" id="confirmBtn">Confirmă programarea</button>
+    </div>
+
+    <div id="step-done" hidden style="text-align:center; padding:20px 0;">
+      <div style="font-size:40px; margin-bottom:12px;">✅</div>
+      <h3 style="font-size:17px;">Programare confirmată!</h3>
+      <p>Te așteptăm <b id="doneLabel" style="color:var(--text);"></b>.</p>
+    </div>
+
+  </div>
+</div>
+
+<div class="land-steps">
+  <div class="section-title" style="margin-top:0; justify-content:center;"><h2 style="font-size:15px;">Ce se întâmplă după</h2></div>
+  <div class="grid g-3">
+    <div class="card"><span class="tag mono" style="margin-bottom:10px; display:inline-flex;">1</span><h3 style="font-size:14px;">Confirmi programarea</h3><p style="font-size:12.5px;">Primești un email de confirmare pe loc, cu detaliile apelului.</p></div>
+    <div class="card"><span class="tag mono" style="margin-bottom:10px; display:inline-flex;">2</span><h3 style="font-size:14px;">Vorbim 20 de minute</h3><p style="font-size:12.5px;">Îți înțelegem afacerea și obiectivele de conținut, fără pitch de vânzări.</p></div>
+    <div class="card"><span class="tag mono" style="margin-bottom:10px; display:inline-flex;">3</span><h3 style="font-size:14px;">Primești un plan</h3><p style="font-size:12.5px;">Pleci cu o propunere clară — colaborăm sau nu, decizia rămâne la tine.</p></div>
+  </div>
+</div>
+
+<div class="land-quote">
+  <blockquote>"În 20 de minute am înțeles mai mult decât în două luni de căutat o agenție."</blockquote>
+  <p class="faint" style="font-size:12.5px;">— Andreea, Andreea Fashion Boutique</p>
+</div>
+
+<script>
+const DAY_NAMES = ["Luni","Marți","Miercuri","Joi","Vineri"];
+const TIMES = ["10:00","11:30","14:00","15:30"];
+const days = [];
+let cursor = new Date();
+while (days.length < 5) {
+  cursor.setDate(cursor.getDate()+1);
+  const dow = cursor.getDay();
+  if (dow===0||dow===6) continue;
+  days.push(new Date(cursor));
+}
+let selectedDay = 0;
+
+function renderTabs(){
+  const el = document.getElementById('dayTabs');
+  el.innerHTML = days.map((d,i)=>`
+    <div class="day-tab ${i===selectedDay?'active':''}" data-i="${i}">
+      <div class="dow">${DAY_NAMES[i]}</div>
+      <div class="num">${d.getDate()}</div>
+    </div>`).join('');
+  el.querySelectorAll('.day-tab').forEach(t=>t.addEventListener('click',()=>{ selectedDay=+t.dataset.i; renderTabs(); renderSlots(); }));
+}
+function renderSlots(){
+  const el = document.getElementById('slotGrid');
+  el.innerHTML = TIMES.map(t=>`<div class="slot-btn" data-t="${t}">${t}</div>`).join('');
+  el.querySelectorAll('.slot-btn').forEach(b=>b.addEventListener('click',()=>{
+    const d = days[selectedDay];
+    const label = d.toLocaleDateString('ro-RO',{weekday:'long',day:'numeric',month:'long'}) + ', ' + b.dataset.t;
+    document.getElementById('chosenLabel').textContent = label;
+    document.getElementById('doneLabel').textContent = label;
+    document.getElementById('step-slots').hidden = true;
+    document.getElementById('step-form').hidden = false;
+  }));
+}
+document.getElementById('changeSlot').addEventListener('click',(e)=>{
+  e.preventDefault();
+  document.getElementById('step-form').hidden = true;
+  document.getElementById('step-slots').hidden = false;
+});
+document.getElementById('confirmBtn').addEventListener('click',()=>{
+  document.getElementById('step-form').hidden = true;
+  document.getElementById('step-done').hidden = false;
+});
+renderTabs(); renderSlots();
+</script>
+</body>
+</html>

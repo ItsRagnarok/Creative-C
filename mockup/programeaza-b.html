@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programare · Varianta B</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/booking-variants.css">
+</head>
+<body>
+
+<nav class="variant-nav">
+  <a href="programeaza-index.html">← Toate variantele</a>
+  <a href="programeaza-a.html">A · Tab-uri rapide</a>
+  <a href="programeaza-b.html" class="active">B · Calendar lunar</a>
+  <a href="programeaza-c.html">C · Landing complet</a>
+  <span class="sp">mockup — nimic conectat la baza de date</span>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-side">
+    <div style="position:relative;">
+      <div class="brand" style="padding:0 0 40px;">
+        <div class="brand-mark" style="width:44px;height:44px;font-size:18px;">CC</div>
+        <div><div class="brand-name" style="font-size:19px;">Creative C</div><div class="brand-sub">Programare apel de strategie</div></div>
+      </div>
+      <h1 style="font-size:30px; max-width:440px;">Apel de strategie — 20 min, gratuit.</h1>
+      <p style="max-width:400px; margin-top:10px;">Discutăm obiectivele tale de conținut și cum arată o colaborare cu noi. Fără obligații.</p>
+      <div class="security-list">
+        <div class="item"><span class="ic">📅</span> Vezi tot ce e liber luna asta, dintr-o privire.</div>
+        <div class="item"><span class="ic">⚡</span> Confirmarea e instant — nu aștepți un răspuns.</div>
+        <div class="item"><span class="ic">🔒</span> Datele tale ajung direct la echipa Creative C, criptat.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-form-wrap">
+    <div class="auth-card" style="max-width:560px;">
+
+      <div id="step-pick">
+        <h2 style="font-size:20px;">Alege data și ora</h2>
+        <p style="margin-bottom:18px;">Zilele lucrătoare sunt disponibile, weekendurile nu.</p>
+
+        <div class="cal-picker">
+          <div>
+            <div class="cal-month-head">
+              <button id="prevM">‹</button>
+              <div class="lbl" id="monthLbl"></div>
+              <button id="nextM">›</button>
+            </div>
+            <div class="cal-weekdays"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+            <div class="cal-days" id="calDays"></div>
+          </div>
+          <div>
+            <div class="nav-label" style="padding:0 0 10px;" id="timeLbl">Alege întâi o zi</div>
+            <div class="time-list" id="timeList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="step-form" hidden>
+        <h2 style="font-size:20px;">Datele tale</h2>
+        <p style="margin-bottom:18px;">Ai ales <b id="chosenLabel" style="color:var(--text);"></b>. <a href="#" id="changeSlot" style="color:var(--accent-2);">Schimbă</a></p>
+        <div class="field"><label>Nume</label><input placeholder="Numele tău"></div>
+        <div class="field"><label>Email</label><input type="email" placeholder="email@afacere.ro"></div>
+        <div class="field"><label>Telefon (opțional)</label><input placeholder="07xx xxx xxx"></div>
+        <button class="btn primary" style="width:100%; justify-content:center;" id="confirmBtn">Confirmă programarea</button>
+      </div>
+
+      <div id="step-done" hidden style="text-align:center;">
+        <div style="font-size:40px; margin-bottom:12px;">✅</div>
+        <h2 style="font-size:20px;">Programare confirmată!</h2>
+        <p>Te așteptăm <b id="doneLabel" style="color:var(--text);"></b>.</p>
+        <p class="faint" style="font-size:12.5px;">Vei primi un email de confirmare. Echipa Creative C a fost anunțată.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const TIMES = ["10:00","11:30","14:00","15:30"];
+let viewDate = new Date();
+viewDate.setDate(1);
+let selectedDate = null;
+let selectedTime = null;
+const today = new Date(); today.setHours(0,0,0,0);
+
+function isWeekend(d){ const w=d.getDay(); return w===0||w===6; }
+function sameDay(a,b){ return a.toDateString()===b.toDateString(); }
+
+function renderMonth(){
+  document.getElementById('monthLbl').textContent = viewDate.toLocaleDateString('ro-RO',{month:'long',year:'numeric'});
+  const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+  const startOffset = (first.getDay()+6)%7; // Monday=0
+  const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 0).getDate();
+  let html = '';
+  for(let i=0;i<startOffset;i++) html += `<div class="cal-day"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dt = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
+    const past = dt < today;
+    const avail = !isWeekend(dt) && !past;
+    const isToday = sameDay(dt, today);
+    const isSel = selectedDate && sameDay(dt, selectedDate);
+    html += `<div class="cal-day ${avail?'avail':''} ${isToday?'today':''} ${isSel?'selected':''}" data-d="${d}">${d}</div>`;
+  }
+  document.getElementById('calDays').innerHTML = html;
+  document.querySelectorAll('.cal-day.avail').forEach(cell=>{
+    cell.addEventListener('click', ()=>{
+      selectedDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), +cell.dataset.d);
+      selectedTime = null;
+      renderMonth();
+      renderTimes();
+    });
+  });
+}
+
+function renderTimes(){
+  if(!selectedDate){
+    document.getElementById('timeLbl').textContent = 'Alege întâi o zi';
+    document.getElementById('timeList').innerHTML = '';
+    return;
+  }
+  document.getElementById('timeLbl').textContent = selectedDate.toLocaleDateString('ro-RO',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('timeList').innerHTML = TIMES.map(t=>`
+    <div class="time-item" data-t="${t}"><span>${t}</span><span class="go">Alege →</span></div>
+  `).join('');
+  document.querySelectorAll('.time-item').forEach(item=>{
+    item.addEventListener('click', ()=>{
+      selectedTime = item.dataset.t;
+      const label = selectedDate.toLocaleDateString('ro-RO',{weekday:'long',day:'numeric',month:'long'}) + ', ' + selectedTime;
+      document.getElementById('chosenLabel').textContent = label;
+      document.getElementById('doneLabel').textContent = label;
+      document.getElementById('step-pick').hidden = true;
+      document.getElementById('step-form').hidden = false;
+    });
+  });
+}
+
+document.getElementById('prevM').addEventListener('click', ()=>{ viewDate.setMonth(viewDate.getMonth()-1); renderMonth(); });
+document.getElementById('nextM').addEventListener('click', ()=>{ viewDate.setMonth(viewDate.getMonth()+1); renderMonth(); });
+document.getElementById('changeSlot').addEventListener('click',(e)=>{
+  e.preventDefault();
+  document.getElementById('step-form').hidden = true;
+  document.getElementById('step-pick').hidden = false;
+});
+document.getElementById('confirmBtn').addEventListener('click',()=>{
+  document.getElementById('step-form').hidden = true;
+  document.getElementById('step-done').hidden = false;
+});
+
+renderMonth(); renderTimes();
+</script>
+</body>
+</html>
