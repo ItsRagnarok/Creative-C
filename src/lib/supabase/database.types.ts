@@ -175,6 +175,140 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          created_at: string
+          deadline: string | null
+          id: string
+          lead_id: string | null
+          notes: string | null
+          owner_id: string | null
+          stage: Database["public"]["Enums"]["project_stage"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          stage?: Database["public"]["Enums"]["project_stage"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          stage?: Database["public"]["Enums"]["project_stage"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_tasks: {
+        Row: {
+          assignee_id: string | null
+          created_at: string
+          done: boolean
+          id: string
+          position: number
+          project_id: string
+          title: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string
+          done?: boolean
+          id?: string
+          position?: number
+          project_id: string
+          title: string
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string
+          done?: boolean
+          id?: string
+          position?: number
+          project_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_files: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          project_id: string
+          status_label: string | null
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          project_id: string
+          status_label?: string | null
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          project_id?: string
+          status_label?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -202,6 +336,12 @@ export type Database = {
       app_role: "admin" | "manager" | "vanzari" | "editor"
       booking_status: "confirmat" | "anulat"
       lead_stage: "nou" | "discutie" | "confirmat" | "lucru" | "finalizat"
+      project_stage:
+        | "de_pornit"
+        | "filmare"
+        | "montaj"
+        | "revizuire_client"
+        | "finalizat"
     }
     CompositeTypes: {
       [_ in never]: never
