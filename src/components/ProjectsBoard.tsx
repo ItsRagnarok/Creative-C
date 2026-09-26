@@ -53,6 +53,8 @@ function emptyForm(): ProjectForm {
   return { title: "", lead_id: "", owner_id: "", stage: "de_pornit", deadline: "", notes: "" };
 }
 
+const CONFIRM_WORD = "STERGE";
+
 export default function ProjectsBoard({
   initialProjects,
   initialTasks,
@@ -83,6 +85,12 @@ export default function ProjectsBoard({
   const [newFileName, setNewFileName] = useState("");
   const [newFileKind, setNewFileKind] = useState("file");
   const [newFileUrl, setNewFileUrl] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [confirmIds, setConfirmIds] = useState<string[] | null>(null);
+  const [confirmStep, setConfirmStep] = useState<1 | 2>(1);
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [today] = useState(() => new Date());
 
@@ -175,19 +183,54 @@ export default function ProjectsBoard({
     setModal(null);
   }
 
-  async function handleDelete() {
-    if (!modal?.form.id) return;
-    if (!window.confirm("Ștergi definitiv acest proiect, cu task-urile și fișierele lui?")) return;
-    setSaving(true);
-    const { error: err } = await supabase.from("projects").delete().eq("id", modal.form.id);
-    setSaving(false);
-    if (err) return setError(err.message);
-    setProjects((prev) => prev.filter((p) => p.id !== modal.form.id));
-    setTasks((prev) => prev.filter((t) => t.project_id !== modal.form.id));
-    setFiles((prev) => prev.filter((f) => f.project_id !== modal.form.id));
-    if (selectedId === modal.form.id) setSelectedId(null);
-    setModal(null);
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }
+
+  function openConfirm(ids: string[]) {
+    setModal(null);
+    setDeleteError(null);
+    setConfirmStep(1);
+    setConfirmText("");
+    setConfirmIds(ids);
+  }
+
+  function closeConfirm() {
+    setConfirmIds(null);
+    setConfirmStep(1);
+    setConfirmText("");
+    setDeleteError(null);
+  }
+
+  async function handleConfirmedDelete() {
+    if (!confirmIds) return;
+    setDeleting(true);
+    setDeleteError(null);
+    const { error: err } = await supabase.from("projects").delete().in("id", confirmIds);
+    setDeleting(false);
+    if (err) {
+      setDeleteError(err.message);
+      return;
+    }
+    const idSet = new Set(confirmIds);
+    setProjects((prev) => prev.filter((p) => !idSet.has(p.id)));
+    setTasks((prev) => prev.filter((t) => !idSet.has(t.project_id)));
+    setFiles((prev) => prev.filter((f) => !idSet.has(f.project_id)));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      confirmIds.forEach((id) => next.delete(id));
+      return next;
+    });
+    if (selectedId && idSet.has(selectedId)) setSelectedId(null);
+    closeConfirm();
+  }
+
+  const confirmTargets = confirmIds ? projects.filter((p) => confirmIds.includes(p.id)) : [];
 
   async function toggleTask(t: ProjectTaskRow) {
     const canToggle = canEdit || t.assignee_id === currentUserId;
@@ -261,6 +304,21 @@ export default function ProjectsBoard({
         )}
       </div>
 
+      {canEdit && selectedIds.size > 0 && (
+        <div className="card" style={{ marginBottom: 18, padding: "12px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+          <span className="tag">{selectedIds.size} selectate</span>
+          <button type="button" className="btn ghost sm" onClick={() => setSelectedIds(new Set())}>Anulează selecția</button>
+          <button
+            type="button"
+            className="btn danger sm"
+            style={{ marginLeft: "auto" }}
+            onClick={() => openConfirm(Array.from(selectedIds))}
+          >
+            Șterge selectatele
+          </button>
+        </div>
+      )}
+
       <div className="card">
         <div className="kanban">
           {PROJECT_STAGES.map((s) => {
@@ -277,12 +335,37 @@ export default function ProjectsBoard({
                   const pct = pTasks.length > 0 ? Math.round((doneCount / pTasks.length) * 100) : null;
                   const badge = projectBadge(p.stage, p.deadline, today);
                   return (
-                    <button
+                    <div
                       key={p.id}
                       className="kcard"
-                      style={selectedId === p.id ? { borderColor: "var(--accent)" } : undefined}
+                      role="button"
+                      tabIndex={0}
+                      style={selectedId === p.id ? { borderColor: "var(--accent)", cursor: "pointer" } : { cursor: "pointer" }}
                       onClick={() => setSelectedId(p.id)}
+                      onKeyDown={(e) => { if (e.key === "Enter") setSelectedId(p.id); }}
                     >
+                      {canEdit && (
+                        <div
+                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(p.id)}
+                            onChange={() => toggleSelected(p.id)}
+                            aria-label={`Selectează ${p.title}`}
+                          />
+                          <button
+                            type="button"
+                            className="icon-btn"
+                            style={{ width: 24, height: 24, color: "var(--danger)" }}
+                            title="Șterge proiectul"
+                            onClick={() => openConfirm([p.id])}
+                          >
+                            🗑
+                          </button>
+                        </div>
+                      )}
                       <div className="title">{p.title}</div>
                       <div className="faint" style={{ fontSize: 12 }}>
                         {p.lead ? `client: ${p.lead.name}` : "fără client asociat"}
@@ -300,7 +383,7 @@ export default function ProjectsBoard({
                           <span className="faint" style={{ fontSize: 11 }}>nealocat</span>
                         )}
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
                 {items.length === 0 && <div className="empty-note">niciun proiect</div>}
@@ -476,7 +559,7 @@ export default function ProjectsBoard({
 
               <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
                 {modal.mode === "edit" && (
-                  <button type="button" className="btn danger" onClick={handleDelete} disabled={saving}>
+                  <button type="button" className="btn danger" onClick={() => openConfirm([modal.form.id!])} disabled={saving}>
                     Șterge
                   </button>
                 )}
@@ -485,6 +568,73 @@ export default function ProjectsBoard({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {confirmIds && (
+        <div className="modal-overlay" onClick={closeConfirm}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <h3>Șterge {confirmIds.length > 1 ? `${confirmIds.length} proiecte` : "proiect"}</h3>
+              <button className="modal-close" onClick={closeConfirm}>✕</button>
+            </div>
+
+            {confirmStep === 1 ? (
+              <>
+                <p style={{ marginBottom: 4 }}>
+                  Sigur vrei să ștergi {confirmIds.length > 1 ? "aceste proiecte" : "acest proiect"}?
+                </p>
+                <div className="list" style={{ marginBottom: 14, maxHeight: 160, overflowY: "auto" }}>
+                  {confirmTargets.map((p) => (
+                    <div key={p.id} className="list-row" style={{ padding: "8px 4px" }}>
+                      <span className="p-name" style={{ fontSize: 13 }}>{p.title}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="field-error" style={{ marginBottom: 14 }}>
+                  Acțiunea este ireversibilă — se pierd toate task-urile și fișierele proiectului.
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button type="button" className="btn ghost" style={{ flex: 1, justifyContent: "center" }} onClick={closeConfirm}>
+                    Renunță
+                  </button>
+                  <button type="button" className="btn danger" style={{ flex: 1, justifyContent: "center" }} onClick={() => setConfirmStep(2)}>
+                    Continuă
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p style={{ marginBottom: 12 }}>
+                  Ultima confirmare: scrie <b style={{ color: "var(--text)" }}>{CONFIRM_WORD}</b> ca să ștergi definitiv
+                  {confirmIds.length > 1 ? ` cele ${confirmIds.length} proiecte` : " acest proiect"}.
+                </p>
+                <div className="field">
+                  <input
+                    autoFocus
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    placeholder={CONFIRM_WORD}
+                  />
+                </div>
+                {deleteError && <div className="field-error">{deleteError}</div>}
+                <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+                  <button type="button" className="btn ghost" style={{ flex: 1, justifyContent: "center" }} onClick={() => setConfirmStep(1)} disabled={deleting}>
+                    Înapoi
+                  </button>
+                  <button
+                    type="button"
+                    className="btn danger"
+                    style={{ flex: 1, justifyContent: "center" }}
+                    disabled={deleting || confirmText.trim().toUpperCase() !== CONFIRM_WORD}
+                    onClick={handleConfirmedDelete}
+                  >
+                    {deleting ? "Se șterge…" : "Șterge definitiv"}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
