@@ -49,7 +49,10 @@ export default async function ClientiPage() {
       notifications={notifications ?? []}
     >
       {hasAccess ? (
-        <ClientsTable initialLeads={(leads ?? []) as LeadRow[]} />
+        <ClientsTable
+          initialLeads={(leads ?? []) as LeadRow[]}
+          canDelete={role === "admin" || role === "manager"}
+        />
       ) : (
         <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
           Contul tău ({role === "editor" ? "Editor" : role}) nu are acces la Clienți — vezi matricea de
