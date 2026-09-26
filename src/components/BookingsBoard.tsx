@@ -32,7 +32,6 @@ type FormState = {
 };
 
 const DAY_LABELS = ["Luni", "Marți", "Miercuri", "Joi", "Vineri"];
-const PUBLIC_TIMES = ["10:00", "11:30", "14:00", "15:30"];
 
 function startOfWeek(base: Date) {
   const d = new Date(base);
@@ -116,30 +115,6 @@ export default function BookingsBoard({
     map.forEach((arr) => arr.sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at)));
     return map;
   }, [activeBookings, weekStart, weekEnd]);
-
-  // Next 3 genuinely free public slots — same rule the public page uses
-  // (weekdays, 4 fixed times/day), so this preview is real, not decorative.
-  const nextFreeSlots = useMemo(() => {
-    const taken = new Set(activeBookings.map((b) => b.scheduled_at));
-    const out: Date[] = [];
-    const cursor = new Date(today);
-    let guard = 0;
-    while (out.length < 3 && guard < 40) {
-      guard++;
-      cursor.setDate(cursor.getDate() + 1);
-      const dow = cursor.getDay();
-      if (dow === 0 || dow === 6) continue;
-      for (const t of PUBLIC_TIMES) {
-        const [h, m] = t.split(":").map(Number);
-        const dt = new Date(cursor);
-        dt.setHours(h, m, 0, 0);
-        if (dt < today) continue;
-        if (!taken.has(dt.toISOString())) out.push(dt);
-        if (out.length >= 3) break;
-      }
-    }
-    return out;
-  }, [activeBookings, today]);
 
   const kpis = useMemo(() => {
     const thisWeekCount = Array.from(bookingsByDay.values()).reduce((sum, arr) => sum + arr.length, 0);
@@ -281,76 +256,50 @@ export default function BookingsBoard({
         </div>
       </div>
 
-      <div className="prog-layout">
-        <div className="card" style={{ padding: 18 }}>
-          <div className="cal-toolbar">
-            <div>
-              <div className="cal-range">Săptămâna {rangeLabel}</div>
-              <div className="faint" style={{ fontSize: 11 }}>sincronizat cu Google Calendar</div>
-            </div>
-            <div className="cal-nav-btns">
-              <button className="btn sm ghost" onClick={() => setWeekOffset((w) => w - 1)}>← Săpt. trecută</button>
-              <button className="btn sm ghost" onClick={() => setWeekOffset(0)}>Azi</button>
-              <button className="btn sm ghost" onClick={() => setWeekOffset((w) => w + 1)}>Săpt. următoare →</button>
-            </div>
+      <div className="card" style={{ padding: 18 }}>
+        <div className="cal-toolbar">
+          <div>
+            <div className="cal-range">Săptămâna {rangeLabel}</div>
+            <div className="faint" style={{ fontSize: 11 }}>sincronizat cu Google Calendar</div>
           </div>
-
-          <div className="cal-cols">
-            {days.map((d, dayIndex) => {
-              const isToday = d.toDateString() === today.toDateString();
-              const items = bookingsByDay.get(dayIndex) ?? [];
-              return (
-                <div key={dayIndex} className="cal-col">
-                  <div className={`cal-col-head ${isToday ? "today" : ""}`}>
-                    {DAY_LABELS[dayIndex]}
-                    <span className="faint" style={{ fontWeight: 500 }}>
-                      {" "}{d.toLocaleDateString("ro-RO", { day: "numeric", month: "short" })}
-                    </span>
-                  </div>
-                  {items.length === 0 && (
-                    <div className="cal-col-empty">
-                      liber toată ziua
-                      <button className="cal-add-btn" onClick={() => openCreate(d)} title="Adaugă programare">+</button>
-                    </div>
-                  )}
-                  {items.map((b) => {
-                    const isNew = b.notes === "Rezervat din pagina publică";
-                    return (
-                      <button key={b.id} className={`cal-card ${isNew ? "new" : ""}`} onClick={() => openEdit(b)}>
-                        {isNew && <span className="cal-new-tag">NOU</span>}
-                        <span className="t">{fmtTime(b.scheduled_at)}</span>
-                        <span className="n">{b.owner ? `${b.owner.initials} — ` : ""}{b.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
+          <div className="cal-nav-btns">
+            <button className="btn sm ghost" onClick={() => setWeekOffset((w) => w - 1)}>← Săpt. trecută</button>
+            <button className="btn sm ghost" onClick={() => setWeekOffset(0)}>Azi</button>
+            <button className="btn sm ghost" onClick={() => setWeekOffset((w) => w + 1)}>Săpt. următoare →</button>
           </div>
         </div>
 
-        <div className="card" style={{ padding: 18 }}>
-          <div className="card-title">
-            <h3 style={{ fontSize: 14 }}>Pagina publică de rezervare</h3>
-            <span className="hint">ce vede lead-ul</span>
-          </div>
-          <span className="tag mono" style={{ marginBottom: 12 }}>creative-c.ro/programeaza</span>
-          <h3 style={{ fontSize: 15, marginTop: 12 }}>Apel de strategie — 20 min, gratuit</h3>
-          <p style={{ fontSize: 11.5 }}>Discutăm obiectivele tale de conținut și cum arată o colaborare cu noi.</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "12px 0 16px" }}>
-            {nextFreeSlots.map((s) => (
-              <span key={s.toISOString()} className="btn sm ghost" style={{ cursor: "default" }}>
-                {s.toLocaleDateString("ro-RO", { weekday: "short" })}, {s.toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" })}
-              </span>
-            ))}
-          </div>
-          <a href="/programeaza" target="_blank" rel="noreferrer" className="btn primary" style={{ width: "100%", justifyContent: "center" }}>
-            Confirmă programarea ↗
-          </a>
-          <div className="empty-note" style={{ marginTop: 14, textAlign: "left", fontSize: 11 }}>
-            La confirmare: lead-ul e creat automat în <b style={{ color: "var(--text-muted)" }}>Pipeline → Nou</b>, sursa
-            se salvează „Booking site&rdquo;, iar echipa primește notificare. Cardurile marcate <span className="cal-new-tag" style={{ position: "static" }}>NOU</span> mai sus au venit exact așa.
-          </div>
+        <div className="cal-cols">
+          {days.map((d, dayIndex) => {
+            const isToday = d.toDateString() === today.toDateString();
+            const items = bookingsByDay.get(dayIndex) ?? [];
+            return (
+              <div key={dayIndex} className="cal-col">
+                <div className={`cal-col-head ${isToday ? "today" : ""}`}>
+                  {DAY_LABELS[dayIndex]}
+                  <span className="faint" style={{ fontWeight: 500 }}>
+                    {" "}{d.toLocaleDateString("ro-RO", { day: "numeric", month: "short" })}
+                  </span>
+                </div>
+                {items.length === 0 && (
+                  <div className="cal-col-empty">
+                    liber toată ziua
+                    <button className="cal-add-btn" onClick={() => openCreate(d)} title="Adaugă programare">+</button>
+                  </div>
+                )}
+                {items.map((b) => {
+                  const isNew = b.notes === "Rezervat din pagina publică";
+                  return (
+                    <button key={b.id} className={`cal-card ${isNew ? "new" : ""}`} onClick={() => openEdit(b)}>
+                      {isNew && <span className="cal-new-tag">NOU</span>}
+                      <span className="t">{fmtTime(b.scheduled_at)}</span>
+                      <span className="n">{b.owner ? `${b.owner.initials} — ` : ""}{b.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </div>
 
