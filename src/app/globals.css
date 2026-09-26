@@ -241,9 +241,9 @@ table{ width:100%; border-collapse:collapse; }
 .cal-toolbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
 .cal-range{ font-family:var(--font-display); font-weight:600; font-size:14.5px; text-transform:capitalize; }
 .cal-nav-btns{ display:flex; gap:6px; }
-.cal-cols{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+.cal-cols{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
 @media (max-width:900px){ .cal-cols{ grid-template-columns:repeat(5,150px); overflow-x:auto; } }
-.cal-col{ background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px; min-height:64px; }
+.cal-col{ min-width:0; background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px; min-height:64px; }
 .cal-col-head{
   text-align:center; font-size:12px; font-weight:700; color:var(--text-muted); padding:4px 0 8px;
   border-bottom:1px solid var(--border); margin-bottom:8px;
@@ -265,13 +265,13 @@ table{ width:100%; border-collapse:collapse; }
 .cal-card:hover{ border-color:var(--accent); }
 .cal-card.new{ border-left-color:var(--accent-2); }
 .cal-card .t{ font-family:var(--font-mono); font-weight:700; color:var(--accent-2); flex:0 0 auto; }
-.cal-card .n{ color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cal-card .n{ min-width:0; flex:1 1 auto; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .cal-new-tag{
   position:absolute; top:-6px; right:6px; background:var(--accent-2); color:#08221d;
   font-size:8.5px; font-weight:800; letter-spacing:.04em; padding:1px 5px; border-radius:100px;
 }
 
-.prog-layout{ display:grid; grid-template-columns:1fr 300px; gap:16px; align-items:start; }
+.prog-layout{ display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:16px; align-items:start; }
 @media (max-width:900px){ .prog-layout{ grid-template-columns:1fr; } }
 
 /* info tooltip ("?") used to explain pipeline stages, KPIs, etc. */
