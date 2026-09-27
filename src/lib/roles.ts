@@ -51,7 +51,7 @@ export const NAV: NavGroup[] = [
     items: [
       { key: "documente", label: "Documente & Contracte", href: "/documente", icon: "▥", roles: ["admin", "manager", "vanzari"], enabled: true },
       { key: "financiar", label: "Financiar", href: "/financiar", icon: "◑", roles: ["admin", "manager"], enabled: true },
-      { key: "automatizari", label: "Automatizări", href: "/automatizari", icon: "⚡", roles: ["admin", "manager"], enabled: false },
+      { key: "automatizari", label: "Automatizări", href: "/automatizari", icon: "⚡", roles: ["admin", "manager"], enabled: true },
     ],
   },
   {

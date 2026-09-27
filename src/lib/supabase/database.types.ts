@@ -352,6 +352,63 @@ export type Database = {
           },
         ]
       }
+      automation_rules: {
+        Row: {
+          description: string
+          enabled: boolean
+          id: string
+          kind: Database["public"]["Enums"]["automation_kind"]
+          label: string
+          threshold: number
+          updated_at: string
+        }
+        Insert: {
+          description: string
+          enabled?: boolean
+          id?: string
+          kind: Database["public"]["Enums"]["automation_kind"]
+          label: string
+          threshold?: number
+          updated_at?: string
+        }
+        Update: {
+          description?: string
+          enabled?: boolean
+          id?: string
+          kind?: Database["public"]["Enums"]["automation_kind"]
+          label?: string
+          threshold?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      automation_log: {
+        Row: {
+          created_at: string
+          id: string
+          rule_kind: Database["public"]["Enums"]["automation_kind"]
+          summary: string
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rule_kind: Database["public"]["Enums"]["automation_kind"]
+          summary: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rule_kind?: Database["public"]["Enums"]["automation_kind"]
+          summary?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           created_at: string
@@ -610,6 +667,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      run_automations: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       list_taken_slots: {
         Args: { p_from: string; p_to: string }
         Returns: { scheduled_at: string }[]
@@ -617,6 +678,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "vanzari" | "editor"
+      automation_kind: "lead_inactiv" | "document_expira" | "factura_restanta" | "stoc_clipuri_redus"
       booking_status: "confirmat" | "anulat"
       document_status: "draft" | "trimis" | "semnat" | "expirat"
       document_type: "contract" | "anexa" | "oferta" | "altul"
