@@ -282,6 +282,76 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          document_id: string | null
+          due_date: string | null
+          id: string
+          issue_date: string
+          lead_id: string | null
+          notes: string | null
+          number: string
+          owner_id: string | null
+          paid_date: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          document_id?: string | null
+          due_date?: string | null
+          id?: string
+          issue_date?: string
+          lead_id?: string | null
+          notes?: string | null
+          number?: string
+          owner_id?: string | null
+          paid_date?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          document_id?: string | null
+          due_date?: string | null
+          id?: string
+          issue_date?: string
+          lead_id?: string | null
+          notes?: string | null
+          number?: string
+          owner_id?: string | null
+          paid_date?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           created_at: string
@@ -550,6 +620,7 @@ export type Database = {
       booking_status: "confirmat" | "anulat"
       document_status: "draft" | "trimis" | "semnat" | "expirat"
       document_type: "contract" | "anexa" | "oferta" | "altul"
+      invoice_status: "neplatita" | "platita" | "restanta" | "anulata"
       lead_stage: "nou" | "discutie" | "confirmat" | "lucru" | "finalizat"
       project_stage:
         | "de_pornit"
