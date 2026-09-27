@@ -1,0 +1,70 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import AppShell from "@/components/AppShell";
+import DocumentsBoard, { type DocumentRow } from "@/components/DocumentsBoard";
+import type { Owner } from "@/components/PipelineBoard";
+import type { AppRole } from "@/lib/roles";
+
+export default async function DocumentePage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) redirect("/login");
+
+  const role = profile.role as AppRole;
+  const hasAccess = role === "admin" || role === "manager" || role === "vanzari";
+
+  const [{ data: documents }, { data: leads }, { data: owners }, { data: notifications }] = await Promise.all([
+    hasAccess
+      ? supabase
+          .from("documents")
+          .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: null }),
+    hasAccess ? supabase.from("leads").select("id, name").order("name") : Promise.resolve({ data: null }),
+    supabase.from("profiles").select("id, full_name, initials").order("full_name"),
+    supabase
+      .from("notifications")
+      .select("id, title, body, is_read, created_at")
+      .or(`user_id.is.null,user_id.eq.${user.id}`)
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
+
+  return (
+    <AppShell
+      actualRole={role}
+      fullName={profile.full_name}
+      initials={profile.initials}
+      activeKey="documente"
+      title="Documente & Contracte"
+      subtitle="Business"
+      notifications={notifications ?? []}
+    >
+      {hasAccess ? (
+        <DocumentsBoard
+          initialDocuments={(documents ?? []) as DocumentRow[]}
+          leads={(leads ?? []) as { id: string; name: string }[]}
+          owners={(owners ?? []) as Owner[]}
+          canEdit={role === "admin" || role === "manager" || role === "vanzari"}
+          canDelete={role === "admin" || role === "manager"}
+        />
+      ) : (
+        <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
+          Contul tău ({role === "editor" ? "Editor" : role}) nu are acces la Documente & Contracte — vezi
+          matricea de permisiuni din Setări.
+        </div>
+      )}
+    </AppShell>
+  );
+}

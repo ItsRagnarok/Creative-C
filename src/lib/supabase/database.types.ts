@@ -213,6 +213,75 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          created_at: string
+          expiry_date: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          lead_id: string | null
+          notes: string | null
+          owner_id: string | null
+          signed_date: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          title: string
+          type: Database["public"]["Enums"]["document_type"]
+          updated_at: string
+          value_total: number | null
+        }
+        Insert: {
+          created_at?: string
+          expiry_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          signed_date?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          title: string
+          type?: Database["public"]["Enums"]["document_type"]
+          updated_at?: string
+          value_total?: number | null
+        }
+        Update: {
+          created_at?: string
+          expiry_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          signed_date?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["document_type"]
+          updated_at?: string
+          value_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           created_at: string
@@ -479,6 +548,8 @@ export type Database = {
     Enums: {
       app_role: "admin" | "manager" | "vanzari" | "editor"
       booking_status: "confirmat" | "anulat"
+      document_status: "draft" | "trimis" | "semnat" | "expirat"
+      document_type: "contract" | "anexa" | "oferta" | "altul"
       lead_stage: "nou" | "discutie" | "confirmat" | "lucru" | "finalizat"
       project_stage:
         | "de_pornit"
