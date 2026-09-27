@@ -69,6 +69,150 @@ export type Database = {
           },
         ]
       }
+      channels: {
+        Row: {
+          created_at: string
+          deadline_note: string | null
+          editor_id: string | null
+          id: string
+          kind: string
+          label: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          deadline_note?: string | null
+          editor_id?: string | null
+          id?: string
+          kind: string
+          label: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          deadline_note?: string | null
+          editor_id?: string | null
+          id?: string
+          kind?: string
+          label?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channels_editor_id_fkey"
+            columns: ["editor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channel_messages: {
+        Row: {
+          author_id: string | null
+          body: string
+          channel_id: string
+          created_at: string
+          file_name: string | null
+          file_url: string | null
+          id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          channel_id: string
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          channel_id?: string
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_messages_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      editor_daily_status: {
+        Row: {
+          editor_id: string
+          id: string
+          status: string
+          status_date: string
+          updated_at: string
+        }
+        Insert: {
+          editor_id: string
+          id?: string
+          status?: string
+          status_date?: string
+          updated_at?: string
+        }
+        Update: {
+          editor_id?: string
+          id?: string
+          status?: string
+          status_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editor_daily_status_editor_id_fkey"
+            columns: ["editor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      editor_clip_stock: {
+        Row: {
+          clips_remaining: number
+          clips_total: number
+          editor_id: string
+          updated_at: string
+        }
+        Insert: {
+          clips_remaining?: number
+          clips_total?: number
+          editor_id: string
+          updated_at?: string
+        }
+        Update: {
+          clips_remaining?: number
+          clips_total?: number
+          editor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editor_clip_stock_editor_id_fkey"
+            columns: ["editor_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           created_at: string
