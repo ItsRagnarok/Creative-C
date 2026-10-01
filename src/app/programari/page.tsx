@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
-import BookingsBoard, { type BookingRow } from "@/components/BookingsBoard";
+import BookingsBoard, { type BookingRow, type CalendarExtra } from "@/components/BookingsBoard";
 import type { Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
 
@@ -43,6 +43,25 @@ export default async function ProgramariPage() {
 
   const { data: owners } = await supabase.from("profiles").select("id, full_name, initials").order("full_name");
 
+  const canSeeEverything = role === "admin" || role === "manager";
+  const [{ data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }] = await Promise.all([
+    canSeeEverything
+      ? supabase.from("projects").select("id, title, deadline").gte("deadline", since).lt("deadline", until)
+      : Promise.resolve({ data: null }),
+    canSeeEverything
+      ? supabase.from("documents").select("id, title, expiry_date").gte("expiry_date", since).lt("expiry_date", until)
+      : Promise.resolve({ data: null }),
+    canSeeEverything
+      ? supabase.from("invoices").select("id, number, amount, due_date").gte("due_date", since).lt("due_date", until)
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const extraEvents: CalendarExtra[] = [
+    ...(projectDeadlines ?? []).map((p) => ({ id: `proj-${p.id}`, date: p.deadline as string, label: `Deadline: ${p.title}`, kind: "deadline" as const, href: "/proiecte" })),
+    ...(documentExpiries ?? []).map((d) => ({ id: `doc-${d.id}`, date: d.expiry_date as string, label: `Expiră: ${d.title}`, kind: "document" as const, href: "/documente" })),
+    ...(invoiceDueDates ?? []).map((i) => ({ id: `inv-${i.id}`, date: i.due_date as string, label: `Scadentă: ${i.number}`, kind: "invoice" as const, href: "/financiar" })),
+  ];
+
   const { data: notifications } = await supabase
     .from("notifications")
     .select("id, title, body, is_read, created_at")
@@ -65,6 +84,7 @@ export default async function ProgramariPage() {
           initialBookings={(bookings ?? []) as BookingRow[]}
           owners={(owners ?? []) as Owner[]}
           canDelete={role === "admin" || role === "manager"}
+          extraEvents={extraEvents}
         />
       ) : (
         <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>

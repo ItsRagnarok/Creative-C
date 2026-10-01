@@ -270,6 +270,12 @@ table{ width:100%; border-collapse:collapse; }
   position:absolute; top:-6px; right:6px; background:var(--accent-2); color:#08221d;
   font-size:8.5px; font-weight:800; letter-spacing:.04em; padding:1px 5px; border-radius:100px;
 }
+.cal-card.extra{ cursor:pointer; text-decoration:none; background:var(--surface-2); }
+.cal-card.extra .t{ color:var(--text-muted); font-size:12px; }
+.cal-card.extra .n{ color:var(--text-muted); font-size:11px; white-space:normal; }
+.cal-card.extra.deadline{ border-left-color:var(--warning); }
+.cal-card.extra.document{ border-left-color:var(--info); }
+.cal-card.extra.invoice{ border-left-color:var(--danger); }
 
 /* info tooltip ("?") used to explain pipeline stages, KPIs, etc. */
 .info-tip{ position:relative; display:inline-flex; }

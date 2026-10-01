@@ -57,13 +57,13 @@ export const NAV: NavGroup[] = [
   {
     group: "Vitrine",
     items: [
-      { key: "portal", label: "Portal client (preview)", href: "/portal-client", icon: "⧉", roles: ["admin", "manager"], ext: "CLIENT", enabled: false },
+      { key: "portal", label: "Portal client (preview)", href: "/portal-client", icon: "⧉", roles: ["admin", "manager"], ext: "CLIENT", enabled: true },
     ],
   },
   {
     group: "Sistem",
     items: [
-      { key: "setari", label: "Setări & Roluri", href: "/setari", icon: "⚙", roles: ["admin"], enabled: false },
+      { key: "setari", label: "Setări & Roluri", href: "/setari", icon: "⚙", roles: ["admin"], enabled: true },
     ],
   },
 ];

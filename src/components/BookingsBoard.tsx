@@ -1,11 +1,26 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Owner } from "@/components/PipelineBoard";
 import type { Enums } from "@/lib/supabase/database.types";
 
 type BookingStatus = Enums<"booking_status">;
+
+export type CalendarExtra = {
+  id: string;
+  date: string;
+  label: string;
+  kind: "deadline" | "document" | "invoice";
+  href: string;
+};
+
+const EXTRA_ICON: Record<CalendarExtra["kind"], string> = {
+  deadline: "▤",
+  document: "📄",
+  invoice: "💸",
+};
 
 export type BookingRow = {
   id: string;
@@ -61,10 +76,12 @@ export default function BookingsBoard({
   initialBookings,
   owners,
   canDelete,
+  extraEvents = [],
 }: {
   initialBookings: BookingRow[];
   owners: Owner[];
   canDelete: boolean;
+  extraEvents?: CalendarExtra[];
 }) {
   const supabase = createClient();
   const [bookings, setBookings] = useState(initialBookings);
@@ -115,6 +132,19 @@ export default function BookingsBoard({
     map.forEach((arr) => arr.sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at)));
     return map;
   }, [activeBookings, weekStart, weekEnd]);
+
+  const extrasByDay = useMemo(() => {
+    const map = new Map<number, CalendarExtra[]>();
+    extraEvents.forEach((ev) => {
+      const dt = new Date(`${ev.date}T00:00:00`);
+      if (dt < weekStart || dt >= weekEnd) return;
+      const dayIndex = Math.floor((dt.getTime() - weekStart.getTime()) / 86_400_000);
+      if (dayIndex < 0 || dayIndex > 4) return;
+      if (!map.has(dayIndex)) map.set(dayIndex, []);
+      map.get(dayIndex)!.push(ev);
+    });
+    return map;
+  }, [extraEvents, weekStart, weekEnd]);
 
   const kpis = useMemo(() => {
     const thisWeekCount = Array.from(bookingsByDay.values()).reduce((sum, arr) => sum + arr.length, 0);
@@ -260,7 +290,10 @@ export default function BookingsBoard({
         <div className="cal-toolbar">
           <div>
             <div className="cal-range">Săptămâna {rangeLabel}</div>
-            <div className="faint" style={{ fontSize: 11 }}>sincronizat cu Google Calendar</div>
+            <div className="faint" style={{ fontSize: 11 }}>
+              sincronizat cu Google Calendar
+              {extraEvents.length > 0 && " · include deadline-uri de proiecte, expirări documente și scadențe facturi"}
+            </div>
           </div>
           <div className="cal-nav-btns">
             <button className="btn sm ghost" onClick={() => setWeekOffset((w) => w - 1)}>← Săpt. trecută</button>
@@ -297,6 +330,12 @@ export default function BookingsBoard({
                     </button>
                   );
                 })}
+                {(extrasByDay.get(dayIndex) ?? []).map((ev) => (
+                  <Link key={ev.id} href={ev.href} className={`cal-card extra ${ev.kind}`}>
+                    <span className="t">{EXTRA_ICON[ev.kind]}</span>
+                    <span className="n">{ev.label}</span>
+                  </Link>
+                ))}
               </div>
             );
           })}
