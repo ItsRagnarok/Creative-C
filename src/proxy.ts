@@ -3,7 +3,17 @@ import { type NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/programeaza"];
 
+// No auth decision ever depends on this path (nothing to redirect to/from) —
+// skip the Supabase round trip entirely instead of paying for it and
+// throwing the result away. /login stays out of this: it still needs the
+// session check below to bounce an already-logged-in visitor to /dashboard.
+const NO_AUTH_CHECK_PATHS = ["/programeaza"];
+
 export async function proxy(request: NextRequest) {
+  if (NO_AUTH_CHECK_PATHS.includes(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
   // Collected separately from the response so that whichever response we
   // end up returning (a redirect or a pass-through) always carries any
   // refreshed session cookies. Building a *new* NextResponse.redirect(...)

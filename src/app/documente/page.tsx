@@ -13,9 +13,8 @@ export default async function DocumentePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, { data: owners }, { data: notifications }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase.from("profiles").select("id, full_name, initials").order("full_name"),
+  const [{ data: profiles }, { data: notifications }] = await Promise.all([
+    supabase.from("profiles").select("*").order("full_name"),
     supabase
       .from("notifications")
       .select("id, title, body, is_read, created_at")
@@ -24,7 +23,9 @@ export default async function DocumentePage() {
       .limit(20),
   ]);
 
+  const profile = profiles?.find((p) => p.id === user.id) ?? null;
   if (!profile) redirect("/login");
+  const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
   const hasAccess = role === "admin" || role === "manager" || role === "vanzari";

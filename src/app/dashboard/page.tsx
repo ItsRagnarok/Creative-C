@@ -12,13 +12,12 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, { data: leads }, { data: owners }, { data: notifications }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
+  const [{ data: profiles }, { data: leads }, { data: notifications }] = await Promise.all([
+    supabase.from("profiles").select("*").order("full_name"),
     supabase
       .from("leads")
       .select("*, owner:profiles(id, full_name, initials)")
       .order("created_at", { ascending: false }),
-    supabase.from("profiles").select("id, full_name, initials").order("full_name"),
     supabase
       .from("notifications")
       .select("id, title, body, is_read, created_at")
@@ -27,7 +26,9 @@ export default async function DashboardPage() {
       .limit(20),
   ]);
 
+  const profile = profiles?.find((p) => p.id === user.id) ?? null;
   if (!profile) redirect("/login");
+  const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
 
