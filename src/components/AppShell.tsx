@@ -138,8 +138,11 @@ export default function AppShell({
               </div>
             )}
             <NotificationsBell initial={notifications} />
-            <button className="avatar" title={`${fullName} — deconectare`} onClick={handleLogout}>
+            <button className="avatar" title={fullName}>
               {initials}
+            </button>
+            <button className="icon-btn logout" title="Deconectare" aria-label="Deconectare" onClick={handleLogout}>
+              ⏻
             </button>
           </div>
         </header>
