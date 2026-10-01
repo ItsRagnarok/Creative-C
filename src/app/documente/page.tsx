@@ -13,25 +13,8 @@ export default async function DocumentePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) redirect("/login");
-
-  const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager" || role === "vanzari";
-
-  const [{ data: documents }, { data: leads }, { data: owners }, { data: notifications }] = await Promise.all([
-    hasAccess
-      ? supabase
-          .from("documents")
-          .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
-          .order("created_at", { ascending: false })
-      : Promise.resolve({ data: null }),
-    hasAccess ? supabase.from("leads").select("id, name").order("name") : Promise.resolve({ data: null }),
+  const [{ data: profile }, { data: owners }, { data: notifications }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase.from("profiles").select("id, full_name, initials").order("full_name"),
     supabase
       .from("notifications")
@@ -39,6 +22,21 @@ export default async function DocumentePage() {
       .or(`user_id.is.null,user_id.eq.${user.id}`)
       .order("created_at", { ascending: false })
       .limit(20),
+  ]);
+
+  if (!profile) redirect("/login");
+
+  const role = profile.role as AppRole;
+  const hasAccess = role === "admin" || role === "manager" || role === "vanzari";
+
+  const [{ data: documents }, { data: leads }] = await Promise.all([
+    hasAccess
+      ? supabase
+          .from("documents")
+          .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: null }),
+    hasAccess ? supabase.from("leads").select("id, name").order("name") : Promise.resolve({ data: null }),
   ]);
 
   return (

@@ -13,11 +13,16 @@ export default async function ProgramariPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, { data: owners }, { data: notifications }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    supabase.from("profiles").select("id, full_name, initials").order("full_name"),
+    supabase
+      .from("notifications")
+      .select("id, title, body, is_read, created_at")
+      .or(`user_id.is.null,user_id.eq.${user.id}`)
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
 
   if (!profile) redirect("/login");
 
@@ -31,20 +36,18 @@ export default async function ProgramariPage() {
   const since = new Date(Date.now() - 35 * 86_400_000).toISOString();
   // eslint-disable-next-line react-hooks/purity
   const until = new Date(Date.now() + 35 * 86_400_000).toISOString();
-  const { data: bookings } = hasAccess
-    ? await supabase
-        .from("bookings")
-        .select("*, owner:profiles(id, full_name, initials)")
-        .gte("scheduled_at", since)
-        .lt("scheduled_at", until)
-        .order("scheduled_at", { ascending: true })
-        .limit(300)
-    : { data: null };
-
-  const { data: owners } = await supabase.from("profiles").select("id, full_name, initials").order("full_name");
 
   const canSeeEverything = role === "admin" || role === "manager";
-  const [{ data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }] = await Promise.all([
+  const [{ data: bookings }, { data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }] = await Promise.all([
+    hasAccess
+      ? supabase
+          .from("bookings")
+          .select("*, owner:profiles(id, full_name, initials)")
+          .gte("scheduled_at", since)
+          .lt("scheduled_at", until)
+          .order("scheduled_at", { ascending: true })
+          .limit(300)
+      : Promise.resolve({ data: null }),
     canSeeEverything
       ? supabase.from("projects").select("id, title, deadline").gte("deadline", since).lt("deadline", until)
       : Promise.resolve({ data: null }),
@@ -61,13 +64,6 @@ export default async function ProgramariPage() {
     ...(documentExpiries ?? []).map((d) => ({ id: `doc-${d.id}`, date: d.expiry_date as string, label: `Expiră: ${d.title}`, kind: "document" as const, href: "/documente" })),
     ...(invoiceDueDates ?? []).map((i) => ({ id: `inv-${i.id}`, date: i.due_date as string, label: `Scadentă: ${i.number}`, kind: "invoice" as const, href: "/financiar" })),
   ];
-
-  const { data: notifications } = await supabase
-    .from("notifications")
-    .select("id, title, body, is_read, created_at")
-    .or(`user_id.is.null,user_id.eq.${user.id}`)
-    .order("created_at", { ascending: false })
-    .limit(20);
 
   return (
     <AppShell

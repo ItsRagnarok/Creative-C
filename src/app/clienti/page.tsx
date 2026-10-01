@@ -13,11 +13,15 @@ export default async function ClientiPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, { data: notifications }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    supabase
+      .from("notifications")
+      .select("id, title, body, is_read, created_at")
+      .or(`user_id.is.null,user_id.eq.${user.id}`)
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
 
   if (!profile) redirect("/login");
 
@@ -30,13 +34,6 @@ export default async function ClientiPage() {
         .select("*, owner:profiles(id, full_name, initials)")
         .order("created_at", { ascending: false })
     : { data: null };
-
-  const { data: notifications } = await supabase
-    .from("notifications")
-    .select("id, title, body, is_read, created_at")
-    .or(`user_id.is.null,user_id.eq.${user.id}`)
-    .order("created_at", { ascending: false })
-    .limit(20);
 
   return (
     <AppShell

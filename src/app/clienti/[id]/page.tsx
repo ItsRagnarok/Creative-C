@@ -18,19 +18,8 @@ export default async function ClientDetailPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) redirect("/login");
-
-  const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager" || role === "vanzari";
-  if (!hasAccess) redirect("/clienti");
-
-  const [{ data: lead }, { data: owners }, { data: notifications }] = await Promise.all([
+  const [{ data: profile }, { data: lead }, { data: owners }, { data: notifications }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase.from("leads").select("*, owner:profiles(id, full_name, initials)").eq("id", id).single(),
     supabase.from("profiles").select("id, full_name, initials").order("full_name"),
     supabase
@@ -40,6 +29,12 @@ export default async function ClientDetailPage({
       .order("created_at", { ascending: false })
       .limit(20),
   ]);
+
+  if (!profile) redirect("/login");
+
+  const role = profile.role as AppRole;
+  const hasAccess = role === "admin" || role === "manager" || role === "vanzari";
+  if (!hasAccess) redirect("/clienti");
 
   if (!lead) notFound();
 

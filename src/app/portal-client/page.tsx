@@ -12,28 +12,26 @@ export default async function PortalClientPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) redirect("/login");
-
-  const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager";
-
-  const [{ data: leads }, { data: projects }, { data: documents }, { data: invoices }, { data: notifications }] = await Promise.all([
-    hasAccess ? supabase.from("leads").select("id, name").order("name") : Promise.resolve({ data: null }),
-    hasAccess ? supabase.from("projects").select("id, title, lead_id, stage, deadline").order("deadline", { ascending: true, nullsFirst: false }) : Promise.resolve({ data: null }),
-    hasAccess ? supabase.from("documents").select("id, title, lead_id, type, status, expiry_date").order("created_at", { ascending: false }) : Promise.resolve({ data: null }),
-    hasAccess ? supabase.from("invoices").select("id, number, lead_id, amount, status, due_date").order("due_date", { ascending: true, nullsFirst: false }) : Promise.resolve({ data: null }),
+  const [{ data: profile }, { data: notifications }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase
       .from("notifications")
       .select("id, title, body, is_read, created_at")
       .or(`user_id.is.null,user_id.eq.${user.id}`)
       .order("created_at", { ascending: false })
       .limit(20),
+  ]);
+
+  if (!profile) redirect("/login");
+
+  const role = profile.role as AppRole;
+  const hasAccess = role === "admin" || role === "manager";
+
+  const [{ data: leads }, { data: projects }, { data: documents }, { data: invoices }] = await Promise.all([
+    hasAccess ? supabase.from("leads").select("id, name").order("name") : Promise.resolve({ data: null }),
+    hasAccess ? supabase.from("projects").select("id, title, lead_id, stage, deadline").order("deadline", { ascending: true, nullsFirst: false }) : Promise.resolve({ data: null }),
+    hasAccess ? supabase.from("documents").select("id, title, lead_id, type, status, expiry_date").order("created_at", { ascending: false }) : Promise.resolve({ data: null }),
+    hasAccess ? supabase.from("invoices").select("id, number, lead_id, amount, status, due_date").order("due_date", { ascending: true, nullsFirst: false }) : Promise.resolve({ data: null }),
   ]);
 
   return (

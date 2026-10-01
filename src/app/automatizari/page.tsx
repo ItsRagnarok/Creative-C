@@ -12,28 +12,26 @@ export default async function AutomatizariPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) redirect("/login");
-
-  const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager";
-
-  const [{ data: rules }, { data: log }, { data: notifications }] = await Promise.all([
-    hasAccess ? supabase.from("automation_rules").select("*").order("kind") : Promise.resolve({ data: null }),
-    hasAccess
-      ? supabase.from("automation_log").select("*").order("created_at", { ascending: false }).limit(30)
-      : Promise.resolve({ data: null }),
+  const [{ data: profile }, { data: notifications }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase
       .from("notifications")
       .select("id, title, body, is_read, created_at")
       .or(`user_id.is.null,user_id.eq.${user.id}`)
       .order("created_at", { ascending: false })
       .limit(20),
+  ]);
+
+  if (!profile) redirect("/login");
+
+  const role = profile.role as AppRole;
+  const hasAccess = role === "admin" || role === "manager";
+
+  const [{ data: rules }, { data: log }] = await Promise.all([
+    hasAccess ? supabase.from("automation_rules").select("*").order("kind") : Promise.resolve({ data: null }),
+    hasAccess
+      ? supabase.from("automation_log").select("*").order("created_at", { ascending: false }).limit(30)
+      : Promise.resolve({ data: null }),
   ]);
 
   return (

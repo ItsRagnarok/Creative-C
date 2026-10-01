@@ -17,11 +17,15 @@ export default async function EditoriPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, { data: notifications }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    supabase
+      .from("notifications")
+      .select("id, title, body, is_read, created_at")
+      .or(`user_id.is.null,user_id.eq.${user.id}`)
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
 
   if (!profile) redirect("/login");
 
@@ -29,7 +33,7 @@ export default async function EditoriPage() {
   const hasAccess = role === "admin" || role === "manager" || role === "editor";
   const today = new Date().toISOString().slice(0, 10);
 
-  const [{ data: channels }, { data: messages }, { data: statuses }, { data: stock }, { data: notifications }] = await Promise.all([
+  const [{ data: channels }, { data: messages }, { data: statuses }, { data: stock }] = await Promise.all([
     hasAccess
       ? supabase
           .from("channels")
@@ -50,12 +54,6 @@ export default async function EditoriPage() {
           .eq("status_date", today)
       : Promise.resolve({ data: null }),
     hasAccess ? supabase.from("editor_clip_stock").select("*") : Promise.resolve({ data: null }),
-    supabase
-      .from("notifications")
-      .select("id, title, body, is_read, created_at")
-      .or(`user_id.is.null,user_id.eq.${user.id}`)
-      .order("created_at", { ascending: false })
-      .limit(20),
   ]);
 
   return (

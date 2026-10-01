@@ -12,15 +12,8 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) redirect("/login");
-
-  const [{ data: leads }, { data: owners }, { data: notifications }] = await Promise.all([
+  const [{ data: profile }, { data: leads }, { data: owners }, { data: notifications }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase
       .from("leads")
       .select("*, owner:profiles(id, full_name, initials)")
@@ -33,6 +26,8 @@ export default async function DashboardPage() {
       .order("created_at", { ascending: false })
       .limit(20),
   ]);
+
+  if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
 

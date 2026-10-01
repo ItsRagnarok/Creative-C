@@ -12,21 +12,8 @@ export default async function EchipaPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) redirect("/login");
-
-  const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager";
-
-  const [{ data: profiles }, { data: notifications }] = await Promise.all([
-    hasAccess
-      ? supabase.from("profiles").select("*").order("created_at", { ascending: true })
-      : Promise.resolve({ data: null }),
+  const [{ data: profile }, { data: notifications }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase
       .from("notifications")
       .select("id, title, body, is_read, created_at")
@@ -34,6 +21,15 @@ export default async function EchipaPage() {
       .order("created_at", { ascending: false })
       .limit(20),
   ]);
+
+  if (!profile) redirect("/login");
+
+  const role = profile.role as AppRole;
+  const hasAccess = role === "admin" || role === "manager";
+
+  const { data: profiles } = hasAccess
+    ? await supabase.from("profiles").select("*").order("created_at", { ascending: true })
+    : { data: null };
 
   return (
     <AppShell
