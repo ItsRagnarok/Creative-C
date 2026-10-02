@@ -184,6 +184,48 @@ export type Database = {
           },
         ]
       }
+      editor_cards: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string | null
+          editor_id: string
+          id: string
+          reason: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          created_by?: string | null
+          editor_id: string
+          id?: string
+          reason: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          editor_id?: string
+          id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editor_cards_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editor_cards_editor_id_fkey"
+            columns: ["editor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       editor_clip_stock: {
         Row: {
           clips_remaining: number

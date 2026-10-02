@@ -7,13 +7,15 @@ import { useState } from "react";
 export default function EditoriTabs({
   chat,
   calendar,
+  cards,
   defaultTab = "chat",
 }: {
   chat: React.ReactNode;
   calendar: React.ReactNode;
-  defaultTab?: "chat" | "calendar";
+  cards: React.ReactNode;
+  defaultTab?: "chat" | "calendar" | "cards";
 }) {
-  const [tab, setTab] = useState<"chat" | "calendar">(defaultTab);
+  const [tab, setTab] = useState<"chat" | "calendar" | "cards">(defaultTab);
 
   return (
     <>
@@ -24,9 +26,13 @@ export default function EditoriTabs({
         <button type="button" className={`btn sm ${tab === "calendar" ? "primary" : "ghost"}`} onClick={() => setTab("calendar")}>
           Calendar content
         </button>
+        <button type="button" className={`btn sm ${tab === "cards" ? "primary" : "ghost"}`} onClick={() => setTab("cards")}>
+          Cartonașe
+        </button>
       </div>
       <div style={{ display: tab === "chat" ? "block" : "none" }}>{chat}</div>
       <div style={{ display: tab === "calendar" ? "block" : "none" }}>{calendar}</div>
+      <div style={{ display: tab === "cards" ? "block" : "none" }}>{cards}</div>
     </>
   );
 }

@@ -8,6 +8,7 @@ import ChannelsBoard, {
   type ClipStockRow,
 } from "@/components/ChannelsBoard";
 import EditoriTabs from "@/components/EditoriTabs";
+import EditorCards from "@/components/EditorCards";
 import ContentCalendar, { type CalendarEditor } from "@/components/ContentCalendar";
 import type { AppRole } from "@/lib/roles";
 
@@ -88,6 +89,13 @@ export default async function EditoriPage() {
           }
           calendar={
             <ContentCalendar
+              editors={(editorProfiles ?? []) as CalendarEditor[]}
+              canManage={isManager}
+              currentUserId={user.id}
+            />
+          }
+          cards={
+            <EditorCards
               editors={(editorProfiles ?? []) as CalendarEditor[]}
               canManage={isManager}
               currentUserId={user.id}
