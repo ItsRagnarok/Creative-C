@@ -22,6 +22,9 @@ const ROLE_BADGE: Record<AppRole, string> = {
 
 const CONFIRM_WORD = "STERGE";
 
+// Exactly one admin exists, so "admin" is never offered when creating or re-roling an account.
+const ASSIGNABLE_ROLES: AppRole[] = ["manager", "vanzari", "editor"];
+
 function monthYear(iso: string) {
   return new Date(iso).toLocaleDateString("ro-RO", { month: "long", year: "numeric" });
 }
@@ -318,7 +321,7 @@ export default function EchipaBoard({
               <div className="field">
                 <label>Rol</label>
                 <select value={inviteModal.role} onChange={(e) => setInviteModal({ ...inviteModal, role: e.target.value as AppRole })}>
-                  {(Object.keys(ROLE_LABEL) as AppRole[]).map((r) => (
+                  {ASSIGNABLE_ROLES.map((r) => (
                     <option key={r} value={r}>{ROLE_LABEL[r]}</option>
                   ))}
                 </select>
@@ -372,7 +375,7 @@ export default function EchipaBoard({
                   disabled={editModal.id === currentUserId}
                   onChange={(e) => setEditModal({ ...editModal, role: e.target.value as AppRole })}
                 >
-                  {(Object.keys(ROLE_LABEL) as AppRole[]).map((r) => (
+                  {(editModal.role === "admin" ? (["admin"] as AppRole[]) : ASSIGNABLE_ROLES).map((r) => (
                     <option key={r} value={r}>{ROLE_LABEL[r]}</option>
                   ))}
                 </select>
