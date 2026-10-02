@@ -62,6 +62,13 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    group: "Ghid editori",
+    items: [
+      { key: "standarde", label: "Standarde de editare", href: "/standarde", icon: "✦", roles: ["admin", "manager", "editor"], enabled: true },
+      { key: "regulament", label: "Regulament", href: "/regulament", icon: "§", roles: ["admin", "manager", "editor"], enabled: true },
+    ],
+  },
+  {
     group: "Sistem",
     items: [
       { key: "setari", label: "Setări & Roluri", href: "/setari", icon: "⚙", roles: ["admin"], enabled: true },

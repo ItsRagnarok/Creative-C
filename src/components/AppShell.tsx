@@ -87,7 +87,7 @@ export default function AppShell({
         ...g,
         items: g.items.filter((i) => {
           if (i.key === "setari" || i.key === "email") return !!isSuperAdmin; // roles, access & email are admin S only
-          if (access) return access[(i.key === "prospecti" ? "clienti" : i.key) as MenuKey]?.view ?? false; // prospects follow the Clienți access
+          if (access) return access[(i.key === "prospecti" ? "clienti" : i.key === "standarde" || i.key === "regulament" ? "editori" : i.key) as MenuKey]?.view ?? false; // prospects follow Clienți, the editor guides follow Canale
           return i.roles.includes(effectiveRole);
         }),
       })).filter((g) => g.items.length),
