@@ -914,6 +914,66 @@ export type Database = {
           },
         ]
       }
+      prospects: {
+        Row: {
+          address: string | null
+          category: string | null
+          city: string
+          created_at: string
+          followers: number | null
+          id: string
+          instagram: string | null
+          lead_id: string | null
+          maps_url: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          rating: number | null
+          reel_views: number | null
+          reviews: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          category?: string | null
+          city: string
+          created_at?: string
+          followers?: number | null
+          id?: string
+          instagram?: string | null
+          lead_id?: string | null
+          maps_url?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          reel_views?: number | null
+          reviews?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          category?: string | null
+          city?: string
+          created_at?: string
+          followers?: number | null
+          id?: string
+          instagram?: string | null
+          lead_id?: string | null
+          maps_url?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          reel_views?: number | null
+          reviews?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           booking_slug: string | null
@@ -1124,6 +1184,7 @@ export type Database = {
       }
       ensure_booking_slug: { Args: never; Returns: string }
       my_access: { Args: never; Returns: Json }
+      convert_prospect: { Args: { p_id: string }; Returns: string }
       get_booking_host: {
         Args: { p_slug: string }
         Returns: {
