@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Owner } from "@/components/PipelineBoard";
 import type { Enums } from "@/lib/supabase/database.types";
-import WorkScheduleModal, { type AvailabilityRow } from "@/components/WorkScheduleModal";
+import WorkScheduleModal, { type AvailabilityRow, type GeneralRow } from "@/components/WorkScheduleModal";
 import { BOOKING_SELECT } from "@/lib/selects";
 import { useRealtimeRows } from "@/lib/useRealtimeRows";
 
@@ -81,6 +81,7 @@ export default function BookingsBoard({
   adminTools,
   canUseGeneralLink,
   myLinkSlug,
+  generalAvailability,
   extraEvents = [],
 }: {
   initialBookings: BookingRow[];
@@ -92,6 +93,7 @@ export default function BookingsBoard({
   adminTools?: React.ReactNode;
   canUseGeneralLink: boolean;
   myLinkSlug: string | null;
+  generalAvailability?: GeneralRow[] | null;
   extraEvents?: CalendarExtra[];
 }) {
   const supabase = createClient();
@@ -264,6 +266,7 @@ export default function BookingsBoard({
 
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [schedule, setSchedule] = useState(myAvailability);
+  const [generalHours, setGeneralHours] = useState(generalAvailability ?? null);
   const [copied, setCopied] = useState<string | null>(null);
 
   async function copyLink(slug: string) {
@@ -467,8 +470,10 @@ export default function BookingsBoard({
         <WorkScheduleModal
           userId={userId}
           initial={schedule}
+          general={generalHours}
           onClose={(saved) => {
-            if (saved) setSchedule(saved);
+            if (saved?.personal) setSchedule(saved.personal);
+            if (saved?.general) setGeneralHours(saved.general);
             setScheduleOpen(false);
           }}
         />

@@ -25,6 +25,8 @@ export default function BookingAdminTools({
   const supabase = createClient();
   const [open, setOpen] = useState(false);
   const [slugs, setSlugs] = useState(initialSlugs);
+  const [pick, setPick] = useState("");
+  const [name, setName] = useState("");
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [settings, setSettings] = useState(initialSettings);
   const [msg, setMsg] = useState<string | null>(null);
@@ -48,13 +50,15 @@ export default function BookingAdminTools({
     setMsg(error ? error.message : "Salvat ✓");
   }
 
-  async function createLink(ownerId: string) {
-    const slug = clean(drafts[ownerId] ?? "");
+  async function createLink() {
+    const slug = clean(name);
+    if (!pick) return setMsg("Alege o persoană.");
     if (!slug) return setMsg("Scrie un nume pentru link.");
-    const { error } = await supabase.from("booking_slugs").insert({ slug, owner_id: ownerId });
-    if (error) return setMsg(error.code === "23505" ? "Numele acesta de link există deja." : error.message);
-    setSlugs((p) => [...p, { slug, owner_id: ownerId }]);
-    setDrafts((d) => ({ ...d, [ownerId]: "" }));
+    const { error } = await supabase.from("booking_slugs").insert({ slug, owner_id: pick });
+    if (error) return setMsg(error.code === "23505" ? "Numele sau persoana are deja un link." : error.message);
+    setSlugs((p) => [...p, { slug, owner_id: pick }]);
+    setName("");
+    setPick("");
     setMsg("Link creat ✓");
   }
 
@@ -89,84 +93,78 @@ export default function BookingAdminTools({
             </div>
 
             <div className="admin-tools-grid">
-              {/* LEFT: personal links, one per person */}
+              {/* LEFT: create a personal link, created links listed below */}
               <div>
                 <div className="nav-label" style={{ padding: 0, marginBottom: 6 }}>Linkuri personale</div>
                 <p className="faint" style={{ fontSize: 12, marginBottom: 10 }}>
-                  Fiecare persoană are un singur link. Clientul vede doar programul ei și se programează strict la ea. Numele linkului îl alegi tu (ex: <code>s1-ing</code> pentru Instagram) și îți arată de unde a venit clientul.
+                  Alege persoana, dă un nume linkului (ex: <code>s1-ing</code>) și creează-l. Clientul vede doar programul ei.
                 </p>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+                  <select style={{ flex: 1, minWidth: 140 }} value={pick} onChange={(e) => setPick(e.target.value)}>
+                    <option value="">Alege persoana…</option>
+                    {team.filter((t) => !slugOf(t.id)).map((t) => (
+                      <option key={t.id} value={t.id}>{t.full_name} ({ROLE_NAME[t.role] ?? t.role})</option>
+                    ))}
+                  </select>
+                  <input style={{ flex: 1, minWidth: 120 }} placeholder="nume link" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && createLink()} />
+                  <button type="button" className="btn primary" onClick={createLink}>Creează link</button>
+                </div>
                 <div className="list">
-                  {team.map((t) => {
-                    const slug = slugOf(t.id);
+                  {slugs.length === 0 && <div className="faint" style={{ fontSize: 12 }}>Încă niciun link creat.</div>}
+                  {slugs.map((l) => {
+                    const t = team.find((x) => x.id === l.owner_id);
                     return (
-                      <div key={t.id} className="list-row" style={{ gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                        <div style={{ width: 150 }}>
-                          <div className="p-name" style={{ fontSize: 13 }}>{t.full_name}</div>
-                          <div className="faint" style={{ fontSize: 11 }}>{ROLE_NAME[t.role] ?? t.role}</div>
-                        </div>
-                        {slug ? (
-                          <>
-                            <span className="faint" style={{ fontSize: 12 }}>/programeaza/</span>
-                            <input
-                              style={{ flex: 1, minWidth: 90 }}
-                              value={drafts[t.id] ?? slug}
-                              onChange={(e) => setDrafts((d) => ({ ...d, [t.id]: e.target.value }))}
-                              onBlur={(e) => renameLink(t.id, e.target.value)}
-                            />
-                            <button type="button" className="btn sm ghost" onClick={() => copy(slug)}>Copiază</button>
-                            <button type="button" className="icon-btn" style={{ width: 26, height: 26 }} title="Șterge linkul" onClick={() => removeLink(t.id)}>✕</button>
-                          </>
-                        ) : (
-                          <>
-                            <input
-                              style={{ flex: 1, minWidth: 110 }}
-                              placeholder="nume link, ex: s1-ing"
-                              value={drafts[t.id] ?? ""}
-                              onChange={(e) => setDrafts((d) => ({ ...d, [t.id]: e.target.value }))}
-                              onKeyDown={(e) => e.key === "Enter" && createLink(t.id)}
-                            />
-                            <button type="button" className="btn sm primary" onClick={() => createLink(t.id)}>Creează link</button>
-                          </>
-                        )}
+                      <div key={l.owner_id} className="list-row" style={{ gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                        <div style={{ width: 120, fontSize: 13, fontWeight: 600 }}>{t?.full_name ?? "—"}</div>
+                        <span className="faint" style={{ fontSize: 12 }}>/programeaza/</span>
+                        <input
+                          style={{ flex: 1, minWidth: 80 }}
+                          value={drafts[l.owner_id] ?? l.slug}
+                          onChange={(e) => setDrafts((d) => ({ ...d, [l.owner_id]: e.target.value }))}
+                          onBlur={(e) => renameLink(l.owner_id, e.target.value)}
+                        />
+                        <button type="button" className="btn sm ghost" onClick={() => copy(l.slug)}>Copiază</button>
+                        <button type="button" className="icon-btn" style={{ width: 26, height: 26 }} title="Șterge linkul" onClick={() => removeLink(l.owner_id)}>✕</button>
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* RIGHT: general link + priority person */}
+              {/* RIGHT: priority only */}
               <div>
-                <div className="nav-label" style={{ padding: 0, marginBottom: 6 }}>Linkul general</div>
+                <div className="nav-label" style={{ padding: 0, marginBottom: 6 }}>Prioritate</div>
                 <p className="faint" style={{ fontSize: 12, marginBottom: 10 }}>
-                  Îl poate trimite oricine. Programările merg doar la admini și closeri, în funcție de programul fiecăruia. Clientul vede orele din toată săptămâna (luni–vineri) în care măcar unul e liber.
+                  Persoana aleasă primește primul lead-ul de pe linkul general, când e liberă. Alegerea o activează automat.
                 </p>
-                <div className="card" style={{ padding: 12, marginBottom: 18, display: "flex", alignItems: "center", gap: 10 }}>
-                  <span className="mono" style={{ fontSize: 12.5, flex: 1 }}>/programeaza</span>
-                  <button type="button" className="btn sm ghost" onClick={() => copy("")}>Copiază</button>
-                </div>
-
-                <div className="nav-label" style={{ padding: 0, marginBottom: 6 }}>Persoană prioritară (doar linkul general)</div>
-                <p className="faint" style={{ fontSize: 12, marginBottom: 10 }}>
-                  Cât timp e activă, persoana aleasă primește lead-ul când e liberă la ora aleasă. Dacă nu e liberă, se aplică regula obișnuită (cel mai puțin încărcat). Fără prioritate, merge doar după program.
-                </p>
-                <div className="card" style={{ padding: 12, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                  <select
-                    style={{ flex: 1, minWidth: 160 }}
-                    value={settings.priority_user_id ?? ""}
-                    onChange={(e) => saveSettings({ ...settings, priority_user_id: e.target.value || null, priority_enabled: e.target.value ? settings.priority_enabled : false })}
-                  >
-                    <option value="">— nimeni —</option>
-                    {pool.map((t) => (
-                      <option key={t.id} value={t.id}>{t.full_name} ({ROLE_NAME[t.role]})</option>
-                    ))}
-                  </select>
+                <select
+                  style={{ width: "100%", marginBottom: 10 }}
+                  value={settings.priority_user_id ?? ""}
+                  onChange={(e) => saveSettings({ priority_user_id: e.target.value || null, priority_enabled: !!e.target.value })}
+                >
+                  <option value="">— nimeni —</option>
+                  {pool.map((t) => (
+                    <option key={t.id} value={t.id}>{t.full_name} ({ROLE_NAME[t.role]})</option>
+                  ))}
+                </select>
+                <div style={{ display: "flex", gap: 8 }}>
                   <button
                     type="button"
-                    className={`btn sm ${settings.priority_enabled ? "primary" : "ghost"}`}
+                    className="btn"
                     disabled={!settings.priority_user_id}
-                    onClick={() => saveSettings({ ...settings, priority_enabled: !settings.priority_enabled })}
+                    style={settings.priority_enabled ? { background: "#1f9d55", borderColor: "#1f9d55", color: "#fff" } : undefined}
+                    onClick={() => saveSettings({ ...settings, priority_enabled: true })}
                   >
-                    {settings.priority_enabled ? "● Prioritate activă" : "Activează prioritatea"}
+                    Activează
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={!settings.priority_user_id}
+                    style={settings.priority_user_id && !settings.priority_enabled ? { background: "#1f9d55", borderColor: "#1f9d55", color: "#fff" } : undefined}
+                    onClick={() => saveSettings({ ...settings, priority_enabled: false })}
+                  >
+                    Dezactivează
                   </button>
                 </div>
               </div>

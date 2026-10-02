@@ -684,6 +684,27 @@ export type Database = {
         }
         Relationships: []
       }
+      general_availability: {
+        Row: {
+          end_time: string
+          id: string
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          end_time: string
+          id?: string
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          end_time?: string
+          id?: string
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number

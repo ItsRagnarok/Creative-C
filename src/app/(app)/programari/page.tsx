@@ -1,5 +1,5 @@
 import BookingsBoard, { type BookingRow, type CalendarExtra } from "@/components/BookingsBoard";
-import type { AvailabilityRow } from "@/components/WorkScheduleModal";
+import type { AvailabilityRow, GeneralRow } from "@/components/WorkScheduleModal";
 import BookingAdminTools, { type SlugRow, type BookingSettings } from "@/components/BookingAdminTools";
 import type { Owner } from "@/components/PipelineBoard";
 import { getAppContext } from "@/lib/app-context";
@@ -19,7 +19,7 @@ export default async function ProgramariPage() {
   const until = new Date(Date.now() + 35 * 86_400_000).toISOString();
 
   const canSeeEverything = role === "admin" || role === "manager";
-  const [{ data: bookings }, { data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }, { data: availability }, { data: slugRows }, { data: settingsRow }, { data: mySlugRow }] = await Promise.all([
+  const [{ data: bookings }, { data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }, { data: availability }, { data: slugRows }, { data: settingsRow }, { data: mySlugRow }, { data: generalRows }] = await Promise.all([
     hasAccess
       ? supabase
           .from("bookings")
@@ -57,6 +57,7 @@ export default async function ProgramariPage() {
     profile.is_super_admin ? supabase.from("booking_slugs").select("slug, owner_id") : Promise.resolve({ data: null }),
     profile.is_super_admin ? supabase.from("booking_settings").select("priority_user_id, priority_enabled").maybeSingle() : Promise.resolve({ data: null }),
     supabase.from("booking_slugs").select("slug").eq("owner_id", user.id).maybeSingle(),
+    profile.is_super_admin ? supabase.from("general_availability").select("*") : Promise.resolve({ data: null }),
   ]);
 
   const extraEvents: CalendarExtra[] = [
@@ -82,6 +83,7 @@ export default async function ProgramariPage() {
           userId={user.id}
           canUseGeneralLink={role === "admin" || role === "vanzari"}
           myLinkSlug={mySlugRow?.slug ?? null}
+          generalAvailability={profile.is_super_admin ? ((generalRows ?? []) as GeneralRow[]) : null}
           adminTools={
             profile.is_super_admin ? (
               <BookingAdminTools
