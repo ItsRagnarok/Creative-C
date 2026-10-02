@@ -11,7 +11,7 @@ const ROLE_NAME: Record<string, string> = { admin: "Admin", manager: "Manager", 
 const clean = (s: string) =>
   s.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-// Admin S only. The general link goes to admins + closers (by their hours, priority person first if enabled);
+// Admin S only. The general link goes to admins, managers + closers (general hours, priority person first if enabled);
 // each team member can have exactly one personal link, which books strictly with that person.
 export default function BookingAdminTools({
   team,
@@ -31,7 +31,7 @@ export default function BookingAdminTools({
   const [settings, setSettings] = useState(initialSettings);
   const [msg, setMsg] = useState<string | null>(null);
 
-  const pool = team.filter((t) => t.role === "admin" || t.role === "vanzari"); // who can receive from the general link
+  const pool = team.filter((t) => t.role === "admin" || t.role === "manager" || t.role === "vanzari"); // who can receive from the general link
   const linkOf = (s: string) => `${window.location.origin}/programeaza${s ? `/${s}` : ""}`;
   const slugOf = (ownerId: string) => slugs.find((s) => s.owner_id === ownerId)?.slug ?? null;
 
