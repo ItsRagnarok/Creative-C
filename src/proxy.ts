@@ -7,7 +7,7 @@ const PUBLIC_PATHS = ["/login", "/programeaza"];
 // skip the Supabase round trip entirely instead of paying for it and
 // throwing the result away. /login stays out of this: it still needs the
 // session check below to bounce an already-logged-in visitor to /dashboard.
-const NO_AUTH_CHECK_PATHS = ["/programeaza"];
+const NO_AUTH_CHECK_PATHS = ["/", "/programeaza"];
 
 export async function proxy(request: NextRequest) {
   if (NO_AUTH_CHECK_PATHS.includes(request.nextUrl.pathname)) {
