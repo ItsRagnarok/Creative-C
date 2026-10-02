@@ -299,18 +299,32 @@ export default function ContentCalendar({
               {error && <div className="field-error" style={{ marginBottom: 10 }}>{error}</div>}
 
               <div className="list">
+                <div
+                  className="faint"
+                  style={{ display: "grid", gridTemplateColumns: "72px minmax(120px,1fr) minmax(160px,1.3fr) minmax(190px,auto)", gap: 12, padding: "0 4px 8px", fontSize: 11, textTransform: "uppercase", letterSpacing: ".05em" }}
+                >
+                  <span>Zi</span>
+                  <span>Tip clip</span>
+                  <span>Link clip</span>
+                  <span>Status</span>
+                </div>
                 {Array.from({ length: daysIn(month) }, (_, i) => {
                   const iso = dayIso(month, i + 1);
                   const row = byDay.get(iso);
                   const lbl = dayLabel(iso);
                   const hasFile = !!(row?.file_path || row?.file_url);
                   return (
-                    <div key={iso} className="list-row" style={{ gap: 12, alignItems: "center" }}>
-                      <div style={{ width: 64, flex: "0 0 auto" }}>
+                    <div
+                      key={iso}
+                      className="list-row"
+                      style={{ display: "grid", gridTemplateColumns: "72px minmax(120px,1fr) minmax(160px,1.3fr) minmax(190px,auto)", gap: 12, alignItems: "center" }}
+                    >
+                      <div>
                         <b>{lbl.num}</b> <span className="faint" style={{ fontSize: 11 }}>{lbl.rest}</span>
                       </div>
 
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      {/* Tip clip */}
+                      <div style={{ minWidth: 0 }}>
                         {canManage && editingDay === iso ? (
                           <input
                             autoFocus
@@ -338,33 +352,49 @@ export default function ContentCalendar({
                         ) : (
                           <span className="faint">—</span>
                         )}
+                      </div>
+
+                      {/* Link clip — visible to everyone with access; only the editor adds/changes it */}
+                      <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                         {row && hasFile && (
-                          <button type="button" className="btn sm ghost" style={{ marginLeft: 8, padding: "2px 8px" }} onClick={() => download(row)}>
-                            📁 {row.file_name ?? "Clip"}
+                          row.file_url ? (
+                            <a href={row.file_url} target="_blank" rel="noreferrer" style={{ color: "var(--accent-2)", fontSize: 12.5, overflowWrap: "anywhere" }}>
+                              🔗 {row.file_url.replace(/^https?:\/\//, "").slice(0, 38)}{row.file_url.length > 45 ? "…" : ""}
+                            </a>
+                          ) : (
+                            <button type="button" className="btn sm ghost" style={{ padding: "2px 8px" }} onClick={() => download(row)}>
+                              📁 {row.file_name ?? "Clip"}
+                            </button>
+                          )
+                        )}
+                        {row && !hasFile && <span className="faint" style={{ fontSize: 12 }}>— fără link încă</span>}
+                        {!canManage && row && row.status !== "closed" && (
+                          <button type="button" className="btn sm" onClick={() => { setError(null); setUploadDay(iso); }}>
+                            {hasFile ? "Schimbă link" : "Adaugă link clip"}
                           </button>
                         )}
                       </div>
 
-                      {row && (
-                        <>
-                          <span className={`badge ${STATUS_BADGE[row.status]}`}>{STATUS_LABEL[row.status]}</span>
-                          {!canManage && row.status !== "closed" && (
-                            <button type="button" className="btn sm" onClick={() => { setError(null); setUploadDay(iso); }}>
-                              {hasFile ? "Schimbă link/clip" : "Adaugă link clip"}
-                            </button>
-                          )}
-                          {canManage && hasFile && (
-                            <>
-                              <button type="button" className="btn sm ghost" disabled={row.status === "in_review"} onClick={() => setStatus(row, "in_review")}>
-                                În review
-                              </button>
-                              <button type="button" className="btn sm primary" disabled={row.status === "closed"} onClick={() => setStatus(row, "closed")}>
-                                Closed
-                              </button>
-                            </>
-                          )}
-                        </>
-                      )}
+                      {/* Status — admin S / admin / managers change it */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                        {row ? (
+                          <>
+                            <span className={`badge ${STATUS_BADGE[row.status]}`}>{STATUS_LABEL[row.status]}</span>
+                            {canManage && (
+                              <>
+                                <button type="button" className="btn sm ghost" disabled={!hasFile || row.status === "in_review"} onClick={() => setStatus(row, "in_review")}>
+                                  În review
+                                </button>
+                                <button type="button" className="btn sm primary" disabled={!hasFile || row.status === "closed"} onClick={() => setStatus(row, "closed")}>
+                                  Closed
+                                </button>
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <span className="faint">—</span>
+                        )}
+                      </div>
                     </div>
                   );
                 })}

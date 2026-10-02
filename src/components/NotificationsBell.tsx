@@ -29,6 +29,24 @@ export default function NotificationsBell({ initial }: { initial: NotificationRo
   const supabase = createClient();
 
   const unread = items.filter((n) => !n.is_read).length;
+  const [toast, setToast] = useState<NotificationRow | null>(null);
+
+  // Live: a new notification shows up (and pops a toast) without a refresh.
+  useEffect(() => {
+    const ch = supabase
+      .channel("notifications-live")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, (payload) => {
+        const n = payload.new as NotificationRow;
+        setItems((prev) => (prev.some((x) => x.id === n.id) ? prev : [n, ...prev]));
+        setToast(n);
+        setTimeout(() => setToast((t) => (t && t.id === n.id ? null : t)), 6000);
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -56,6 +74,16 @@ export default function NotificationsBell({ initial }: { initial: NotificationRo
         🔔
         {unread > 0 && <span className="dot" />}
       </button>
+      {toast && !open && (
+        <div
+          className="card"
+          style={{ position: "fixed", right: 20, bottom: 20, zIndex: 80, maxWidth: 320, boxShadow: "var(--shadow)", cursor: "pointer" }}
+          onClick={() => { setOpen(true); setToast(null); }}
+        >
+          <div style={{ fontWeight: 700, fontSize: 13 }}>{toast.title}</div>
+          <div className="faint" style={{ fontSize: 12.5, marginTop: 4 }}>{toast.body}</div>
+        </div>
+      )}
       {open && (
         <div className="dropdown-panel">
           <div className="head">

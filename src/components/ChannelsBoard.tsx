@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Owner } from "@/components/PipelineBoard";
 
@@ -87,7 +87,40 @@ export default function ChannelsBoard({
   const [stockDraft, setStockDraft] = useState<{ remaining: string; total: string } | null>(null);
 
   const ownChannel = channels.find((c) => c.editor_id === currentUserId) ?? null;
-  const [activeId, setActiveId] = useState<string | null>(ownChannel?.id ?? channels[0]?.id ?? null);
+  const [activeId, setActiveIdState] = useState<string | null>(ownChannel?.id ?? channels[0]?.id ?? null);
+  const [unread, setUnread] = useState<Record<string, number>>({});
+  const activeIdRef = useRef(activeId);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  function setActiveId(id: string | null) {
+    activeIdRef.current = id;
+    setActiveIdState(id);
+    if (id) setUnread((u) => ({ ...u, [id]: 0 }));
+  }
+
+  // Live: new messages from anyone appear instantly (RLS decides which ones this user receives).
+  useEffect(() => {
+    const ch = supabase
+      .channel("chat-messages")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "channel_messages" }, async (payload) => {
+        const row = payload.new as { id: string; channel_id: string; author_id: string | null };
+        const { data } = await supabase
+          .from("channel_messages")
+          .select("*, author:profiles(id, full_name, initials)")
+          .eq("id", row.id)
+          .single();
+        if (!data) return;
+        setMessages((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, data as MessageRow]));
+        if (data.author_id !== currentUserId && data.channel_id !== activeIdRef.current) {
+          setUnread((u) => ({ ...u, [data.channel_id]: (u[data.channel_id] ?? 0) + 1 }));
+        }
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserId]);
 
   const [today] = useState(() => new Date());
 
@@ -98,6 +131,10 @@ export default function ChannelsBoard({
   );
 
   const isGroup = !!active && active.kind === "editor" && !active.editor_id;
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ block: "end" });
+  }, [activeMessages.length, activeId]);
+
   const canPost = !!active && (canManage || active.editor_id === currentUserId || isGroup);
 
   const activeStock = active?.editor_id ? stock.find((s) => s.editor_id === active.editor_id) ?? null : null;
@@ -120,7 +157,7 @@ export default function ChannelsBoard({
       .single();
     setSending(false);
     if (error) return;
-    setMessages((prev) => [...prev, data as MessageRow]);
+    setMessages((prev) => (prev.some((m) => m.id === (data as MessageRow).id) ? prev : [...prev, data as MessageRow]));
     setMessageInput("");
     setFileName("");
     setFileUrl("");
@@ -184,6 +221,7 @@ export default function ChannelsBoard({
           {channels.filter((c) => c.kind === "editor" && !c.editor_id).map((c) => (
             <button key={c.id} className={`chan-item${activeId === c.id ? " active" : ""}`} onClick={() => setActiveId(c.id)}>
               {c.label}
+              {unread[c.id] ? <span className="badge red" style={{ marginLeft: "auto" }}>{unread[c.id]}</span> : null}
             </button>
           ))}
           <div className="nav-label" style={{ padding: "14px 10px 4px" }}>{canManage ? "Chat privat cu editorii" : "Chat privat cu managerul"}</div>
@@ -191,6 +229,7 @@ export default function ChannelsBoard({
             <button key={c.id} className={`chan-item${activeId === c.id ? " active" : ""}`} onClick={() => setActiveId(c.id)}>
               <span className="status-dot" style={{ background: "var(--accent-2)" }} />
               {canManage ? c.editor?.full_name ?? c.slug : "Managerul tău"}
+              {unread[c.id] ? <span className="badge red" style={{ marginLeft: "auto" }}>{unread[c.id]}</span> : null}
             </button>
           ))}
           <div className="nav-label" style={{ padding: "14px 10px 4px" }}>Automate</div>
@@ -238,6 +277,7 @@ export default function ChannelsBoard({
                   </div>
                 ))}
                 {activeMessages.length === 0 && <div className="empty-note">Niciun mesaj încă în acest canal.</div>}
+                <div ref={endRef} />
               </div>
               {canPost ? (
                 <>
