@@ -26,6 +26,10 @@ const CONFIRM_WORD = "STERGE";
 // Any admin may create manager / editor / closer accounts; only admin S may create or re-role admins.
 const BASE_ROLES: AppRole[] = ["manager", "vanzari", "editor"];
 
+// Team order: admin S, admins, managers, editors, closers (oldest first within a group).
+const ROLE_RANK: Record<AppRole, number> = { admin: 1, manager: 2, editor: 3, vanzari: 4 };
+const rank = (p: ProfileRow) => (p.is_super_admin ? 0 : ROLE_RANK[p.role]);
+
 function monthYear(iso: string) {
   return new Date(iso).toLocaleDateString("ro-RO", { month: "long", year: "numeric" });
 }
@@ -267,7 +271,7 @@ export default function EchipaBoard({
             </tr>
           </thead>
           <tbody>
-            {[...profiles].sort((x, y) => Number(!!y.is_super_admin) - Number(!!x.is_super_admin)).map((p) => (
+            {[...profiles].sort((x, y) => rank(x) - rank(y) || x.created_at.localeCompare(y.created_at)).map((p) => (
               <tr key={p.id}>
                 {canManage && (
                   <td>
