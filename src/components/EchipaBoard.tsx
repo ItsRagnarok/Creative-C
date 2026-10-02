@@ -267,7 +267,7 @@ export default function EchipaBoard({
             </tr>
           </thead>
           <tbody>
-            {profiles.map((p) => (
+            {[...profiles].sort((x, y) => Number(!!y.is_super_admin) - Number(!!x.is_super_admin)).map((p) => (
               <tr key={p.id}>
                 {canManage && (
                   <td>
