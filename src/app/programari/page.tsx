@@ -113,6 +113,7 @@ export default async function ProgramariPage() {
           initialBookings={(bookings ?? []) as BookingRow[]}
           owners={(owners ?? []) as Owner[]}
           canDelete={role === "admin" || role === "manager"}
+          isAdmin={role === "admin"}
           extraEvents={extraEvents}
         />
         </>

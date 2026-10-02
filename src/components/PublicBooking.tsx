@@ -4,48 +4,62 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const TZ = "Europe/Bucharest";
-const DOW = ["L", "Ma", "Mi", "J", "V", "S", "D"];
+const WD = ["Lun", "Mar", "Mie", "Joi", "Vin", "Sâm", "Dum"];
+const MONTHS = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
 
 // YYYY-MM-DD of an instant as seen in Romania, regardless of the visitor's own timezone.
 const dayKey = (d: Date) => d.toLocaleDateString("sv-SE", { timeZone: TZ });
-const timeLabel = (d: Date) => d.toLocaleTimeString("ro-RO", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+const timeLabel = (iso: string) => new Date(iso).toLocaleTimeString("ro-RO", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
 const pad = (n: number) => String(n).padStart(2, "0");
 
-type Confirmed = { slot: string; assigned: string };
+// Pure calendar-date arithmetic on YYYY-MM-DD strings (no timezone involved).
+function addDays(key: string, n: number) {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + n));
+  return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+}
+function mondayOf(key: string) {
+  const [y, m, d] = key.split("-").map(Number);
+  const dow = (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
+  return addDays(key, -dow);
+}
+const dayNum = (key: string) => Number(key.slice(8, 10));
+const monthName = (key: string) => MONTHS[Number(key.slice(5, 7)) - 1];
+const dowIndex = (key: string) => {
+  const [y, m, d] = key.split("-").map(Number);
+  return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
+};
 
 export default function PublicBooking({ slug }: { slug: string | null }) {
   const supabase = createClient();
-  const [host, setHost] = useState<{ full_name: string; initials: string } | null>(null);
+  const today = dayKey(new Date());
+  const thisMonday = mondayOf(today);
   const [hostMissing, setHostMissing] = useState(false);
-  const [month, setMonth] = useState(() => {
-    const n = new Date();
-    return { y: n.getFullYear(), m: n.getMonth() };
-  });
+  const [weekStart, setWeekStart] = useState(thisMonday);
   const [slots, setSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [pickedDay, setPickedDay] = useState<string | null>(null);
   const [pickedSlot, setPickedSlot] = useState<string | null>(null);
+  const [step, setStep] = useState<"pick" | "details" | "done">("pick");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<Confirmed | null>(null);
+  const [assigned, setAssigned] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
     supabase.rpc("get_booking_host", { p_slug: slug }).then(({ data }) => {
-      if (data && data.length > 0) setHost(data[0]);
-      else setHostMissing(true);
+      if (!data || data.length === 0) setHostMissing(true);
     });
   }, [slug, supabase]);
 
-  const from = `${month.y}-${pad(month.m + 1)}-01`;
-  const to = `${month.y}-${pad(month.m + 1)}-${pad(new Date(month.y, month.m + 1, 0).getDate())}`;
+  const weekEnd = addDays(weekStart, 6);
 
   useEffect(() => {
     let cancelled = false;
-    supabase.rpc("list_available_slots", { p_slug: slug as string, p_from: from, p_to: to }).then(({ data }) => {
+    supabase.rpc("list_available_slots", { p_slug: slug as string, p_from: weekStart, p_to: weekEnd }).then(({ data }) => {
       if (cancelled) return;
       setSlots((data ?? []).map((r) => r.slot));
       setLoading(false);
@@ -53,7 +67,7 @@ export default function PublicBooking({ slug }: { slug: string | null }) {
     return () => {
       cancelled = true;
     };
-  }, [slug, from, to, supabase]);
+  }, [slug, weekStart, weekEnd, supabase]);
 
   const byDay = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -65,19 +79,18 @@ export default function PublicBooking({ slug }: { slug: string | null }) {
     return map;
   }, [slots]);
 
-  function goMonth(delta: number) {
+  // Mon–Fri always; Saturday/Sunday only when somebody is actually free then.
+  const visibleDays = useMemo(() => {
+    const all = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+    return all.filter((k) => dowIndex(k) < 5 || byDay.has(k));
+  }, [weekStart, byDay]);
+
+  function goWeek(delta: number) {
     setLoading(true);
     setPickedDay(null);
-    setMonth((cur) => {
-      const d = new Date(cur.y, cur.m + delta, 1);
-      return { y: d.getFullYear(), m: d.getMonth() };
-    });
+    setPickedSlot(null);
+    setWeekStart((w) => addDays(w, delta * 7));
   }
-
-  const now = new Date();
-  const atCurrentMonth = month.y === now.getFullYear() && month.m === now.getMonth();
-  const firstDow = (new Date(month.y, month.m, 1).getDay() + 6) % 7; // Monday-first
-  const daysInMonth = new Date(month.y, month.m + 1, 0).getDate();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -98,137 +111,113 @@ export default function PublicBooking({ slug }: { slug: string | null }) {
       setError(rpcError.message || "Intervalul nu mai este disponibil — alege altul.");
       return;
     }
-    const res = data as { assigned_name: string };
-    setDone({ slot: pickedSlot, assigned: res.assigned_name });
+    setAssigned((data as { assigned_name: string }).assigned_name);
+    setStep("done");
   }
-
-  const hostName = host?.full_name ?? "Echipa Creative C";
 
   if (hostMissing) {
     return (
       <div className="pb-page">
-        <div className="auth-card" style={{ textAlign: "center" }}>
-          <h2 style={{ fontSize: 20 }}>Link invalid</h2>
-          <p>Acest link de programare nu există sau nu mai este activ.</p>
+        <div className="pb-card" style={{ maxWidth: 460, textAlign: "center" }}>
+          <h1 style={{ fontSize: 22 }}>Link invalid</h1>
+          <p className="pb-msg" style={{ marginTop: 8 }}>Acest link de programare nu există sau nu mai este activ.</p>
         </div>
       </div>
     );
   }
 
+  const pickedLabel = pickedDay && pickedSlot ? `${dayNum(pickedDay)} ${monthName(pickedDay)}, ${timeLabel(pickedSlot)}` : null;
+
   return (
     <div className="pb-page">
       <div className="pb-card">
-        <aside className="pb-info">
-          <div className="host-avatar">{host?.initials ?? "CC"}</div>
-          <div className="host-name">{hostName}</div>
-          <h1>Apel de strategie</h1>
-          <div className="meta">⏱ 20 minute</div>
-          <div className="meta">🌍 Ora României</div>
-          <p className="faint" style={{ fontSize: 12.5, marginTop: 16 }}>
-            Discutăm obiectivele tale de conținut și cum arată o colaborare cu noi. Fără obligații.
-          </p>
-          {pickedSlot && !done && (
-            <p style={{ marginTop: 16, fontSize: 13 }}>
-              📅 <b>
-                {new Date(pickedSlot).toLocaleDateString("ro-RO", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" })}
-                {", "}
-                {timeLabel(new Date(pickedSlot))}
-              </b>
-            </p>
+        <div className="pb-top">
+          <div>
+            <small>Programare</small>
+            <h1>Apel de strategie</h1>
+            <p>20 de minute · Ora României</p>
+          </div>
+          {step === "pick" && (
+            <div className="pb-weeknav">
+              <button onClick={() => goWeek(-1)} disabled={weekStart <= thisMonday} aria-label="Săptămâna anterioară">‹</button>
+              <span>
+                {dayNum(weekStart)} {weekStart.slice(5, 7) !== weekEnd.slice(5, 7) ? monthName(weekStart) + " " : ""}– {dayNum(weekEnd)} {monthName(weekEnd)}
+              </span>
+              <button onClick={() => goWeek(1)} aria-label="Săptămâna următoare">›</button>
+            </div>
           )}
-        </aside>
+        </div>
 
-        {done ? (
-          <div className="pb-body" style={{ textAlign: "center", alignContent: "center" }}>
-            <div>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
-              <h2 style={{ fontSize: 20 }}>Programare confirmată!</h2>
-              <p>
-                Ne vedem{" "}
-                {new Date(done.slot).toLocaleDateString("ro-RO", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" })} la{" "}
-                {timeLabel(new Date(done.slot))}, cu <b style={{ color: "var(--text)" }}>{done.assigned}</b>.
-              </p>
-              <p className="faint" style={{ fontSize: 12.5 }}>Echipa Creative C a fost anunțată.</p>
-            </div>
-          </div>
-        ) : pickedSlot ? (
-          <div className="pb-body">
-            <form onSubmit={handleSubmit} style={{ maxWidth: 380 }}>
-              <h2 style={{ fontSize: 18, marginBottom: 14 }}>Datele tale</h2>
-              <div className="field">
-                <label>Nume</label>
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Numele tău" />
-              </div>
-              <div className="field">
-                <label>Email</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@afacere.ro" />
-              </div>
-              <div className="field">
-                <label>Telefon</label>
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="07xx xxx xxx" />
-              </div>
-              {error && <div className="field-error">{error}</div>}
-              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                <button type="button" className="btn ghost" onClick={() => { setPickedSlot(null); setError(null); }}>Înapoi</button>
-                <button type="submit" className="btn primary" style={{ flex: 1, justifyContent: "center" }} disabled={submitting}>
-                  {submitting ? "Se confirmă…" : "Confirmă programarea"}
-                </button>
-              </div>
-            </form>
-          </div>
-        ) : (
-          <div className={`pb-body${pickedDay ? " with-slots" : ""}`}>
-            <div>
-              <div className="pb-head">
-                <h2>{new Date(month.y, month.m, 1).toLocaleDateString("ro-RO", { month: "long", year: "numeric" })}</h2>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button className="pb-nav" onClick={() => goMonth(-1)} disabled={atCurrentMonth} aria-label="Luna anterioară">‹</button>
-                  <button className="pb-nav" onClick={() => goMonth(1)} aria-label="Luna următoare">›</button>
-                </div>
-              </div>
-              <div className="pb-grid">
-                {DOW.map((d) => (
-                  <div key={d} className="pb-dow">{d}</div>
-                ))}
-                {Array.from({ length: firstDow }, (_, i) => (
-                  <div key={`b${i}`} />
-                ))}
-                {Array.from({ length: daysInMonth }, (_, i) => {
-                  const key = `${month.y}-${pad(month.m + 1)}-${pad(i + 1)}`;
-                  const free = byDay.has(key);
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      disabled={!free}
-                      className={`pb-day${free ? " free" : ""}${pickedDay === key ? " picked" : ""}`}
-                      onClick={() => setPickedDay(key)}
-                    >
-                      {i + 1}
-                    </button>
-                  );
-                })}
-              </div>
-              {loading && <p className="faint" style={{ marginTop: 14, fontSize: 12.5 }}>Se încarcă disponibilitatea…</p>}
-              {!loading && byDay.size === 0 && (
-                <p className="faint" style={{ marginTop: 14, fontSize: 12.5 }}>Nu sunt intervale libere în această lună — încearcă luna următoare.</p>
-              )}
+        {step === "pick" && (
+          <>
+            <div className="pb-days">
+              {visibleDays.map((k) => {
+                const n = byDay.get(k)?.length ?? 0;
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    disabled={n === 0}
+                    className={`pb-day${pickedDay === k ? " sel" : ""}`}
+                    onClick={() => { setPickedDay(k); setPickedSlot(null); }}
+                  >
+                    <span>{WD[dowIndex(k)]}</span>
+                    <b>{dayNum(k)}</b>
+                    <em>{loading ? "…" : n > 0 ? `${n} ore libere` : "ocupat"}</em>
+                  </button>
+                );
+              })}
             </div>
 
-            {pickedDay && (
-              <div className="pb-slots">
-                <h3>
-                  {new Date(`${pickedDay}T12:00:00`).toLocaleDateString("ro-RO", { weekday: "long", day: "numeric", month: "long" })}
-                </h3>
-                <div className="slot-list">
-                  {(byDay.get(pickedDay) ?? []).map((s) => (
-                    <button key={s} type="button" className="pb-slot" onClick={() => setPickedSlot(s)}>
-                      {timeLabel(new Date(s))}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="pb-hours">
+              {pickedDay &&
+                (byDay.get(pickedDay) ?? []).map((s) => (
+                  <button key={s} type="button" className={`pb-hour${pickedSlot === s ? " sel" : ""}`} onClick={() => setPickedSlot(s)}>
+                    {timeLabel(s)}
+                  </button>
+                ))}
+              {!loading && byDay.size === 0 && <p className="pb-msg">Nu sunt intervale libere în această săptămână — încearcă săptămâna următoare.</p>}
+            </div>
+
+            <div className="pb-cta">
+              <button className="pb-go" disabled={!pickedSlot} onClick={() => setStep("details")}>Continuă</button>
+              <span className="pb-msg">
+                {pickedLabel ? (
+                  <>
+                    <span className="pb-dot">●</span> {pickedLabel}
+                  </>
+                ) : (
+                  "Alege o zi și o oră."
+                )}
+              </span>
+            </div>
+          </>
+        )}
+
+        {step === "details" && (
+          <form className="pb-form" onSubmit={handleSubmit}>
+            <p className="pb-msg"><span className="pb-dot">●</span> {pickedLabel}</p>
+            <label>Nume</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Numele tău" autoFocus />
+            <label>Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@afacere.ro" />
+            <label>Telefon</label>
+            <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="07xx xxx xxx" />
+            {error && <div className="pb-err">{error}</div>}
+            <div className="pb-cta">
+              <button type="button" className="pb-ghost" onClick={() => { setStep("pick"); setError(null); }}>Înapoi</button>
+              <button type="submit" className="pb-go" disabled={submitting}>{submitting ? "Se confirmă…" : "Confirmă programarea"}</button>
+            </div>
+          </form>
+        )}
+
+        {step === "done" && (
+          <div>
+            <h2 style={{ fontSize: 24, fontWeight: 600 }}>Programare confirmată</h2>
+            <p className="pb-msg" style={{ marginTop: 10, fontSize: 15 }}>
+              Ne vedem pe <b style={{ color: "#fff" }}>{pickedLabel}</b>
+              {assigned ? <>, cu <b style={{ color: "#fff" }}>{assigned}</b></> : null}. Echipa Creative C a fost anunțată.
+            </p>
           </div>
         )}
       </div>

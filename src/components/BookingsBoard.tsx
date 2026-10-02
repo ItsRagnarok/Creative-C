@@ -72,11 +72,13 @@ export default function BookingsBoard({
   initialBookings,
   owners,
   canDelete,
+  isAdmin,
   extraEvents = [],
 }: {
   initialBookings: BookingRow[];
   owners: Owner[];
   canDelete: boolean;
+  isAdmin: boolean;
   extraEvents?: CalendarExtra[];
 }) {
   const supabase = createClient();
@@ -324,7 +326,7 @@ export default function BookingsBoard({
                       {isNew && <span className="cal-new-tag">NOU</span>}
                       <span className="t">{fmtTime(b.scheduled_at)}</span>
                       <span className="n">{b.owner ? `${b.owner.initials} — ` : ""}{b.name}</span>
-                      {b.link_owner && <span className="faint" style={{ fontSize: 10.5 }}>🔗 link {b.link_owner.initials}{viaOther ? ` → ${b.owner?.initials ?? "?"}` : ""}</span>}
+                      {isAdmin && b.link_owner && <span className="faint" style={{ fontSize: 10.5 }}>🔗 link {b.link_owner.initials}{viaOther ? ` → ${b.owner?.initials ?? "?"}` : ""}</span>}
                     </button>
                   );
                 })}
