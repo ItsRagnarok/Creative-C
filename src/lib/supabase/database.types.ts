@@ -51,18 +51,21 @@ export type Database = {
         Row: {
           booking_id: string
           created_at: string
+          kind: string
           link_owner_id: string | null
           slug: string | null
         }
         Insert: {
           booking_id: string
           created_at?: string
+          kind?: string
           link_owner_id?: string | null
           slug?: string | null
         }
         Update: {
           booking_id?: string
           created_at?: string
+          kind?: string
           link_owner_id?: string | null
           slug?: string | null
         }
@@ -159,6 +162,32 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      booking_settings: {
+        Row: {
+          id: boolean
+          priority_enabled: boolean
+          priority_user_id: string | null
+        }
+        Insert: {
+          id?: boolean
+          priority_enabled?: boolean
+          priority_user_id?: string | null
+        }
+        Update: {
+          id?: boolean
+          priority_enabled?: boolean
+          priority_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_settings_priority_user_id_fkey"
+            columns: ["priority_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       booking_slugs: {
         Row: {

@@ -31,7 +31,7 @@ export type BookingRow = {
   owner_id: string | null;
   owner: Owner | null;
   created_at?: string;
-  link?: { slug: string | null; link_owner: Owner | null } | null;
+  link?: { slug: string | null; kind: "general" | "personal"; link_owner: Owner | null } | null;
 };
 
 type FormState = {
@@ -79,6 +79,8 @@ export default function BookingsBoard({
   userId,
   myAvailability,
   adminTools,
+  canUseGeneralLink,
+  myLinkSlug,
   extraEvents = [],
 }: {
   initialBookings: BookingRow[];
@@ -88,6 +90,8 @@ export default function BookingsBoard({
   userId: string;
   myAvailability: AvailabilityRow[];
   adminTools?: React.ReactNode;
+  canUseGeneralLink: boolean;
+  myLinkSlug: string | null;
   extraEvents?: CalendarExtra[];
 }) {
   const supabase = createClient();
@@ -172,12 +176,14 @@ export default function BookingsBoard({
   function openEdit(b: BookingRow) {
     setError(null);
     const dt = new Date(b.scheduled_at);
-    const lo = b.link?.link_owner;
+    const when = b.created_at ? `, rezervat ${new Date(b.created_at).toLocaleString("ro-RO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : "";
     setModal({
       mode: "edit",
-      linkInfo: isAdmin && lo
-        ? `Link trimis de ${lo.full_name}${b.link?.slug ? ` (/programeaza/${b.link.slug})` : ""} → client: ${b.name}${b.created_at ? `, rezervat ${new Date(b.created_at).toLocaleString("ro-RO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : ""}`
-        : null,
+      linkInfo: !isAdmin || !b.link
+        ? null
+        : b.link.kind === "general"
+          ? `Venit de pe linkul general → client: ${b.name}${when}`
+          : `Link personal „${b.link.slug}” al lui ${b.link.link_owner?.full_name ?? "—"} → client: ${b.name}${when}`,
       form: {
         id: b.id,
         name: b.name,
@@ -258,6 +264,18 @@ export default function BookingsBoard({
 
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [schedule, setSchedule] = useState(myAvailability);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  async function copyLink(slug: string) {
+    const url = `${window.location.origin}/programeaza${slug ? `/${slug}` : ""}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(slug);
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      window.prompt("Copiază linkul:", url);
+    }
+  }
 
   return (
     <>
@@ -268,6 +286,16 @@ export default function BookingsBoard({
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           {adminTools}
+          {canUseGeneralLink && (
+            <button type="button" className="btn ghost" onClick={() => copyLink("")}>
+              {copied === "" ? "Link copiat ✓" : "Link general"}
+            </button>
+          )}
+          {myLinkSlug && (
+            <button type="button" className="btn ghost" onClick={() => copyLink(myLinkSlug)}>
+              {copied === myLinkSlug ? "Link copiat ✓" : "Linkul meu"}
+            </button>
+          )}
           <button type="button" className="btn ghost" onClick={() => setScheduleOpen(true)}>Program de lucru</button>
           <button className="btn primary" onClick={() => openCreate()}>+ Programare</button>
         </div>
@@ -329,14 +357,12 @@ export default function BookingsBoard({
                 )}
                 {items.map((b) => {
                   const isNew = !!b.notes?.startsWith("Rezervat din pagina publică");
-                  const linkOwner = b.link?.link_owner ?? null;
-                  const viaOther = linkOwner && linkOwner.id !== b.owner_id;
                   return (
                     <button key={b.id} className={`cal-card ${isNew ? "new" : ""}`} onClick={() => openEdit(b)}>
                       {isNew && <span className="cal-new-tag">NOU</span>}
                       <span className="t">{fmtTime(b.scheduled_at)}</span>
                       <span className="n">{b.owner ? `${b.owner.initials} — ` : ""}{b.name}</span>
-                      {isAdmin && linkOwner && <span className="faint" style={{ fontSize: 10.5 }}>🔗 link {linkOwner.initials}{viaOther ? ` → ${b.owner?.initials ?? "?"}` : ""}</span>}
+                      {isAdmin && b.link && <span className="faint" style={{ fontSize: 10.5 }}>🔗 {b.link.kind === "general" ? "link general" : b.link.slug}</span>}
                     </button>
                   );
                 })}

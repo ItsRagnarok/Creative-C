@@ -1,13 +1,12 @@
 import BookingsBoard, { type BookingRow, type CalendarExtra } from "@/components/BookingsBoard";
 import type { AvailabilityRow } from "@/components/WorkScheduleModal";
-import BookingAdminTools, { type SlugRow, type PriorityList, type PriorityItem } from "@/components/BookingAdminTools";
+import BookingAdminTools, { type SlugRow, type BookingSettings } from "@/components/BookingAdminTools";
 import type { Owner } from "@/components/PipelineBoard";
 import { getAppContext } from "@/lib/app-context";
 import { BOOKING_SELECT } from "@/lib/selects";
 
 export default async function ProgramariPage() {
   const { supabase, user, profile, team, role, access } = await getAppContext();
-  const profiles = team;
   const owners = team;
   const hasAccess = access.programari.view;
 
@@ -20,7 +19,7 @@ export default async function ProgramariPage() {
   const until = new Date(Date.now() + 35 * 86_400_000).toISOString();
 
   const canSeeEverything = role === "admin" || role === "manager";
-  const [{ data: bookings }, { data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }, { data: availability }, { data: slugRows }, { data: priorityLists }, { data: priorityItems }] = await Promise.all([
+  const [{ data: bookings }, { data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }, { data: availability }, { data: slugRows }, { data: settingsRow }, { data: mySlugRow }] = await Promise.all([
     hasAccess
       ? supabase
           .from("bookings")
@@ -56,8 +55,8 @@ export default async function ProgramariPage() {
       : Promise.resolve({ data: null }),
     hasAccess ? supabase.from("availability").select("*") : Promise.resolve({ data: null }),
     profile.is_super_admin ? supabase.from("booking_slugs").select("slug, owner_id") : Promise.resolve({ data: null }),
-    profile.is_super_admin ? supabase.from("booking_priority_lists").select("id, name, active").order("created_at") : Promise.resolve({ data: null }),
-    profile.is_super_admin ? supabase.from("booking_priority_items").select("list_id, user_id, position") : Promise.resolve({ data: null }),
+    profile.is_super_admin ? supabase.from("booking_settings").select("priority_user_id, priority_enabled").maybeSingle() : Promise.resolve({ data: null }),
+    supabase.from("booking_slugs").select("slug").eq("owner_id", user.id).maybeSingle(),
   ]);
 
   const extraEvents: CalendarExtra[] = [
@@ -81,13 +80,14 @@ export default async function ProgramariPage() {
           canDelete={role === "admin" || role === "manager"}
           isAdmin={role === "admin"}
           userId={user.id}
+          canUseGeneralLink={role === "admin" || role === "vanzari"}
+          myLinkSlug={mySlugRow?.slug ?? null}
           adminTools={
             profile.is_super_admin ? (
               <BookingAdminTools
-                team={(profiles ?? []).filter((p) => p.role === "admin" || p.role === "manager" || p.role === "vanzari").map((p) => ({ id: p.id, full_name: p.full_name }))}
+                team={team.filter((p) => p.role === "admin" || p.role === "manager" || p.role === "vanzari").map((p) => ({ id: p.id, full_name: p.full_name, role: p.role }))}
                 initialSlugs={(slugRows ?? []) as SlugRow[]}
-                initialLists={(priorityLists ?? []) as PriorityList[]}
-                initialItems={(priorityItems ?? []) as PriorityItem[]}
+                initialSettings={(settingsRow ?? { priority_user_id: null, priority_enabled: false }) as BookingSettings}
               />
             ) : null
           }
