@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { functionErrorMessage } from "@/lib/supabase/functionError";
 import { ROLE_LABEL, ROLE_NOTE, type AppRole } from "@/lib/roles";
 
 export type ProfileRow = {
@@ -112,7 +113,7 @@ export default function EchipaBoard({
     });
     setSaving(false);
     if (err || !data?.profile) {
-      setError(data?.error ?? err?.message ?? "Nu am putut adăuga membrul.");
+      setError(await functionErrorMessage(err ?? new Error(data?.error), "Nu am putut adăuga membrul."));
       return;
     }
     setProfiles((prev) => [...prev, data.profile as ProfileRow]);
@@ -159,7 +160,7 @@ export default function EchipaBoard({
       });
       if (pwErr || !pw?.ok) {
         setSaving(false);
-        return setError(pw?.error ?? pwErr?.message ?? "Datele au fost salvate, dar parola nu a putut fi schimbată.");
+        return setError(await functionErrorMessage(pwErr ?? new Error(pw?.error), "Datele au fost salvate, dar parola nu a putut fi schimbată."));
       }
       setNotice(`Parola pentru ${editModal.full_name.trim()} a fost schimbată.`);
     }
@@ -189,7 +190,7 @@ export default function EchipaBoard({
     const failures: string[] = [];
     for (const id of confirmIds) {
       const { data, error: err } = await supabase.functions.invoke("delete-team-member", { body: { user_id: id } });
-      if (err || !data?.ok) failures.push(data?.error ?? err?.message ?? "eroare necunoscută");
+      if (err || !data?.ok) failures.push(await functionErrorMessage(err ?? new Error(data?.error), "eroare necunoscută"));
     }
     setDeleting(false);
     if (failures.length) {
