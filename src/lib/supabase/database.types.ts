@@ -47,6 +47,39 @@ export type Database = {
           },
         ]
       }
+      booking_links: {
+        Row: {
+          booking_id: string
+          created_at: string
+          link_owner_id: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          link_owner_id?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          link_owner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_links_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_links_link_owner_id_fkey"
+            columns: ["link_owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           created_at: string

@@ -44,7 +44,7 @@ export default async function ProgramariPage() {
     hasAccess
       ? supabase
           .from("bookings")
-          .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link_owner:profiles!bookings_link_owner_id_fkey(id, full_name, initials)")
+          .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link:booking_links(link_owner:profiles!booking_links_link_owner_id_fkey(id, full_name, initials))")
           .gte("scheduled_at", since)
           .lt("scheduled_at", until)
           .order("scheduled_at", { ascending: true })

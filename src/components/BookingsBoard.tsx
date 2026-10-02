@@ -27,8 +27,7 @@ export type BookingRow = {
   notes: string | null;
   owner_id: string | null;
   owner: Owner | null;
-  link_owner_id?: string | null;
-  link_owner?: Owner | null;
+  link?: { link_owner: Owner | null } | null;
 };
 
 type FormState = {
@@ -202,7 +201,7 @@ export default function BookingsBoard({
       const { data, error: err } = await supabase
         .from("bookings")
         .insert(payload)
-        .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link_owner:profiles!bookings_link_owner_id_fkey(id, full_name, initials)")
+        .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link:booking_links(link_owner:profiles!booking_links_link_owner_id_fkey(id, full_name, initials))")
         .single();
       setSaving(false);
       if (err) return setError(err.message);
@@ -212,7 +211,7 @@ export default function BookingsBoard({
         .from("bookings")
         .update(payload)
         .eq("id", form.id!)
-        .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link_owner:profiles!bookings_link_owner_id_fkey(id, full_name, initials)")
+        .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link:booking_links(link_owner:profiles!booking_links_link_owner_id_fkey(id, full_name, initials))")
         .single();
       setSaving(false);
       if (err) return setError(err.message);
@@ -320,13 +319,14 @@ export default function BookingsBoard({
                 )}
                 {items.map((b) => {
                   const isNew = !!b.notes?.startsWith("Rezervat din pagina publică");
-                  const viaOther = b.link_owner && b.link_owner_id !== b.owner_id;
+                  const linkOwner = b.link?.link_owner ?? null;
+                  const viaOther = linkOwner && linkOwner.id !== b.owner_id;
                   return (
                     <button key={b.id} className={`cal-card ${isNew ? "new" : ""}`} onClick={() => openEdit(b)}>
                       {isNew && <span className="cal-new-tag">NOU</span>}
                       <span className="t">{fmtTime(b.scheduled_at)}</span>
                       <span className="n">{b.owner ? `${b.owner.initials} — ` : ""}{b.name}</span>
-                      {isAdmin && b.link_owner && <span className="faint" style={{ fontSize: 10.5 }}>🔗 link {b.link_owner.initials}{viaOther ? ` → ${b.owner?.initials ?? "?"}` : ""}</span>}
+                      {isAdmin && linkOwner && <span className="faint" style={{ fontSize: 10.5 }}>🔗 link {linkOwner.initials}{viaOther ? ` → ${b.owner?.initials ?? "?"}` : ""}</span>}
                     </button>
                   );
                 })}
