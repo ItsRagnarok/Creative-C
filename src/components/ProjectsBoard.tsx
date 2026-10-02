@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Owner } from "@/components/PipelineBoard";
 import { PROJECT_STAGES, PROJECT_STAGE_LABEL, projectBadge, FILE_KIND_ICON, type ProjectStage } from "@/lib/projects";
+import { OWNER_LEAD_SELECT } from "@/lib/selects";
 
 export type ProjectRow = {
   id: string;
@@ -162,7 +163,7 @@ export default function ProjectsBoard({
       const { data, error: err } = await supabase
         .from("projects")
         .insert(payload)
-        .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+        .select(OWNER_LEAD_SELECT)
         .single();
       setSaving(false);
       if (err) return setError(err.message);
@@ -174,7 +175,7 @@ export default function ProjectsBoard({
         .from("projects")
         .update(payload)
         .eq("id", form.id!)
-        .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+        .select(OWNER_LEAD_SELECT)
         .single();
       setSaving(false);
       if (err) return setError(err.message);

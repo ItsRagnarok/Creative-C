@@ -4,7 +4,8 @@ import AppShell from "@/components/AppShell";
 import FinanciarBoard, { type InvoiceRow } from "@/components/FinanciarBoard";
 import type { Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
-import { loadAccess } from "@/lib/access";
+import { accessRequest, resolveAccess } from "@/lib/access";
+import { OWNER_LEAD_SELECT } from "@/lib/selects";
 
 export default async function FinanciarPage() {
   const supabase = await createClient();
@@ -13,6 +14,7 @@ export default async function FinanciarPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const accessReq = accessRequest(supabase);
 
   const [{ data: profiles }, { data: notifications }] = await Promise.all([
     supabase.from("profiles").select("*").order("full_name"),
@@ -29,14 +31,14 @@ export default async function FinanciarPage() {
   const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
-  const access = await loadAccess(supabase, role);
+  const access = resolveAccess((await accessReq).data, role);
   const hasAccess = access.financiar.view;
 
   const [{ data: invoices }, { data: leads }, { data: documents }] = await Promise.all([
     hasAccess
       ? supabase
           .from("invoices")
-          .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+          .select(OWNER_LEAD_SELECT)
           .order("issue_date", { ascending: false })
       : Promise.resolve({ data: null }),
     hasAccess ? supabase.from("leads").select("id, name").order("name") : Promise.resolve({ data: null }),

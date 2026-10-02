@@ -48,9 +48,12 @@ export function defaultAccess(role: AppRole): Access {
 }
 
 // Effective access of the signed-in user (role default + admin S overrides), computed in the database.
-export async function loadAccess(supabase: SupabaseClient<Database>, role: AppRole): Promise<Access> {
-  const { data } = await supabase.rpc("my_access");
+// Pages start the request right after auth (accessRequest) and resolve it once the role is known.
+export function accessRequest(supabase: SupabaseClient<Database>) {
+  return Promise.resolve(supabase.rpc("my_access"));
+}
+
+export function resolveAccess(data: unknown, role: AppRole): Access {
   const base = defaultAccess(role);
-  if (data && typeof data === "object") return { ...base, ...(data as Partial<Access>) };
-  return base;
+  return data && typeof data === "object" ? { ...base, ...(data as Partial<Access>) } : base;
 }

@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import PipelineBoard, { type LeadRow, type Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
-import { loadAccess } from "@/lib/access";
+import { accessRequest, resolveAccess } from "@/lib/access";
+import { OWNER_SELECT } from "@/lib/selects";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -12,12 +13,13 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const accessReq = accessRequest(supabase);
 
   const [{ data: profiles }, { data: leads }, { data: notifications }] = await Promise.all([
     supabase.from("profiles").select("*").order("full_name"),
     supabase
       .from("leads")
-      .select("*, owner:profiles(id, full_name, initials)")
+      .select(OWNER_SELECT)
       .order("created_at", { ascending: false }),
     supabase
       .from("notifications")
@@ -32,7 +34,7 @@ export default async function DashboardPage() {
   const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
-  const access = await loadAccess(supabase, role);
+  const access = resolveAccess((await accessReq).data, role);
 
   const shell = (
     <AppShell

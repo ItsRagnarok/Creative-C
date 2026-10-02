@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import type { Owner } from "@/components/PipelineBoard";
 import type { Enums } from "@/lib/supabase/database.types";
 import WorkScheduleModal, { type AvailabilityRow } from "@/components/WorkScheduleModal";
+import { BOOKING_SELECT } from "@/lib/selects";
+import { useRealtimeRows } from "@/lib/useRealtimeRows";
 
 type BookingStatus = Enums<"booking_status">;
 
@@ -90,6 +92,7 @@ export default function BookingsBoard({
 }) {
   const supabase = createClient();
   const [bookings, setBookings] = useState(initialBookings);
+  useRealtimeRows({ table: "bookings", select: BOOKING_SELECT, setRows: setBookings });
   const [modal, setModal] = useState<null | { mode: "create" | "edit"; form: FormState; linkInfo?: string | null }>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -213,7 +216,7 @@ export default function BookingsBoard({
       const { data, error: err } = await supabase
         .from("bookings")
         .insert(payload)
-        .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link:booking_links(slug, link_owner:profiles!booking_links_link_owner_id_fkey(id, full_name, initials))")
+        .select(BOOKING_SELECT)
         .single();
       setSaving(false);
       if (err) return setError(err.message);
@@ -223,7 +226,7 @@ export default function BookingsBoard({
         .from("bookings")
         .update(payload)
         .eq("id", form.id!)
-        .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link:booking_links(slug, link_owner:profiles!booking_links_link_owner_id_fkey(id, full_name, initials))")
+        .select(BOOKING_SELECT)
         .single();
       setSaving(false);
       if (err) return setError(err.message);

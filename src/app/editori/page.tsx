@@ -11,7 +11,8 @@ import EditoriTabs from "@/components/EditoriTabs";
 import EditorCards from "@/components/EditorCards";
 import ContentCalendar, { type CalendarEditor } from "@/components/ContentCalendar";
 import type { AppRole } from "@/lib/roles";
-import { loadAccess } from "@/lib/access";
+import { accessRequest, resolveAccess } from "@/lib/access";
+import { MESSAGE_SELECT } from "@/lib/selects";
 
 export default async function EditoriPage() {
   const supabase = await createClient();
@@ -20,6 +21,7 @@ export default async function EditoriPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const accessReq = accessRequest(supabase);
 
   const [{ data: profile }, { data: notifications }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
@@ -34,7 +36,7 @@ export default async function EditoriPage() {
   if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
-  const access = await loadAccess(supabase, role);
+  const access = resolveAccess((await accessReq).data, role);
   const hasAccess = access.editori.view;
   const today = new Date().toISOString().slice(0, 10);
 
@@ -50,8 +52,9 @@ export default async function EditoriPage() {
     hasAccess
       ? supabase
           .from("channel_messages")
-          .select("*, author:profiles(id, full_name, initials)")
-          .order("created_at", { ascending: true })
+          .select(MESSAGE_SELECT)
+          .order("created_at", { ascending: false })
+          .limit(400)
       : Promise.resolve({ data: null }),
     hasAccess
       ? supabase
@@ -84,7 +87,7 @@ export default async function EditoriPage() {
           chat={
             <ChannelsBoard
               channels={(channels ?? []) as ChannelRow[]}
-              initialMessages={(messages ?? []) as MessageRow[]}
+              initialMessages={((messages ?? []) as MessageRow[]).slice().reverse()}
               initialStatuses={(statuses ?? []) as DailyStatusRow[]}
               initialStock={(stock ?? []) as ClipStockRow[]}
               canManage={isManager}

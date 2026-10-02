@@ -4,7 +4,8 @@ import AppShell from "@/components/AppShell";
 import ClientDetail from "@/components/ClientDetail";
 import type { LeadRow, Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
-import { loadAccess } from "@/lib/access";
+import { accessRequest, resolveAccess } from "@/lib/access";
+import { OWNER_SELECT } from "@/lib/selects";
 
 export default async function ClientDetailPage({
   params,
@@ -18,10 +19,11 @@ export default async function ClientDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const accessReq = accessRequest(supabase);
 
   const [{ data: profiles }, { data: lead }, { data: notifications }] = await Promise.all([
     supabase.from("profiles").select("*").order("full_name"),
-    supabase.from("leads").select("*, owner:profiles(id, full_name, initials)").eq("id", id).single(),
+    supabase.from("leads").select(OWNER_SELECT).eq("id", id).single(),
     supabase
       .from("notifications")
       .select("id, title, body, is_read, created_at")
@@ -35,7 +37,7 @@ export default async function ClientDetailPage({
   const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
-  const access = await loadAccess(supabase, role);
+  const access = resolveAccess((await accessReq).data, role);
   const hasAccess = access.clienti.view;
   if (!hasAccess) redirect("/clienti");
 

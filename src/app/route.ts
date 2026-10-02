@@ -1,14 +1,17 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-// The public marketing site is a single self-contained static HTML file
-// (its own <html>/<head>/<body>, fonts and scripts inline) — served as a
-// raw Response instead of a React page so it isn't wrapped by the app's
-// own <html> in src/app/layout.tsx. The CRM itself still lives at
-// /login, /dashboard, etc., linked from this page's "Client Login" button.
+// The public marketing site is a single static HTML file (its own <html>/<head>/<body>), served as a raw
+// Response so it isn't wrapped by the app's <html> in src/app/layout.tsx. Images and fonts live in
+// /landing-assets (long-cached); the HTML itself is read once per server instance and edge-cached.
+let cached: Promise<string> | undefined;
+
 export async function GET() {
-  const html = await readFile(path.join(process.cwd(), "public", "landing.html"), "utf-8");
-  return new Response(html, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
+  cached ??= readFile(path.join(process.cwd(), "public", "landing.html"), "utf-8");
+  return new Response(await cached, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
+    },
   });
 }

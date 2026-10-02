@@ -4,7 +4,8 @@ import AppShell from "@/components/AppShell";
 import ClientsTable from "@/components/ClientsTable";
 import type { LeadRow } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
-import { loadAccess } from "@/lib/access";
+import { accessRequest, resolveAccess } from "@/lib/access";
+import { OWNER_SELECT } from "@/lib/selects";
 
 export default async function ClientiPage() {
   const supabase = await createClient();
@@ -13,6 +14,7 @@ export default async function ClientiPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const accessReq = accessRequest(supabase);
 
   const [{ data: profile }, { data: notifications }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
@@ -27,13 +29,13 @@ export default async function ClientiPage() {
   if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
-  const access = await loadAccess(supabase, role);
+  const access = resolveAccess((await accessReq).data, role);
   const hasAccess = access.clienti.view;
 
   const { data: leads } = hasAccess
     ? await supabase
         .from("leads")
-        .select("*, owner:profiles(id, full_name, initials)")
+        .select(OWNER_SELECT)
         .order("created_at", { ascending: false })
     : { data: null };
 

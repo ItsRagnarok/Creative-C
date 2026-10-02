@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { STAGES, STAGE_LABEL, STAGE_BADGE, formatLei, monthYear, type LeadStage } from "@/lib/pipeline";
 import type { LeadRow, Owner } from "@/components/PipelineBoard";
+import { OWNER_SELECT } from "@/lib/selects";
 
 type FormState = {
   name: string;
@@ -62,7 +63,7 @@ export default function ClientDetail({
         last_activity_at: new Date().toISOString(),
       })
       .eq("id", lead.id)
-      .select("*, owner:profiles(id, full_name, initials)")
+      .select(OWNER_SELECT)
       .single();
     setSaving(false);
     if (saveError) {

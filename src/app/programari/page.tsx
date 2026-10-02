@@ -6,7 +6,8 @@ import type { AvailabilityRow } from "@/components/WorkScheduleModal";
 import BookingAdminTools, { type SlugRow, type PriorityList, type PriorityItem } from "@/components/BookingAdminTools";
 import type { Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
-import { loadAccess } from "@/lib/access";
+import { accessRequest, resolveAccess } from "@/lib/access";
+import { BOOKING_SELECT } from "@/lib/selects";
 
 export default async function ProgramariPage() {
   const supabase = await createClient();
@@ -15,6 +16,7 @@ export default async function ProgramariPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const accessReq = accessRequest(supabase);
 
   const [{ data: profiles }, { data: notifications }] = await Promise.all([
     supabase.from("profiles").select("*").order("full_name"),
@@ -31,7 +33,7 @@ export default async function ProgramariPage() {
   const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
-  const access = await loadAccess(supabase, role);
+  const access = resolveAccess((await accessReq).data, role);
   const hasAccess = access.programari.view;
 
   // Wide enough for the calendar's week-back/week-forward navigation, not
@@ -47,7 +49,7 @@ export default async function ProgramariPage() {
     hasAccess
       ? supabase
           .from("bookings")
-          .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link:booking_links(link_owner:profiles!booking_links_link_owner_id_fkey(id, full_name, initials))")
+          .select(BOOKING_SELECT)
           .gte("scheduled_at", since)
           .lt("scheduled_at", until)
           .order("scheduled_at", { ascending: true })

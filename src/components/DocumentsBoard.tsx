@@ -16,6 +16,7 @@ import {
   type DocumentType,
   type DocumentStatus,
 } from "@/lib/documents";
+import { OWNER_LEAD_SELECT } from "@/lib/selects";
 
 export type DocumentRow = {
   id: string;
@@ -192,7 +193,7 @@ export default function DocumentsBoard({
         const { data, error: err } = await supabase
           .from("documents")
           .insert(payload)
-          .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+          .select(OWNER_LEAD_SELECT)
           .single();
         if (err) throw err;
         let row = data as DocumentRow;
@@ -202,7 +203,7 @@ export default function DocumentsBoard({
             .from("documents")
             .update({ file_path: uploaded.path, file_name: uploaded.name, file_size: uploaded.size })
             .eq("id", row.id)
-            .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+            .select(OWNER_LEAD_SELECT)
             .single();
           if (updErr) throw updErr;
           row = updated as DocumentRow;
@@ -222,7 +223,7 @@ export default function DocumentsBoard({
           .from("documents")
           .update({ ...payload, ...fileFields })
           .eq("id", form.id!)
-          .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+          .select(OWNER_LEAD_SELECT)
           .single();
         if (err) throw err;
         setDocuments((prev) => prev.map((d) => (d.id === form.id ? (data as DocumentRow) : d)));

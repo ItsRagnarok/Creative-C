@@ -13,6 +13,7 @@ import {
   daysOverdue,
   type InvoiceStatus,
 } from "@/lib/financiar";
+import { OWNER_LEAD_SELECT } from "@/lib/selects";
 
 export type InvoiceRow = {
   id: string;
@@ -197,7 +198,7 @@ export default function FinanciarBoard({
       const { data, error: err } = await supabase
         .from("invoices")
         .insert(payload)
-        .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+        .select(OWNER_LEAD_SELECT)
         .single();
       setSaving(false);
       if (err) return setError(err.message);
@@ -207,7 +208,7 @@ export default function FinanciarBoard({
         .from("invoices")
         .update(payload)
         .eq("id", form.id!)
-        .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+        .select(OWNER_LEAD_SELECT)
         .single();
       setSaving(false);
       if (err) return setError(err.message);
@@ -221,7 +222,7 @@ export default function FinanciarBoard({
       .from("invoices")
       .update({ status: "platita", paid_date: todayIso() })
       .eq("id", inv.id)
-      .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+      .select(OWNER_LEAD_SELECT)
       .single();
     if (err) return;
     setInvoices((prev) => prev.map((x) => (x.id === inv.id ? (data as InvoiceRow) : x)));

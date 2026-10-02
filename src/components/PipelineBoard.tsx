@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import InfoTip from "@/components/InfoTip";
 import { STAGES, STAGE_LABEL, daysSince, timeAgo, formatLei, type LeadStage } from "@/lib/pipeline";
+import { OWNER_SELECT } from "@/lib/selects";
+import { useRealtimeRows } from "@/lib/useRealtimeRows";
 
 export type Owner = { id: string; full_name: string; initials: string };
 export type LeadRow = {
@@ -48,6 +50,7 @@ export default function PipelineBoard({
   canDelete: boolean;
 }) {
   const [leads, setLeads] = useState(initialLeads);
+  useRealtimeRows({ table: "leads", select: OWNER_SELECT, setRows: setLeads });
   const [modal, setModal] = useState<null | { mode: "create" | "edit"; form: FormState }>(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -116,7 +119,7 @@ export default function PipelineBoard({
       const { data, error } = await supabase
         .from("leads")
         .insert(payload)
-        .select("*, owner:profiles(id, full_name, initials)")
+        .select(OWNER_SELECT)
         .single();
       setSaving(false);
       if (error) {
@@ -130,7 +133,7 @@ export default function PipelineBoard({
         .from("leads")
         .update(payload)
         .eq("id", form.id!)
-        .select("*, owner:profiles(id, full_name, initials)")
+        .select(OWNER_SELECT)
         .single();
       setSaving(false);
       if (error) {

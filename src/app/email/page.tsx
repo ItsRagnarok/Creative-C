@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import EmailAdmin, { type TemplateRow, type OutboxRow, type ClientContact } from "@/components/EmailAdmin";
 import type { AppRole } from "@/lib/roles";
-import { loadAccess } from "@/lib/access";
+import { accessRequest, resolveAccess } from "@/lib/access";
 
 export default async function EmailPage() {
   const supabase = await createClient();
@@ -12,6 +12,7 @@ export default async function EmailPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const accessReq = accessRequest(supabase);
 
   const [{ data: profile }, { data: notifications }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
@@ -25,7 +26,7 @@ export default async function EmailPage() {
   if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
-  const access = await loadAccess(supabase, role);
+  const access = resolveAccess((await accessReq).data, role);
   const isSuper = !!profile.is_super_admin;
 
   const [{ data: templates }, { data: outbox }, { data: bookingContacts }, { data: team }] = isSuper

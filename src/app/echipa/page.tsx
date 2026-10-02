@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import EchipaBoard, { type ProfileRow } from "@/components/EchipaBoard";
 import type { AppRole } from "@/lib/roles";
-import { loadAccess } from "@/lib/access";
+import { accessRequest, resolveAccess } from "@/lib/access";
 
 export default async function EchipaPage() {
   const supabase = await createClient();
@@ -12,6 +12,7 @@ export default async function EchipaPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const accessReq = accessRequest(supabase);
 
   const [{ data: profile }, { data: notifications }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
@@ -26,7 +27,7 @@ export default async function EchipaPage() {
   if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
-  const access = await loadAccess(supabase, role);
+  const access = resolveAccess((await accessReq).data, role);
   const hasAccess = access.echipa.view;
 
   const { data: profiles } = hasAccess

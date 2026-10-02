@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Owner } from "@/components/PipelineBoard";
+import { MESSAGE_SELECT } from "@/lib/selects";
+import { useRealtimeRows } from "@/lib/useRealtimeRows";
 
 export type ChannelRow = {
   id: string;
@@ -99,28 +101,16 @@ export default function ChannelsBoard({
   }
 
   // Live: new messages from anyone appear instantly (RLS decides which ones this user receives).
-  useEffect(() => {
-    const ch = supabase
-      .channel("chat-messages")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "channel_messages" }, async (payload) => {
-        const row = payload.new as { id: string; channel_id: string; author_id: string | null };
-        const { data } = await supabase
-          .from("channel_messages")
-          .select("*, author:profiles(id, full_name, initials)")
-          .eq("id", row.id)
-          .single();
-        if (!data) return;
-        setMessages((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, data as MessageRow]));
-        if (data.author_id !== currentUserId && data.channel_id !== activeIdRef.current) {
-          setUnread((u) => ({ ...u, [data.channel_id]: (u[data.channel_id] ?? 0) + 1 }));
-        }
-      })
-      .subscribe();
-    return () => {
-      supabase.removeChannel(ch);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUserId]);
+  useRealtimeRows<MessageRow>({
+    table: "channel_messages",
+    select: MESSAGE_SELECT,
+    setRows: setMessages,
+    onChange: (m, event) => {
+      if (event === "INSERT" && m.author_id !== currentUserId && m.channel_id !== activeIdRef.current) {
+        setUnread((u) => ({ ...u, [m.channel_id]: (u[m.channel_id] ?? 0) + 1 }));
+      }
+    },
+  });
 
   const [today] = useState(() => new Date());
 
@@ -153,7 +143,7 @@ export default function ChannelsBoard({
         file_name: fileName.trim() || null,
         file_url: fileUrl.trim() || null,
       })
-      .select("*, author:profiles(id, full_name, initials)")
+      .select(MESSAGE_SELECT)
       .single();
     setSending(false);
     if (error) return;

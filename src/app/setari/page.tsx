@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import { NAV, ROLE_LABEL, ROLE_NOTE, type AppRole } from "@/lib/roles";
-import { loadAccess } from "@/lib/access";
+import { accessRequest, resolveAccess } from "@/lib/access";
 import AccessMatrix, { type AccessRow, type AccessUser } from "@/components/AccessMatrix";
 
 const ALL_ROLES: AppRole[] = ["admin", "manager", "vanzari", "editor"];
@@ -14,6 +14,7 @@ export default async function SetariPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const accessReq = accessRequest(supabase);
 
   const [{ data: profile }, { data: notifications }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
@@ -28,7 +29,7 @@ export default async function SetariPage() {
   if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
-  const access = await loadAccess(supabase, role);
+  const access = resolveAccess((await accessReq).data, role);
   const hasAccess = !!profile.is_super_admin;
 
   const items = NAV.flatMap((g) => g.items);

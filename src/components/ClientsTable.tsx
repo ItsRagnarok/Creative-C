@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { STAGES, STAGE_LABEL, STAGE_BADGE, formatLei, timeAgo, monthYear, type LeadStage } from "@/lib/pipeline";
 import type { LeadRow } from "@/components/PipelineBoard";
+import { OWNER_SELECT } from "@/lib/selects";
+import { useRealtimeRows } from "@/lib/useRealtimeRows";
 
 const CONFIRM_WORD = "STERGE";
 
@@ -12,6 +14,7 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
   const router = useRouter();
   const supabase = createClient();
   const [leads, setLeads] = useState(initialLeads);
+  useRealtimeRows({ table: "leads", select: OWNER_SELECT, setRows: setLeads, position: "start" });
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState<LeadStage | "toate">("toate");
   const [sourceFilter, setSourceFilter] = useState("toate");

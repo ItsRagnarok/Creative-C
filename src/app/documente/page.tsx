@@ -4,7 +4,8 @@ import AppShell from "@/components/AppShell";
 import DocumentsBoard, { type DocumentRow } from "@/components/DocumentsBoard";
 import type { Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
-import { loadAccess } from "@/lib/access";
+import { accessRequest, resolveAccess } from "@/lib/access";
+import { OWNER_LEAD_SELECT } from "@/lib/selects";
 
 export default async function DocumentePage() {
   const supabase = await createClient();
@@ -13,6 +14,7 @@ export default async function DocumentePage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const accessReq = accessRequest(supabase);
 
   const [{ data: profiles }, { data: notifications }] = await Promise.all([
     supabase.from("profiles").select("*").order("full_name"),
@@ -29,14 +31,14 @@ export default async function DocumentePage() {
   const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
-  const access = await loadAccess(supabase, role);
+  const access = resolveAccess((await accessReq).data, role);
   const hasAccess = access.documente.view;
 
   const [{ data: documents }, { data: leads }] = await Promise.all([
     hasAccess
       ? supabase
           .from("documents")
-          .select("*, owner:profiles(id, full_name, initials), lead:leads(id, name)")
+          .select(OWNER_LEAD_SELECT)
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: null }),
     hasAccess ? supabase.from("leads").select("id, name").order("name") : Promise.resolve({ data: null }),
