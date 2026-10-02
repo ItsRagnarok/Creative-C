@@ -220,7 +220,7 @@ export default function BookingAdminTools({
                       </div>
                     );
                   })}
-                  {lists.length === 0 && <div className="empty-note">Nicio listă încă. Apasă „+ Listă nouă".</div>}
+                  {lists.length === 0 && <div className="empty-note">Nicio listă încă. Apasă „+ Listă nouă”.</div>}
                 </div>
               </div>
             </div>
