@@ -130,7 +130,7 @@ export default function WorkScheduleModal({
         )}
         {tab === "general" && (
           <p className="faint" style={{ fontSize: 12, marginBottom: 10 }}>
-            Orele în care clienții se pot programa pe linkul general (luni–vineri). Nu depinde de programele personale: o oră dispare doar dacă tot grupul (admin S, admini, manageri, closeri) are deja o programare atunci.
+            Orele în care clienții se pot programa pe linkul general (luni–vineri). Linkul general merge doar la admini și closeri: o oră dispare doar dacă toți au deja o programare atunci. Linkurile personale folosesc strict programul fiecăruia.
           </p>
         )}
 
