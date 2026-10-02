@@ -17,6 +17,17 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // A page rejected this session (revoked, expired, or its user is gone): drop the stale auth cookies and show
+  // the login form instead of redirecting back into the app, which would loop forever.
+  if (request.nextUrl.pathname === "/login" && request.nextUrl.searchParams.has("reauth")) {
+    const res = NextResponse.next();
+    request.cookies
+      .getAll()
+      .filter((c) => c.name.startsWith("sb-"))
+      .forEach((c) => res.cookies.delete(c.name));
+    return res;
+  }
+
   // Collected separately from the response so that whichever response we
   // end up returning (a redirect or a pass-through) always carries any
   // refreshed session cookies. Building a *new* NextResponse.redirect(...)

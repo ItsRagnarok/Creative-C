@@ -13,7 +13,10 @@ export const getAppContext = cache(async () => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  // The proxy only checks that a session cookie exists; this is the real validation. A revoked/expired/orphaned
+  // session lands on /login?reauth=1, where the proxy clears the stale cookies (otherwise /login would bounce
+  // straight back to the app, forever).
+  if (!user) redirect("/login?reauth=1");
 
   const [{ data: teamRows }, accessRes] = await Promise.all([
     supabase.from("profiles").select("*").order("full_name"),
@@ -21,7 +24,7 @@ export const getAppContext = cache(async () => {
   ]);
   const team = teamRows ?? [];
   const profile = team.find((p) => p.id === user.id);
-  if (!profile) redirect("/login");
+  if (!profile) redirect("/login?reauth=1");
 
   const role = profile.role as AppRole;
   return { supabase, user, profile, team, role, access: resolveAccess(accessRes.data, role) };
