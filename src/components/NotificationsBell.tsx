@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getActiveChat } from "@/lib/activeChat";
+import { playMessageSound } from "@/lib/notifySound";
 
 export type NotificationRow = {
   id: string;
@@ -47,6 +48,7 @@ export default function NotificationsBell({ initial }: { initial: NotificationRo
         }
         setItems((prev) => (prev.some((x) => x.id === n.id) ? prev : [n, ...prev]));
         setToast(n);
+        if (n.channel_id) playMessageSound();
         setTimeout(() => setToast((t) => (t && t.id === n.id ? null : t)), 6000);
       })
       .subscribe();
