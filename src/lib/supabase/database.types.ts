@@ -468,6 +468,30 @@ export type Database = {
           },
         ]
       }
+      calendar_sheets: {
+        Row: {
+          client_name: string
+          created_at: string
+          created_by: string | null
+          editor_id: string
+          id: string
+        }
+        Insert: {
+          client_name?: string
+          created_at?: string
+          created_by?: string | null
+          editor_id: string
+          id?: string
+        }
+        Update: {
+          client_name?: string
+          created_at?: string
+          created_by?: string | null
+          editor_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       content_calendar: {
         Row: {
           clip_type: string
@@ -477,8 +501,10 @@ export type Database = {
           editor_id: string
           file_name: string | null
           file_path: string | null
+          extra_url: string | null
           file_url: string | null
           id: string
+          sheet_id: string
           status: string
           updated_at: string
           uploaded_at: string | null
@@ -491,8 +517,10 @@ export type Database = {
           editor_id: string
           file_name?: string | null
           file_path?: string | null
+          extra_url?: string | null
           file_url?: string | null
           id?: string
+          sheet_id: string
           status?: string
           updated_at?: string
           uploaded_at?: string | null
@@ -505,8 +533,10 @@ export type Database = {
           editor_id?: string
           file_name?: string | null
           file_path?: string | null
+          extra_url?: string | null
           file_url?: string | null
           id?: string
+          sheet_id?: string
           status?: string
           updated_at?: string
           uploaded_at?: string | null

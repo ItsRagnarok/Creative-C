@@ -59,7 +59,7 @@ export function useRealtimeRows<T extends Row>({
 
 // For views that load a filtered slice (one editor's month, one editor's cards): on any change to the table,
 // re-run the page's own loader. RLS still decides what this user is told about.
-export function useRealtimeRefetch(table: "content_calendar" | "editor_cards", refetch: () => void) {
+export function useRealtimeRefetch(table: "content_calendar" | "calendar_sheets" | "editor_cards", refetch: () => void) {
   const ref = useRef(refetch);
   useEffect(() => {
     ref.current = refetch;
