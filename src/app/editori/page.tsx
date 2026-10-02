@@ -7,6 +7,8 @@ import ChannelsBoard, {
   type DailyStatusRow,
   type ClipStockRow,
 } from "@/components/ChannelsBoard";
+import EditoriTabs from "@/components/EditoriTabs";
+import ContentCalendar, { type CalendarEditor } from "@/components/ContentCalendar";
 import type { AppRole } from "@/lib/roles";
 
 export default async function EditoriPage() {
@@ -33,7 +35,8 @@ export default async function EditoriPage() {
   const hasAccess = role === "admin" || role === "manager" || role === "editor";
   const today = new Date().toISOString().slice(0, 10);
 
-  const [{ data: channels }, { data: messages }, { data: statuses }, { data: stock }] = await Promise.all([
+  const isManager = role === "admin" || role === "manager";
+  const [{ data: channels }, { data: messages }, { data: statuses }, { data: stock }, { data: editorProfiles }] = await Promise.all([
     hasAccess
       ? supabase
           .from("channels")
@@ -54,6 +57,10 @@ export default async function EditoriPage() {
           .eq("status_date", today)
       : Promise.resolve({ data: null }),
     hasAccess ? supabase.from("editor_clip_stock").select("*") : Promise.resolve({ data: null }),
+    // Managers see every editor's calendar; an editor only ever gets their own.
+    isManager
+      ? supabase.from("profiles").select("id, full_name, initials").eq("role", "editor").order("full_name")
+      : Promise.resolve({ data: [{ id: user.id, full_name: profile.full_name, initials: profile.initials }] }),
   ]);
 
   return (
@@ -67,13 +74,25 @@ export default async function EditoriPage() {
       notifications={notifications ?? []}
     >
       {hasAccess ? (
-        <ChannelsBoard
-          channels={(channels ?? []) as ChannelRow[]}
-          initialMessages={(messages ?? []) as MessageRow[]}
-          initialStatuses={(statuses ?? []) as DailyStatusRow[]}
-          initialStock={(stock ?? []) as ClipStockRow[]}
-          canManage={role === "admin" || role === "manager"}
-          currentUserId={user.id}
+        <EditoriTabs
+          defaultTab={role === "editor" ? "calendar" : "chat"}
+          chat={
+            <ChannelsBoard
+              channels={(channels ?? []) as ChannelRow[]}
+              initialMessages={(messages ?? []) as MessageRow[]}
+              initialStatuses={(statuses ?? []) as DailyStatusRow[]}
+              initialStock={(stock ?? []) as ClipStockRow[]}
+              canManage={isManager}
+              currentUserId={user.id}
+            />
+          }
+          calendar={
+            <ContentCalendar
+              editors={(editorProfiles ?? []) as CalendarEditor[]}
+              canManage={isManager}
+              currentUserId={user.id}
+            />
+          }
         />
       ) : (
         <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>

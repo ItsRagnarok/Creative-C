@@ -213,6 +213,66 @@ export type Database = {
           },
         ]
       }
+      content_calendar: {
+        Row: {
+          clip_type: string
+          created_at: string
+          created_by: string | null
+          day: string
+          editor_id: string
+          file_name: string | null
+          file_path: string | null
+          file_url: string | null
+          id: string
+          status: string
+          updated_at: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          clip_type: string
+          created_at?: string
+          created_by?: string | null
+          day: string
+          editor_id: string
+          file_name?: string | null
+          file_path?: string | null
+          file_url?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          clip_type?: string
+          created_at?: string
+          created_by?: string | null
+          day?: string
+          editor_id?: string
+          file_name?: string | null
+          file_path?: string | null
+          file_url?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_calendar_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_calendar_editor_id_fkey"
+            columns: ["editor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
