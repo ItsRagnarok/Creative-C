@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { CalendarEditor } from "@/components/ContentCalendar";
+import { ROLE_LABEL, type AppRole } from "@/lib/roles";
 
 type CardRow = {
   id: string;
@@ -26,12 +27,14 @@ function fmt(iso: string) {
 export default function EditorCards({
   editors,
   canManage,
-  canGive,
+  canGive: isAdminViewer,
+  isSuper,
   currentUserId,
 }: {
   editors: CalendarEditor[];
   canManage: boolean;
   canGive: boolean;
+  isSuper: boolean;
   currentUserId: string;
 }) {
   const supabase = createClient();
@@ -93,6 +96,8 @@ export default function EditorCards({
   }
 
   const editor = editors.find((e) => e.id === editorId) ?? null;
+  // Admin S can give cards to anyone, admins included; other admins to everyone except admins; never to oneself.
+  const canGive = isAdminViewer && !!editor && editor.id !== currentUserId && (isSuper || editor.role !== "admin");
   const count = (k: CardRow["color"]) => cards.filter((c) => c.color === k).length;
 
   return (
@@ -100,21 +105,21 @@ export default function EditorCards({
       <div className="page-head">
         <div>
           <h1>Cartonașe</h1>
-          <p>{canGive ? "Sancțiuni și observații pentru fiecare editor, cu motivul scris. Doar adminul poate da cartonașe." : canManage ? "Cartonașele fiecărui editor. Doar adminul le poate da." : "Cartonașele primite, cu motivul fiecăruia."}</p>
+          <p>{isAdminViewer ? "Sancțiuni și observații pentru fiecare membru al echipei, cu motivul scris. Doar adminii pot da cartonașe." : canManage ? "Cartonașele echipei. Doar adminii le pot da." : "Cartonașele primite, cu motivul fiecăruia."}</p>
         </div>
       </div>
 
       <div className="chat-shell no-side" style={{ gridTemplateColumns: canManage ? undefined : "1fr" }}>
         {canManage && (
           <div className="chan-list">
-            <div className="nav-label" style={{ padding: "4px 10px" }}>Editori</div>
+            <div className="nav-label" style={{ padding: "4px 10px" }}>Echipă</div>
             {editors.map((ed) => (
               <button key={ed.id} className={`chan-item${editorId === ed.id ? " active" : ""}`} onClick={() => pick(ed.id)}>
                 <span className="status-dot" style={{ background: "var(--accent-2)" }} />
-                {ed.full_name}
+                {ed.full_name}{ed.role && ed.role !== "editor" ? <span className="faint" style={{ marginLeft: 6, fontSize: 11 }}>{ROLE_LABEL[ed.role as AppRole] ?? ed.role}</span> : null}
               </button>
             ))}
-            {editors.length === 0 && <div className="empty-note">Niciun editor. Adaugă unul din Echipă.</div>}
+            {editors.length === 0 && <div className="empty-note">Niciun membru.</div>}
           </div>
         )}
 

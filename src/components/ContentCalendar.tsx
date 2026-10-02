@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export type CalendarEditor = { id: string; full_name: string; initials: string };
+export type CalendarEditor = { id: string; full_name: string; initials: string; role?: string };
 
 export type CalendarRow = {
   id: string;

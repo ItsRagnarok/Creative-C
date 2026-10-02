@@ -60,8 +60,8 @@ export default async function EditoriPage() {
     hasAccess ? supabase.from("editor_clip_stock").select("*") : Promise.resolve({ data: null }),
     // Managers see every editor's calendar; an editor only ever gets their own.
     isManager
-      ? supabase.from("profiles").select("id, full_name, initials").eq("role", "editor").order("full_name")
-      : Promise.resolve({ data: [{ id: user.id, full_name: profile.full_name, initials: profile.initials }] }),
+      ? supabase.from("profiles").select("id, full_name, initials, role").order("full_name")
+      : Promise.resolve({ data: [{ id: user.id, full_name: profile.full_name, initials: profile.initials, role: profile.role }] }),
   ]);
 
   return (
@@ -89,7 +89,7 @@ export default async function EditoriPage() {
           }
           calendar={
             <ContentCalendar
-              editors={(editorProfiles ?? []) as CalendarEditor[]}
+              editors={((editorProfiles ?? []) as CalendarEditor[]).filter((p) => p.role === "editor")}
               canManage={isManager}
               currentUserId={user.id}
             />
@@ -99,6 +99,7 @@ export default async function EditoriPage() {
               editors={(editorProfiles ?? []) as CalendarEditor[]}
               canManage={isManager}
               canGive={role === "admin"}
+              isSuper={!!profile.is_super_admin}
               currentUserId={user.id}
             />
           }

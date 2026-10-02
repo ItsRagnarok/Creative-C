@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import BookingsBoard, { type BookingRow, type CalendarExtra } from "@/components/BookingsBoard";
-import BookingLinkPanel, { type AvailabilityRow, type TeamMember } from "@/components/BookingLinkPanel";
+import type { AvailabilityRow } from "@/components/WorkScheduleModal";
 import type { Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
 
@@ -77,8 +77,6 @@ export default async function ProgramariPage() {
     hasAccess ? supabase.from("availability").select("*") : Promise.resolve({ data: null }),
   ]);
 
-  const team = (profiles ?? []).filter((p) => p.role === "admin" || p.role === "manager" || p.role === "vanzari");
-
   const extraEvents: CalendarExtra[] = [
     ...(projectDeadlines ?? []).map((p) => ({ id: `proj-${p.id}`, date: p.deadline as string, label: `Deadline proiect: ${p.title}`, kind: "deadline" as const, href: "/proiecte" })),
     ...(documentExpiries ?? []).map((d) => ({ id: `doc-${d.id}`, date: d.expiry_date as string, label: `Expiră contract: ${d.title}`, kind: "document" as const, href: "/documente" })),
@@ -102,21 +100,15 @@ export default async function ProgramariPage() {
       notifications={notifications ?? []}
     >
       {hasAccess ? (
-        <>
-        <BookingLinkPanel
-          userId={user.id}
-          team={team as TeamMember[]}
-          availability={(availability ?? []) as AvailabilityRow[]}
-          canSeeTeam={canSeeEverything}
-        />
         <BookingsBoard
           initialBookings={(bookings ?? []) as BookingRow[]}
           owners={(owners ?? []) as Owner[]}
           canDelete={role === "admin" || role === "manager"}
           isAdmin={role === "admin"}
+          userId={user.id}
+          myAvailability={((availability ?? []) as AvailabilityRow[]).filter((r) => r.user_id === user.id)}
           extraEvents={extraEvents}
         />
-        </>
       ) : (
         <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
           Contul tău nu are acces la Programări — vezi matricea de permisiuni din Setări.

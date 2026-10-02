@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Owner } from "@/components/PipelineBoard";
 import type { Enums } from "@/lib/supabase/database.types";
+import WorkScheduleModal, { type AvailabilityRow } from "@/components/WorkScheduleModal";
 
 type BookingStatus = Enums<"booking_status">;
 
@@ -72,12 +73,16 @@ export default function BookingsBoard({
   owners,
   canDelete,
   isAdmin,
+  userId,
+  myAvailability,
   extraEvents = [],
 }: {
   initialBookings: BookingRow[];
   owners: Owner[];
   canDelete: boolean;
   isAdmin: boolean;
+  userId: string;
+  myAvailability: AvailabilityRow[];
   extraEvents?: CalendarExtra[];
 }) {
   const supabase = createClient();
@@ -241,13 +246,24 @@ export default function BookingsBoard({
     setModal(null);
   }
 
-  async function copyPublicLink() {
-    const url = `${window.location.origin}/programeaza`;
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [schedule, setSchedule] = useState(myAvailability);
+  const [linkState, setLinkState] = useState<"idle" | "copied" | "error">("idle");
+
+  // Copies the signed-in user's own booking link (created on first use).
+  async function copyMyLink() {
+    const { data: slug, error: slugErr } = await supabase.rpc("ensure_booking_slug");
+    if (slugErr || !slug) return setLinkState("error");
+    const url = `${window.location.origin}/programeaza/${slug}`;
     try {
       await navigator.clipboard.writeText(url);
+      setLinkState("copied");
     } catch {
-      // clipboard API can be blocked — the button below still shows the link
+      window.prompt("Copiază linkul tău de programare:", url);
+      setLinkState("idle");
+      return;
     }
+    setTimeout(() => setLinkState("idle"), 2000);
   }
 
   return (
@@ -258,7 +274,8 @@ export default function BookingsBoard({
           <p>Toate apelurile programate — cele rezervate public intră automat și în Pipeline.</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <button type="button" className="btn ghost" onClick={copyPublicLink}>Copiază link public de booking</button>
+          <button type="button" className="btn ghost" onClick={copyMyLink}>{linkState === "copied" ? "Link copiat ✓" : linkState === "error" ? "Nu am putut copia" : "Copiază linkul meu"}</button>
+          <button type="button" className="btn ghost" onClick={() => setScheduleOpen(true)}>Program de lucru</button>
           <button className="btn primary" onClick={() => openCreate()}>+ Programare</button>
         </div>
       </div>
@@ -423,6 +440,16 @@ export default function BookingsBoard({
             </form>
           </div>
         </div>
+      )}
+      {scheduleOpen && (
+        <WorkScheduleModal
+          userId={userId}
+          initial={schedule}
+          onClose={(saved) => {
+            if (saved) setSchedule(saved);
+            setScheduleOpen(false);
+          }}
+        />
       )}
     </>
   );
