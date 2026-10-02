@@ -568,6 +568,93 @@ export type Database = {
           },
         ]
       }
+      email_outbox: {
+        Row: {
+          body: string
+          booking_id: string | null
+          created_at: string
+          created_by: string | null
+          error: string | null
+          id: string
+          is_html: boolean
+          send_at: string
+          sent_at: string | null
+          status: string
+          subject: string
+          template_id: string | null
+          to_email: string
+          to_name: string | null
+        }
+        Insert: {
+          body: string
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          is_html?: boolean
+          send_at?: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          template_id?: string | null
+          to_email: string
+          to_name?: string | null
+        }
+        Update: {
+          body?: string
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          is_html?: boolean
+          send_at?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          template_id?: string | null
+          to_email?: string
+          to_name?: string | null
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          body: string
+          created_at: string
+          delay_minutes: number
+          enabled: boolean
+          id: string
+          is_html: boolean
+          name: string
+          position: number
+          subject: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          delay_minutes?: number
+          enabled?: boolean
+          id?: string
+          is_html?: boolean
+          name: string
+          position?: number
+          subject: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          delay_minutes?: number
+          enabled?: boolean
+          id?: string
+          is_html?: boolean
+          name?: string
+          position?: number
+          subject?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number

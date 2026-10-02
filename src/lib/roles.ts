@@ -64,6 +64,7 @@ export const NAV: NavGroup[] = [
     group: "Sistem",
     items: [
       { key: "setari", label: "Setări & Roluri", href: "/setari", icon: "⚙", roles: ["admin"], enabled: true },
+      { key: "email", label: "Email", href: "/email", icon: "✉", roles: ["admin"], enabled: true },
     ],
   },
 ];

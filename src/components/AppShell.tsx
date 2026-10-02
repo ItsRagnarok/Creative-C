@@ -75,7 +75,7 @@ export default function AppShell({
       NAV.map((g) => ({
         ...g,
         items: g.items.filter((i) => {
-          if (i.key === "setari") return !!isSuperAdmin; // roles & access are admin S only
+          if (i.key === "setari" || i.key === "email") return !!isSuperAdmin; // roles, access & email are admin S only
           if (access) return access[i.key as MenuKey]?.view ?? false;
           return i.roles.includes(effectiveRole);
         }),
