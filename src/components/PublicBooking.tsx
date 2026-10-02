@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const TZ = "Europe/Bucharest";
@@ -36,6 +36,8 @@ export default function PublicBooking({ slug }: { slug: string | null }) {
   const thisMonday = mondayOf(today);
   const [hostMissing, setHostMissing] = useState(false);
   const [weekStart, setWeekStart] = useState(thisMonday);
+  const autoSkip = useRef(0);
+  const touched = useRef(false);
   const [slots, setSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [pickedDay, setPickedDay] = useState<string | null>(null);
@@ -61,7 +63,14 @@ export default function PublicBooking({ slug }: { slug: string | null }) {
     let cancelled = false;
     supabase.rpc("list_available_slots", { p_slug: slug as string, p_from: weekStart, p_to: weekEnd }).then(({ data }) => {
       if (cancelled) return;
-      setSlots((data ?? []).map((r) => r.slot));
+      const found = (data ?? []).map((r) => r.slot);
+      // Opening the page on a week with nothing left (e.g. on a weekend): jump to the first week that has free slots.
+      if (found.length === 0 && autoSkip.current < 8 && !touched.current) {
+        autoSkip.current += 1;
+        setWeekStart((w) => addDays(w, 7));
+        return;
+      }
+      setSlots(found);
       setLoading(false);
     });
     return () => {
@@ -86,6 +95,7 @@ export default function PublicBooking({ slug }: { slug: string | null }) {
   }, [weekStart, byDay]);
 
   function goWeek(delta: number) {
+    touched.current = true;
     setLoading(true);
     setPickedDay(null);
     setPickedSlot(null);
