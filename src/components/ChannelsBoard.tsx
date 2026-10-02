@@ -97,7 +97,8 @@ export default function ChannelsBoard({
     [messages, activeId],
   );
 
-  const canPost = !!active && (canManage || active.editor_id === currentUserId);
+  const isGroup = !!active && active.kind === "editor" && !active.editor_id;
+  const canPost = !!active && (canManage || active.editor_id === currentUserId || isGroup);
 
   const activeStock = active?.editor_id ? stock.find((s) => s.editor_id === active.editor_id) ?? null : null;
   const activeStatus = active?.editor_id ? statuses.find((s) => s.editor_id === active.editor_id) ?? null : null;
@@ -173,17 +174,23 @@ export default function ChannelsBoard({
       <div className="page-head">
         <div>
           <h1>Canale</h1>
-          <p>Fiecare editor are propriul canal — își pune acolo clipurile (Drive + dată + nr. clip), tu descarci direct de acolo.</p>
+          <p>Chat de grup cu toți editorii și chat privat între manager și fiecare editor.</p>
         </div>
       </div>
 
       <div className={`chat-shell${showSide ? "" : " no-side"}`}>
         <div className="chan-list">
-          <div className="nav-label" style={{ padding: "4px 10px" }}>Editori</div>
-          {channels.filter((c) => c.kind === "editor").map((c) => (
+          <div className="nav-label" style={{ padding: "4px 10px" }}>General</div>
+          {channels.filter((c) => c.kind === "editor" && !c.editor_id).map((c) => (
+            <button key={c.id} className={`chan-item${activeId === c.id ? " active" : ""}`} onClick={() => setActiveId(c.id)}>
+              {c.label}
+            </button>
+          ))}
+          <div className="nav-label" style={{ padding: "14px 10px 4px" }}>{canManage ? "Chat privat cu editorii" : "Chat privat cu managerul"}</div>
+          {channels.filter((c) => c.kind === "editor" && c.editor_id).map((c) => (
             <button key={c.id} className={`chan-item${activeId === c.id ? " active" : ""}`} onClick={() => setActiveId(c.id)}>
               <span className="status-dot" style={{ background: "var(--accent-2)" }} />
-              {c.slug}
+              {canManage ? c.editor?.full_name ?? c.slug : "Managerul tău"}
             </button>
           ))}
           <div className="nav-label" style={{ padding: "14px 10px 4px" }}>Automate</div>
@@ -199,7 +206,7 @@ export default function ChannelsBoard({
             <>
               <div className="chat-head">
                 <div>
-                  <div style={{ fontWeight: 700 }}>#{active.slug}</div>
+                  <div style={{ fontWeight: 700 }}>{active.editor_id && canManage ? `Chat privat — ${active.editor?.full_name ?? active.slug}` : active.editor_id ? "Chat privat cu managerul" : active.label}</div>
                   {active.deadline_note && <div className="faint" style={{ fontSize: 12 }}>{active.deadline_note}</div>}
                 </div>
                 {activeStatus && (
@@ -255,7 +262,7 @@ export default function ChannelsBoard({
                       📎
                     </button>
                     <input
-                      placeholder={`Scrie un mesaj în #${active.slug}…`}
+                      placeholder="Scrie un mesaj…"
                       value={messageInput}
                       onChange={(e) => setMessageInput(e.target.value)}
                     />
