@@ -26,10 +26,12 @@ function fmt(iso: string) {
 export default function EditorCards({
   editors,
   canManage,
+  canGive,
   currentUserId,
 }: {
   editors: CalendarEditor[];
   canManage: boolean;
+  canGive: boolean;
   currentUserId: string;
 }) {
   const supabase = createClient();
@@ -98,7 +100,7 @@ export default function EditorCards({
       <div className="page-head">
         <div>
           <h1>Cartonașe</h1>
-          <p>{canManage ? "Sancțiuni și observații pentru fiecare editor, cu motivul scris." : "Cartonașele primite, cu motivul fiecăruia."}</p>
+          <p>{canGive ? "Sancțiuni și observații pentru fiecare editor, cu motivul scris. Doar adminul poate da cartonașe." : canManage ? "Cartonașele fiecărui editor. Doar adminul le poate da." : "Cartonașele primite, cu motivul fiecăruia."}</p>
         </div>
       </div>
 
@@ -126,7 +128,7 @@ export default function EditorCards({
                 ))}
               </div>
 
-              {canManage && (
+              {canGive && (
                 <form onSubmit={addCard} style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
                   <select value={color} onChange={(e) => setColor(e.target.value as CardRow["color"])}>
                     {COLORS.map((c) => (
@@ -155,7 +157,7 @@ export default function EditorCards({
                       <div>{c.reason}</div>
                       <div className="faint" style={{ fontSize: 11 }}>{fmt(c.created_at)}</div>
                     </div>
-                    {canManage && (
+                    {canGive && (
                       <button type="button" className="icon-btn" style={{ width: 28, height: 28 }} title="Șterge" onClick={() => removeCard(c.id)}>
                         ✕
                       </button>

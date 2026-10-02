@@ -98,13 +98,14 @@ export default async function EditoriPage() {
             <EditorCards
               editors={(editorProfiles ?? []) as CalendarEditor[]}
               canManage={isManager}
+              canGive={role === "admin"}
               currentUserId={user.id}
             />
           }
         />
       ) : (
         <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
-          Contul tău ({role === "vanzari" ? "Vânzări" : role}) nu are acces la Canale — vezi matricea
+          Contul tău ({role === "vanzari" ? "Closer" : role}) nu are acces la Canale — vezi matricea
           de permisiuni din Setări.
         </div>
       )}

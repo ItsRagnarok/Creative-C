@@ -176,7 +176,7 @@ export default function ContentCalendar({
     const row = uploadDay ? byDay.get(uploadDay) : null;
     if (!row) return;
     const link = uploadLink.trim();
-    if (!uploadFile && !link) return setError("Alege un fișier sau lipește un link.");
+    if (!uploadFile && !link) return setError("Lipește linkul din Drive sau alege un fișier.");
     setUploading(true);
     setError(null);
 
@@ -196,7 +196,7 @@ export default function ContentCalendar({
       .from("content_calendar")
       .update({
         file_path: filePath,
-        file_name: fileName ?? (link ? "Link extern" : null),
+        file_name: fileName ?? (link ? "Link Drive" : null),
         file_url: link || null,
         status: "incarcat",
         uploaded_at: new Date().toISOString(),
@@ -350,7 +350,7 @@ export default function ContentCalendar({
                           <span className={`badge ${STATUS_BADGE[row.status]}`}>{STATUS_LABEL[row.status]}</span>
                           {!canManage && row.status !== "closed" && (
                             <button type="button" className="btn sm" onClick={() => { setError(null); setUploadDay(iso); }}>
-                              {hasFile ? "Înlocuiește" : "Încarcă clip"}
+                              {hasFile ? "Schimbă link/clip" : "Adaugă link clip"}
                             </button>
                           )}
                           {canManage && hasFile && (
@@ -387,12 +387,12 @@ export default function ContentCalendar({
             <form onSubmit={handleUpload}>
               <p className="faint" style={{ marginBottom: 10, fontSize: 12 }}>{byDay.get(uploadDay)?.clip_type}</p>
               <div className="field">
-                <label>Fișier</label>
-                <input type="file" accept="video/*,image/*" onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)} />
+                <label>Link clip (Google Drive)</label>
+                <input autoFocus value={uploadLink} onChange={(e) => setUploadLink(e.target.value)} placeholder="Lipește aici linkul din Drive" />
               </div>
               <div className="field">
-                <label>sau link (Drive etc.)</label>
-                <input value={uploadLink} onChange={(e) => setUploadLink(e.target.value)} placeholder="https://…" />
+                <label>sau încarcă fișierul direct (opțional)</label>
+                <input type="file" accept="video/*,image/*" onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)} />
               </div>
               {error && <div className="field-error">{error}</div>}
               <button type="submit" className="btn primary" style={{ width: "100%", justifyContent: "center", marginTop: 6 }} disabled={uploading}>

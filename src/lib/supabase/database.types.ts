@@ -599,6 +599,7 @@ export type Database = {
           full_name: string
           id: string
           initials: string
+          is_super_admin: boolean
           role: Database["public"]["Enums"]["app_role"]
         }
         Insert: {
@@ -606,6 +607,7 @@ export type Database = {
           full_name: string
           id: string
           initials: string
+          is_super_admin?: boolean
           role?: Database["public"]["Enums"]["app_role"]
         }
         Update: {
@@ -613,6 +615,7 @@ export type Database = {
           full_name?: string
           id?: string
           initials?: string
+          is_super_admin?: boolean
           role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: []

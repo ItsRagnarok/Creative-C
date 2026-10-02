@@ -60,7 +60,7 @@ export default async function FinanciarPage() {
         />
       ) : (
         <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
-          Contul tău ({role === "vanzari" ? "Vânzări" : role}) nu are acces la Financiar — vezi matricea
+          Contul tău ({role === "vanzari" ? "Closer" : role}) nu are acces la Financiar — vezi matricea
           de permisiuni din Setări.
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { NAV, ROLE_LABEL, ROLE_NOTE, type AppRole } from "@/lib/roles";
@@ -28,8 +28,6 @@ export default function AppShell({
   notifications,
   children,
 }: Props) {
-  const isAdmin = actualRole === "admin";
-  const [previewRole, setPreviewRole] = useState<AppRole>(actualRole);
   const router = useRouter();
   const [pwOpen, setPwOpen] = useState(false);
   const [pw, setPw] = useState("");
@@ -58,21 +56,7 @@ export default function AppShell({
     setPwDone(true);
   }
 
-  useEffect(() => {
-    // Read after mount (not via lazy useState init) so SSR markup — rendered
-    // with no access to localStorage — matches the client's first paint.
-    if (!isAdmin) return;
-    const stored = window.localStorage.getItem("cc_preview_role") as AppRole | null;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (stored) setPreviewRole(stored);
-  }, [isAdmin]);
-
-  const effectiveRole = isAdmin ? previewRole : actualRole;
-
-  function handlePreviewChange(role: AppRole) {
-    setPreviewRole(role);
-    window.localStorage.setItem("cc_preview_role", role);
-  }
+  const effectiveRole = actualRole;
 
   async function handleLogout() {
     const supabase = createClient();
@@ -129,7 +113,7 @@ export default function AppShell({
         <div className="sidebar-foot">
           <div className="role-note">
             <b>
-              {isAdmin && previewRole !== actualRole ? `Previzualizezi ca: ${ROLE_LABEL[previewRole]}` : `Rolul tău: ${ROLE_LABEL[actualRole]}`}
+              Rolul tău: {ROLE_LABEL[actualRole]}
             </b>
             <br />
             {ROLE_NOTE[effectiveRole]}
@@ -148,21 +132,6 @@ export default function AppShell({
             <span>Caută clienți, proiecte, facturi…</span>
           </div>
           <div className="top-actions">
-            {isAdmin && (
-              <div className="role-switch">
-                Rol previzualizare
-                <select
-                  value={previewRole}
-                  onChange={(e) => handlePreviewChange(e.target.value as AppRole)}
-                >
-                  {(Object.keys(ROLE_LABEL) as AppRole[]).map((r) => (
-                    <option key={r} value={r}>
-                      {ROLE_LABEL[r]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
             <NotificationsBell initial={notifications} />
             <button className="avatar" title={`${fullName} — schimbă parola`} onClick={() => setPwOpen(true)}>
               {initials}

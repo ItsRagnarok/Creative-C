@@ -10,6 +10,7 @@ export type ProfileRow = {
   full_name: string;
   initials: string;
   role: AppRole;
+  is_super_admin?: boolean;
   created_at: string;
 };
 
@@ -22,8 +23,8 @@ const ROLE_BADGE: Record<AppRole, string> = {
 
 const CONFIRM_WORD = "STERGE";
 
-// Exactly one admin exists, so "admin" is never offered when creating or re-roling an account.
-const ASSIGNABLE_ROLES: AppRole[] = ["manager", "vanzari", "editor"];
+// Any admin may create manager / editor / closer accounts; only admin S may create or re-role admins.
+const BASE_ROLES: AppRole[] = ["manager", "vanzari", "editor"];
 
 function monthYear(iso: string) {
   return new Date(iso).toLocaleDateString("ro-RO", { month: "long", year: "numeric" });
@@ -54,12 +55,17 @@ function generatePassword() {
 export default function EchipaBoard({
   initialProfiles,
   canManage,
+  currentIsSuper,
   currentUserId,
 }: {
   initialProfiles: ProfileRow[];
   canManage: boolean;
+  currentIsSuper: boolean;
   currentUserId: string;
 }) {
+  const assignableRoles: AppRole[] = currentIsSuper ? ["admin", ...BASE_ROLES] : BASE_ROLES;
+  // A plain admin can neither edit nor delete another admin; admin S is untouchable.
+  const canTouch = (p: ProfileRow) => canManage && !p.is_super_admin && (p.role !== "admin" || currentIsSuper);
   const supabase = createClient();
   const [profiles, setProfiles] = useState(initialProfiles);
   const [inviteModal, setInviteModal] = useState<InviteForm | null>(null);
@@ -265,7 +271,7 @@ export default function EchipaBoard({
               <tr key={p.id}>
                 {canManage && (
                   <td>
-                    {p.id !== currentUserId && (
+                    {p.id !== currentUserId && canTouch(p) && (
                       <input
                         type="checkbox"
                         checked={selected.has(p.id)}
@@ -287,13 +293,15 @@ export default function EchipaBoard({
                     </div>
                   </div>
                 </td>
-                <td><span className={`badge ${ROLE_BADGE[p.role]}`}>{ROLE_LABEL[p.role]}</span></td>
+                <td><span className={`badge ${ROLE_BADGE[p.role]}`}>{p.is_super_admin ? "Admin S" : ROLE_LABEL[p.role]}</span></td>
                 <td className="faint">{monthYear(p.created_at)}</td>
                 {canManage && (
                   <td>
+                    {(p.id === currentUserId || canTouch(p)) && (
                     <button type="button" className="icon-btn" style={{ width: 28, height: 28 }} title="Editează" onClick={() => openEdit(p)}>
                       ✎
                     </button>
+                    )}
                   </td>
                 )}
               </tr>
@@ -321,7 +329,7 @@ export default function EchipaBoard({
               <div className="field">
                 <label>Rol</label>
                 <select value={inviteModal.role} onChange={(e) => setInviteModal({ ...inviteModal, role: e.target.value as AppRole })}>
-                  {ASSIGNABLE_ROLES.map((r) => (
+                  {assignableRoles.map((r) => (
                     <option key={r} value={r}>{ROLE_LABEL[r]}</option>
                   ))}
                 </select>
@@ -375,7 +383,7 @@ export default function EchipaBoard({
                   disabled={editModal.id === currentUserId}
                   onChange={(e) => setEditModal({ ...editModal, role: e.target.value as AppRole })}
                 >
-                  {(editModal.role === "admin" ? (["admin"] as AppRole[]) : ASSIGNABLE_ROLES).map((r) => (
+                  {(editModal.role === "admin" ? (["admin", ...BASE_ROLES] as AppRole[]) : assignableRoles).map((r) => (
                     <option key={r} value={r}>{ROLE_LABEL[r]}</option>
                   ))}
                 </select>
