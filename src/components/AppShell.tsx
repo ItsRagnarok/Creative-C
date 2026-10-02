@@ -31,6 +31,32 @@ export default function AppShell({
   const isAdmin = actualRole === "admin";
   const [previewRole, setPreviewRole] = useState<AppRole>(actualRole);
   const router = useRouter();
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwDone, setPwDone] = useState(false);
+  const [pwSaving, setPwSaving] = useState(false);
+
+  function closePw() {
+    setPwOpen(false);
+    setPw("");
+    setPw2("");
+    setPwError(null);
+    setPwDone(false);
+  }
+
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    if (pw.length < 8) return setPwError("Parola trebuie să aibă minim 8 caractere.");
+    if (pw !== pw2) return setPwError("Parolele nu coincid.");
+    setPwSaving(true);
+    setPwError(null);
+    const { error } = await createClient().auth.updateUser({ password: pw });
+    setPwSaving(false);
+    if (error) return setPwError(error.message);
+    setPwDone(true);
+  }
 
   useEffect(() => {
     // Read after mount (not via lazy useState init) so SSR markup — rendered
@@ -138,7 +164,7 @@ export default function AppShell({
               </div>
             )}
             <NotificationsBell initial={notifications} />
-            <button className="avatar" title={fullName}>
+            <button className="avatar" title={`${fullName} — schimbă parola`} onClick={() => setPwOpen(true)}>
               {initials}
             </button>
             <button className="icon-btn logout" title="Deconectare" aria-label="Deconectare" onClick={handleLogout}>
@@ -148,6 +174,41 @@ export default function AppShell({
         </header>
 
         <div className="content">{children}</div>
+
+        {pwOpen && (
+          <div className="modal-overlay" onClick={closePw}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-head">
+                <h3>Schimbă parola</h3>
+                <button className="modal-close" onClick={closePw}>✕</button>
+              </div>
+              {pwDone ? (
+                <>
+                  <p style={{ marginBottom: 14 }}>Parola a fost schimbată.</p>
+                  <button type="button" className="btn primary" style={{ width: "100%", justifyContent: "center" }} onClick={closePw}>
+                    Gata
+                  </button>
+                </>
+              ) : (
+                <form onSubmit={handlePasswordChange}>
+                  <p className="faint" style={{ marginBottom: 12, fontSize: 12 }}>{fullName}</p>
+                  <div className="field">
+                    <label>Parolă nouă</label>
+                    <input type="password" autoFocus value={pw} onChange={(e) => setPw(e.target.value)} placeholder="minim 8 caractere" />
+                  </div>
+                  <div className="field">
+                    <label>Repetă parola</label>
+                    <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} />
+                  </div>
+                  {pwError && <div className="field-error">{pwError}</div>}
+                  <button type="submit" className="btn primary" style={{ width: "100%", justifyContent: "center", marginTop: 6 }} disabled={pwSaving}>
+                    {pwSaving ? "Se salvează…" : "Salvează parola"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

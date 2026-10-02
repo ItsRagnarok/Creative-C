@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { ROLE_LABEL, type AppRole } from "@/lib/roles";
+import { ROLE_LABEL, ROLE_NOTE, type AppRole } from "@/lib/roles";
 
 export type ProfileRow = {
   id: string;
@@ -25,11 +25,26 @@ function monthYear(iso: string) {
   return new Date(iso).toLocaleDateString("ro-RO", { month: "long", year: "numeric" });
 }
 
-type InviteForm = { full_name: string; initials: string; email: string; password: string; role: AppRole };
-type EditForm = { id: string; full_name: string; initials: string; role: AppRole };
+type InviteForm = { full_name: string; email: string; password: string; role: AppRole };
+type EditForm = { id: string; full_name: string; role: AppRole; newPassword: string };
 
 function emptyInvite(): InviteForm {
-  return { full_name: "", initials: "", email: "", password: "", role: "editor" };
+  return { full_name: "", email: "", password: "", role: "editor" };
+}
+
+// Initials are derived from the name so nobody has to type them.
+function makeInitials(name: string) {
+  const parts = name.trim().split(/[\s-]+/).filter(Boolean);
+  if (parts.length === 0) return "";
+  const first = parts[0][0];
+  const second = parts.length > 1 ? parts[parts.length - 1][0] : parts[0][1] ?? "";
+  return (first + second).toUpperCase();
+}
+
+function generatePassword() {
+  const chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  return Array.from(bytes, (b) => chars[b % chars.length]).join("");
 }
 
 export default function EchipaBoard({
@@ -53,6 +68,16 @@ export default function EchipaBoard({
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [emails, setEmails] = useState<Record<string, string>>({});
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!canManage) return;
+    supabase.functions.invoke("manage-team-member", { body: { action: "emails" } }).then(({ data }) => {
+      if (data?.emails) setEmails(data.emails);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canManage]);
 
   function toggleSelected(id: string) {
     setSelected((prev) => {
@@ -66,8 +91,8 @@ export default function EchipaBoard({
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
     if (!inviteModal) return;
-    if (!inviteModal.full_name.trim() || !inviteModal.email.trim() || !inviteModal.initials.trim()) {
-      setError("Completează numele, inițialele și emailul.");
+    if (!inviteModal.full_name.trim() || !inviteModal.email.trim()) {
+      setError("Completează numele și emailul.");
       return;
     }
     if (inviteModal.password.length < 8) {
@@ -79,7 +104,7 @@ export default function EchipaBoard({
     const { data, error: err } = await supabase.functions.invoke("invite-team-member", {
       body: {
         full_name: inviteModal.full_name.trim(),
-        initials: inviteModal.initials.trim().toUpperCase().slice(0, 2),
+        initials: makeInitials(inviteModal.full_name),
         email: inviteModal.email.trim(),
         password: inviteModal.password,
         role: inviteModal.role,
@@ -91,19 +116,25 @@ export default function EchipaBoard({
       return;
     }
     setProfiles((prev) => [...prev, data.profile as ProfileRow]);
+    setEmails((prev) => ({ ...prev, [data.profile.id]: inviteModal.email.trim().toLowerCase() }));
+    setNotice(`Cont creat pentru ${inviteModal.full_name.trim()}. Transmite-i emailul și parola inițială.`);
     setInviteModal(null);
   }
 
   function openEdit(p: ProfileRow) {
     setError(null);
-    setEditModal({ id: p.id, full_name: p.full_name, initials: p.initials, role: p.role });
+    setEditModal({ id: p.id, full_name: p.full_name, role: p.role, newPassword: "" });
   }
 
   async function handleEditSave(e: React.FormEvent) {
     e.preventDefault();
     if (!editModal) return;
-    if (!editModal.full_name.trim() || !editModal.initials.trim()) {
-      setError("Numele și inițialele sunt obligatorii.");
+    if (!editModal.full_name.trim()) {
+      setError("Numele este obligatoriu.");
+      return;
+    }
+    if (editModal.newPassword && editModal.newPassword.length < 8) {
+      setError("Parola nouă trebuie să aibă minim 8 caractere.");
       return;
     }
     setSaving(true);
@@ -112,14 +143,27 @@ export default function EchipaBoard({
       .from("profiles")
       .update({
         full_name: editModal.full_name.trim(),
-        initials: editModal.initials.trim().toUpperCase().slice(0, 2),
+        initials: makeInitials(editModal.full_name),
         role: editModal.role,
       })
       .eq("id", editModal.id)
       .select("*")
       .single();
+    if (err) {
+      setSaving(false);
+      return setError(err.message);
+    }
+    if (editModal.newPassword) {
+      const { data: pw, error: pwErr } = await supabase.functions.invoke("manage-team-member", {
+        body: { action: "set_password", user_id: editModal.id, password: editModal.newPassword },
+      });
+      if (pwErr || !pw?.ok) {
+        setSaving(false);
+        return setError(pw?.error ?? pwErr?.message ?? "Datele au fost salvate, dar parola nu a putut fi schimbată.");
+      }
+      setNotice(`Parola pentru ${editModal.full_name.trim()} a fost schimbată.`);
+    }
     setSaving(false);
-    if (err) return setError(err.message);
     setProfiles((prev) => prev.map((p) => (p.id === editModal.id ? (data as ProfileRow) : p)));
     setEditModal(null);
   }
@@ -179,6 +223,13 @@ export default function EchipaBoard({
         )}
       </div>
 
+      {notice && (
+        <div className="card" style={{ marginBottom: 18, padding: "12px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: 13 }}>{notice}</span>
+          <button type="button" className="btn ghost sm" style={{ marginLeft: "auto" }} onClick={() => setNotice(null)}>Închide</button>
+        </div>
+      )}
+
       {canManage && deletableSelected.length > 0 && (
         <div className="card" style={{ marginBottom: 18, padding: "12px 18px", display: "flex", alignItems: "center", gap: 12 }}>
           <span className="tag">{deletableSelected.length} selectați</span>
@@ -228,6 +279,7 @@ export default function EchipaBoard({
                         {p.full_name}
                         {p.id === currentUserId && <span className="faint" style={{ fontWeight: 500 }}> (tu)</span>}
                       </div>
+                      {emails[p.id] && <div className="faint" style={{ fontSize: 12 }}>{emails[p.id]}</div>}
                     </div>
                   </div>
                 </td>
@@ -258,27 +310,33 @@ export default function EchipaBoard({
                 <label>Nume complet</label>
                 <input value={inviteModal.full_name} onChange={(e) => setInviteModal({ ...inviteModal, full_name: e.target.value })} />
               </div>
-              <div className="grid g-2">
-                <div className="field">
-                  <label>Inițiale</label>
-                  <input value={inviteModal.initials} maxLength={2} onChange={(e) => setInviteModal({ ...inviteModal, initials: e.target.value })} />
-                </div>
-                <div className="field">
-                  <label>Rol</label>
-                  <select value={inviteModal.role} onChange={(e) => setInviteModal({ ...inviteModal, role: e.target.value as AppRole })}>
-                    {(Object.keys(ROLE_LABEL) as AppRole[]).map((r) => (
-                      <option key={r} value={r}>{ROLE_LABEL[r]}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
               <div className="field">
                 <label>Email de lucru</label>
                 <input type="email" value={inviteModal.email} onChange={(e) => setInviteModal({ ...inviteModal, email: e.target.value })} />
               </div>
               <div className="field">
+                <label>Rol</label>
+                <select value={inviteModal.role} onChange={(e) => setInviteModal({ ...inviteModal, role: e.target.value as AppRole })}>
+                  {(Object.keys(ROLE_LABEL) as AppRole[]).map((r) => (
+                    <option key={r} value={r}>{ROLE_LABEL[r]}</option>
+                  ))}
+                </select>
+                <div className="faint" style={{ fontSize: 12, marginTop: 4 }}>{ROLE_NOTE[inviteModal.role]}</div>
+              </div>
+              <div className="field">
                 <label>Parolă inițială</label>
-                <input type="password" value={inviteModal.password} onChange={(e) => setInviteModal({ ...inviteModal, password: e.target.value })} placeholder="minim 8 caractere" />
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    style={{ flex: 1 }}
+                    value={inviteModal.password}
+                    onChange={(e) => setInviteModal({ ...inviteModal, password: e.target.value })}
+                    placeholder="minim 8 caractere"
+                  />
+                  <button type="button" className="btn ghost sm" onClick={() => setInviteModal({ ...inviteModal, password: generatePassword() })}>
+                    Generează
+                  </button>
+                </div>
+                <div className="faint" style={{ fontSize: 12, marginTop: 4 }}>Persoana și-o poate schimba ulterior din contul ei.</div>
               </div>
 
               {error && <div className="field-error">{error}</div>}
@@ -303,22 +361,34 @@ export default function EchipaBoard({
                 <label>Nume complet</label>
                 <input value={editModal.full_name} onChange={(e) => setEditModal({ ...editModal, full_name: e.target.value })} />
               </div>
-              <div className="grid g-2">
-                <div className="field">
-                  <label>Inițiale</label>
-                  <input value={editModal.initials} maxLength={2} onChange={(e) => setEditModal({ ...editModal, initials: e.target.value })} />
-                </div>
-                <div className="field">
-                  <label>Rol</label>
-                  <select
-                    value={editModal.role}
-                    disabled={editModal.id === currentUserId}
-                    onChange={(e) => setEditModal({ ...editModal, role: e.target.value as AppRole })}
-                  >
-                    {(Object.keys(ROLE_LABEL) as AppRole[]).map((r) => (
-                      <option key={r} value={r}>{ROLE_LABEL[r]}</option>
-                    ))}
-                  </select>
+              {emails[editModal.id] && (
+                <div className="faint" style={{ fontSize: 12, marginBottom: 12 }}>{emails[editModal.id]}</div>
+              )}
+              <div className="field">
+                <label>Rol</label>
+                <select
+                  value={editModal.role}
+                  disabled={editModal.id === currentUserId}
+                  onChange={(e) => setEditModal({ ...editModal, role: e.target.value as AppRole })}
+                >
+                  {(Object.keys(ROLE_LABEL) as AppRole[]).map((r) => (
+                    <option key={r} value={r}>{ROLE_LABEL[r]}</option>
+                  ))}
+                </select>
+                <div className="faint" style={{ fontSize: 12, marginTop: 4 }}>{ROLE_NOTE[editModal.role]}</div>
+              </div>
+              <div className="field">
+                <label>Parolă nouă (opțional)</label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    style={{ flex: 1 }}
+                    value={editModal.newPassword}
+                    onChange={(e) => setEditModal({ ...editModal, newPassword: e.target.value })}
+                    placeholder="lasă gol ca să nu o schimbi"
+                  />
+                  <button type="button" className="btn ghost sm" onClick={() => setEditModal({ ...editModal, newPassword: generatePassword() })}>
+                    Generează
+                  </button>
                 </div>
               </div>
               {editModal.id === currentUserId && (
