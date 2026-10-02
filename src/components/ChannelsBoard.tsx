@@ -204,6 +204,7 @@ export default function ChannelsBoard({
           {channels.filter((c) => c.kind === "automat").map((c) => (
             <button key={c.id} className={`chan-item${activeId === c.id ? " active" : ""}`} onClick={() => setActiveId(c.id)}>
               {c.label}
+              {unread[c.id] ? <span className="badge red" style={{ marginLeft: "auto" }}>{unread[c.id]}</span> : null}
             </button>
           ))}
         </div>
