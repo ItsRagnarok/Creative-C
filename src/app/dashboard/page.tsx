@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import PipelineBoard, { type LeadRow, type Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
+import { loadAccess } from "@/lib/access";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -31,10 +32,13 @@ export default async function DashboardPage() {
   const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
+  const access = await loadAccess(supabase, role);
 
   const shell = (
     <AppShell
       actualRole={role}
+      access={access}
+      isSuperAdmin={!!profile.is_super_admin}
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="dashboard"

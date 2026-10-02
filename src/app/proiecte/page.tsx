@@ -4,6 +4,7 @@ import AppShell from "@/components/AppShell";
 import ProjectsBoard, { type ProjectRow, type ProjectTaskRow, type ProjectFileRow } from "@/components/ProjectsBoard";
 import type { Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
+import { loadAccess } from "@/lib/access";
 
 export default async function ProiectePage() {
   const supabase = await createClient();
@@ -28,7 +29,8 @@ export default async function ProiectePage() {
   const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager" || role === "editor";
+  const access = await loadAccess(supabase, role);
+  const hasAccess = access.proiecte.view;
 
   const [{ data: projects }, { data: tasks }, { data: files }, { data: leads }] = await Promise.all([
     hasAccess
@@ -50,6 +52,8 @@ export default async function ProiectePage() {
   return (
     <AppShell
       actualRole={role}
+      access={access}
+      isSuperAdmin={!!profile.is_super_admin}
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="proiecte"
@@ -64,7 +68,7 @@ export default async function ProiectePage() {
           initialFiles={(files ?? []) as ProjectFileRow[]}
           owners={(owners ?? []) as Owner[]}
           leads={(leads ?? []) as { id: string; name: string }[]}
-          canEdit={role === "admin" || role === "manager"}
+          canEdit={access.proiecte.edit && (role === "admin" || role === "manager")}
           currentUserId={user.id}
         />
       ) : (

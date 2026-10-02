@@ -4,6 +4,7 @@ import AppShell from "@/components/AppShell";
 import ClientDetail from "@/components/ClientDetail";
 import type { LeadRow, Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
+import { loadAccess } from "@/lib/access";
 
 export default async function ClientDetailPage({
   params,
@@ -34,7 +35,8 @@ export default async function ClientDetailPage({
   const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager" || role === "vanzari";
+  const access = await loadAccess(supabase, role);
+  const hasAccess = access.clienti.view;
   if (!hasAccess) redirect("/clienti");
 
   if (!lead) notFound();
@@ -42,6 +44,8 @@ export default async function ClientDetailPage({
   return (
     <AppShell
       actualRole={role}
+      access={access}
+      isSuperAdmin={!!profile.is_super_admin}
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="clienti"
@@ -52,7 +56,7 @@ export default async function ClientDetailPage({
       <ClientDetail
         lead={lead as LeadRow}
         owners={(owners ?? []) as Owner[]}
-        canEdit={hasAccess}
+        canEdit={access.clienti.edit}
         canDelete={role === "admin" || role === "manager"}
       />
     </AppShell>

@@ -106,6 +106,60 @@ export type Database = {
           },
         ]
       }
+      booking_priority_items: {
+        Row: {
+          list_id: string
+          position: number
+          user_id: string
+        }
+        Insert: {
+          list_id: string
+          position: number
+          user_id: string
+        }
+        Update: {
+          list_id?: string
+          position?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_priority_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "booking_priority_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_priority_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_priority_lists: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       booking_slugs: {
         Row: {
           created_at: string
@@ -887,6 +941,35 @@ export type Database = {
           },
         ]
       }
+      user_access: {
+        Row: {
+          can_edit: boolean | null
+          can_view: boolean | null
+          menu: string
+          user_id: string
+        }
+        Insert: {
+          can_edit?: boolean | null
+          can_view?: boolean | null
+          menu: string
+          user_id: string
+        }
+        Update: {
+          can_edit?: boolean | null
+          can_view?: boolean | null
+          menu?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -903,6 +986,7 @@ export type Database = {
         Returns: Json
       }
       ensure_booking_slug: { Args: never; Returns: string }
+      my_access: { Args: never; Returns: Json }
       get_booking_host: {
         Args: { p_slug: string }
         Returns: {

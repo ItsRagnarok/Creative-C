@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import { NAV, ROLE_LABEL, ROLE_NOTE, type AppRole } from "@/lib/roles";
+import { loadAccess } from "@/lib/access";
+import AccessMatrix, { type AccessRow, type AccessUser } from "@/components/AccessMatrix";
 
 const ALL_ROLES: AppRole[] = ["admin", "manager", "vanzari", "editor"];
 
@@ -26,16 +28,25 @@ export default async function SetariPage() {
   if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
-  const hasAccess = role === "admin";
+  const access = await loadAccess(supabase, role);
+  const hasAccess = !!profile.is_super_admin;
 
   const items = NAV.flatMap((g) => g.items);
   const { count: teamCount } = hasAccess
     ? await supabase.from("profiles").select("id", { count: "exact", head: true })
     : { count: null };
+  const [{ data: accessUsers }, { data: accessRows }] = hasAccess
+    ? await Promise.all([
+        supabase.from("profiles").select("id, full_name, role, is_super_admin").eq("is_super_admin", false).order("full_name"),
+        supabase.from("user_access").select("user_id, menu, can_view, can_edit"),
+      ])
+    : [{ data: null }, { data: null }];
 
   return (
     <AppShell
       actualRole={role}
+      access={access}
+      isSuperAdmin={!!profile.is_super_admin}
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="setari"
@@ -61,7 +72,10 @@ export default async function SetariPage() {
             ))}
           </div>
 
-          <div className="section-title"><h2>Matrice de permisiuni</h2></div>
+          <div className="section-title"><h2>Acces per utilizator</h2></div>
+          <AccessMatrix users={(accessUsers ?? []) as AccessUser[]} initialRows={(accessRows ?? []) as AccessRow[]} />
+
+          <div className="section-title"><h2>Matrice de permisiuni (implicit, pe roluri)</h2></div>
           <div className="card" style={{ padding: 0, marginBottom: 24, overflowX: "auto" }}>
             <table className="table">
               <thead>

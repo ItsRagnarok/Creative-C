@@ -4,6 +4,7 @@ import AppShell from "@/components/AppShell";
 import DocumentsBoard, { type DocumentRow } from "@/components/DocumentsBoard";
 import type { Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
+import { loadAccess } from "@/lib/access";
 
 export default async function DocumentePage() {
   const supabase = await createClient();
@@ -28,7 +29,8 @@ export default async function DocumentePage() {
   const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager" || role === "vanzari";
+  const access = await loadAccess(supabase, role);
+  const hasAccess = access.documente.view;
 
   const [{ data: documents }, { data: leads }] = await Promise.all([
     hasAccess
@@ -43,6 +45,8 @@ export default async function DocumentePage() {
   return (
     <AppShell
       actualRole={role}
+      access={access}
+      isSuperAdmin={!!profile.is_super_admin}
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="documente"
@@ -55,7 +59,7 @@ export default async function DocumentePage() {
           initialDocuments={(documents ?? []) as DocumentRow[]}
           leads={(leads ?? []) as { id: string; name: string }[]}
           owners={(owners ?? []) as Owner[]}
-          canEdit={role === "admin" || role === "manager" || role === "vanzari"}
+          canEdit={access.documente.edit}
           canDelete={role === "admin" || role === "manager"}
         />
       ) : (

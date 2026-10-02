@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import PortalClientBoard, { type ClientOption, type PortalProjectRow, type PortalDocumentRow, type PortalInvoiceRow } from "@/components/PortalClientBoard";
 import type { AppRole } from "@/lib/roles";
+import { loadAccess } from "@/lib/access";
 
 export default async function PortalClientPage() {
   const supabase = await createClient();
@@ -25,7 +26,8 @@ export default async function PortalClientPage() {
   if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager";
+  const access = await loadAccess(supabase, role);
+  const hasAccess = access.portal.view;
 
   const [{ data: leads }, { data: projects }, { data: documents }, { data: invoices }] = await Promise.all([
     hasAccess ? supabase.from("leads").select("id, name").order("name") : Promise.resolve({ data: null }),
@@ -37,6 +39,8 @@ export default async function PortalClientPage() {
   return (
     <AppShell
       actualRole={role}
+      access={access}
+      isSuperAdmin={!!profile.is_super_admin}
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="portal"

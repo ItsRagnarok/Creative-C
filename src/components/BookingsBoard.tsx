@@ -255,23 +255,6 @@ export default function BookingsBoard({
 
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [schedule, setSchedule] = useState(myAvailability);
-  const [linkState, setLinkState] = useState<"idle" | "copied" | "error">("idle");
-
-  // Copies the signed-in user's own booking link (created on first use).
-  async function copyMyLink() {
-    const { data: slug, error: slugErr } = await supabase.rpc("ensure_booking_slug");
-    if (slugErr || !slug) return setLinkState("error");
-    const url = `${window.location.origin}/programeaza/${slug}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setLinkState("copied");
-    } catch {
-      window.prompt("Copiază linkul tău de programare:", url);
-      setLinkState("idle");
-      return;
-    }
-    setTimeout(() => setLinkState("idle"), 2000);
-  }
 
   return (
     <>
@@ -281,7 +264,6 @@ export default function BookingsBoard({
           <p>Toate apelurile programate — cele rezervate public intră automat și în Pipeline.</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <button type="button" className="btn ghost" onClick={copyMyLink}>{linkState === "copied" ? "Link copiat ✓" : linkState === "error" ? "Nu am putut copia" : "Copiază linkul meu"}</button>
           {adminTools}
           <button type="button" className="btn ghost" onClick={() => setScheduleOpen(true)}>Program de lucru</button>
           <button className="btn primary" onClick={() => openCreate()}>+ Programare</button>

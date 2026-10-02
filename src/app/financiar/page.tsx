@@ -4,6 +4,7 @@ import AppShell from "@/components/AppShell";
 import FinanciarBoard, { type InvoiceRow } from "@/components/FinanciarBoard";
 import type { Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
+import { loadAccess } from "@/lib/access";
 
 export default async function FinanciarPage() {
   const supabase = await createClient();
@@ -28,7 +29,8 @@ export default async function FinanciarPage() {
   const owners = profiles ?? [];
 
   const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager";
+  const access = await loadAccess(supabase, role);
+  const hasAccess = access.financiar.view;
 
   const [{ data: invoices }, { data: leads }, { data: documents }] = await Promise.all([
     hasAccess
@@ -44,6 +46,8 @@ export default async function FinanciarPage() {
   return (
     <AppShell
       actualRole={role}
+      access={access}
+      isSuperAdmin={!!profile.is_super_admin}
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="financiar"

@@ -4,6 +4,7 @@ import AppShell from "@/components/AppShell";
 import ClientsTable from "@/components/ClientsTable";
 import type { LeadRow } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
+import { loadAccess } from "@/lib/access";
 
 export default async function ClientiPage() {
   const supabase = await createClient();
@@ -26,7 +27,8 @@ export default async function ClientiPage() {
   if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager" || role === "vanzari";
+  const access = await loadAccess(supabase, role);
+  const hasAccess = access.clienti.view;
 
   const { data: leads } = hasAccess
     ? await supabase
@@ -38,6 +40,8 @@ export default async function ClientiPage() {
   return (
     <AppShell
       actualRole={role}
+      access={access}
+      isSuperAdmin={!!profile.is_super_admin}
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="clienti"

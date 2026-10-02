@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import AutomationsBoard, { type AutomationRuleRow, type AutomationLogRow } from "@/components/AutomationsBoard";
 import type { AppRole } from "@/lib/roles";
+import { loadAccess } from "@/lib/access";
 
 export default async function AutomatizariPage() {
   const supabase = await createClient();
@@ -25,7 +26,8 @@ export default async function AutomatizariPage() {
   if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager";
+  const access = await loadAccess(supabase, role);
+  const hasAccess = access.automatizari.view;
 
   const [{ data: rules }, { data: log }] = await Promise.all([
     hasAccess ? supabase.from("automation_rules").select("*").order("kind") : Promise.resolve({ data: null }),
@@ -37,6 +39,8 @@ export default async function AutomatizariPage() {
   return (
     <AppShell
       actualRole={role}
+      access={access}
+      isSuperAdmin={!!profile.is_super_admin}
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="automatizari"

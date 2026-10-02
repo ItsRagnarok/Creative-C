@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { NAV, ROLE_LABEL, ROLE_NOTE, type AppRole } from "@/lib/roles";
+import type { Access, MenuKey } from "@/lib/access";
 import NotificationsBell, { type NotificationRow } from "@/components/NotificationsBell";
 import { createClient } from "@/lib/supabase/client";
 
@@ -15,6 +16,8 @@ type Props = {
   title: string;
   subtitle?: string;
   notifications: NotificationRow[];
+  access?: Access;
+  isSuperAdmin?: boolean;
   children: React.ReactNode;
 };
 
@@ -26,6 +29,8 @@ export default function AppShell({
   title,
   subtitle,
   notifications,
+  access,
+  isSuperAdmin,
   children,
 }: Props) {
   const router = useRouter();
@@ -69,9 +74,13 @@ export default function AppShell({
     () =>
       NAV.map((g) => ({
         ...g,
-        items: g.items.filter((i) => i.roles.includes(effectiveRole)),
+        items: g.items.filter((i) => {
+          if (i.key === "setari") return !!isSuperAdmin; // roles & access are admin S only
+          if (access) return access[i.key as MenuKey]?.view ?? false;
+          return i.roles.includes(effectiveRole);
+        }),
       })).filter((g) => g.items.length),
-    [effectiveRole],
+    [effectiveRole, access, isSuperAdmin],
   );
 
   return (

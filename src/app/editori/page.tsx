@@ -11,6 +11,7 @@ import EditoriTabs from "@/components/EditoriTabs";
 import EditorCards from "@/components/EditorCards";
 import ContentCalendar, { type CalendarEditor } from "@/components/ContentCalendar";
 import type { AppRole } from "@/lib/roles";
+import { loadAccess } from "@/lib/access";
 
 export default async function EditoriPage() {
   const supabase = await createClient();
@@ -33,7 +34,8 @@ export default async function EditoriPage() {
   if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager" || role === "editor";
+  const access = await loadAccess(supabase, role);
+  const hasAccess = access.editori.view;
   const today = new Date().toISOString().slice(0, 10);
 
   const isManager = role === "admin" || role === "manager";
@@ -67,6 +69,8 @@ export default async function EditoriPage() {
   return (
     <AppShell
       actualRole={role}
+      access={access}
+      isSuperAdmin={!!profile.is_super_admin}
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="editori"

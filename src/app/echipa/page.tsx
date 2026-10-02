@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import EchipaBoard, { type ProfileRow } from "@/components/EchipaBoard";
 import type { AppRole } from "@/lib/roles";
+import { loadAccess } from "@/lib/access";
 
 export default async function EchipaPage() {
   const supabase = await createClient();
@@ -25,7 +26,8 @@ export default async function EchipaPage() {
   if (!profile) redirect("/login");
 
   const role = profile.role as AppRole;
-  const hasAccess = role === "admin" || role === "manager";
+  const access = await loadAccess(supabase, role);
+  const hasAccess = access.echipa.view;
 
   const { data: profiles } = hasAccess
     ? await supabase.from("profiles").select("*").order("created_at", { ascending: true })
@@ -34,6 +36,8 @@ export default async function EchipaPage() {
   return (
     <AppShell
       actualRole={role}
+      access={access}
+      isSuperAdmin={!!profile.is_super_admin}
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="echipa"
