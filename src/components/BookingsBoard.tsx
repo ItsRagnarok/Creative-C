@@ -16,12 +16,6 @@ export type CalendarExtra = {
   href: string;
 };
 
-const EXTRA_ICON: Record<CalendarExtra["kind"], string> = {
-  deadline: "▤",
-  document: "📄",
-  invoice: "💸",
-};
-
 export type BookingRow = {
   id: string;
   name: string;
@@ -332,7 +326,6 @@ export default function BookingsBoard({
                 })}
                 {(extrasByDay.get(dayIndex) ?? []).map((ev) => (
                   <Link key={ev.id} href={ev.href} className={`cal-card extra ${ev.kind}`}>
-                    <span className="t">{EXTRA_ICON[ev.kind]}</span>
                     <span className="n">{ev.label}</span>
                   </Link>
                 ))}

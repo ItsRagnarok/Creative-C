@@ -243,7 +243,7 @@ table{ width:100%; border-collapse:collapse; }
    With only a handful of fixed slots/day, an hour-by-hour grid was mostly
    empty rows; stacking each day's actual bookings takes far less space. */
 .cal-toolbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
-.cal-range{ font-family:var(--font-display); font-weight:600; font-size:14.5px; text-transform:capitalize; }
+.cal-range{ font-family:var(--font-body); font-weight:600; font-size:14.5px; color:var(--text); }
 .cal-nav-btns{ display:flex; gap:6px; }
 .cal-cols{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
 @media (max-width:900px){ .cal-cols{ grid-template-columns:repeat(5,150px); overflow-x:auto; } }

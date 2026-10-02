@@ -50,20 +50,41 @@ export default async function ProgramariPage() {
           .limit(300)
       : Promise.resolve({ data: null }),
     canSeeEverything
-      ? supabase.from("projects").select("id, title, deadline").gte("deadline", since).lt("deadline", until)
+      ? supabase
+          .from("projects")
+          .select("id, title, deadline")
+          .neq("stage", "finalizat")
+          .gte("deadline", since)
+          .lt("deadline", until)
       : Promise.resolve({ data: null }),
     canSeeEverything
-      ? supabase.from("documents").select("id, title, expiry_date").gte("expiry_date", since).lt("expiry_date", until)
+      ? supabase
+          .from("documents")
+          .select("id, title, expiry_date")
+          .eq("status", "semnat")
+          .gte("expiry_date", since)
+          .lt("expiry_date", until)
       : Promise.resolve({ data: null }),
     canSeeEverything
-      ? supabase.from("invoices").select("id, number, amount, due_date").gte("due_date", since).lt("due_date", until)
+      ? supabase
+          .from("invoices")
+          .select("id, number, amount, due_date, lead:leads(name)")
+          .in("status", ["neplatita", "restanta"])
+          .gte("due_date", since)
+          .lt("due_date", until)
       : Promise.resolve({ data: null }),
   ]);
 
   const extraEvents: CalendarExtra[] = [
-    ...(projectDeadlines ?? []).map((p) => ({ id: `proj-${p.id}`, date: p.deadline as string, label: `Deadline: ${p.title}`, kind: "deadline" as const, href: "/proiecte" })),
-    ...(documentExpiries ?? []).map((d) => ({ id: `doc-${d.id}`, date: d.expiry_date as string, label: `Expiră: ${d.title}`, kind: "document" as const, href: "/documente" })),
-    ...(invoiceDueDates ?? []).map((i) => ({ id: `inv-${i.id}`, date: i.due_date as string, label: `Scadentă: ${i.number}`, kind: "invoice" as const, href: "/financiar" })),
+    ...(projectDeadlines ?? []).map((p) => ({ id: `proj-${p.id}`, date: p.deadline as string, label: `Deadline proiect: ${p.title}`, kind: "deadline" as const, href: "/proiecte" })),
+    ...(documentExpiries ?? []).map((d) => ({ id: `doc-${d.id}`, date: d.expiry_date as string, label: `Expiră contract: ${d.title}`, kind: "document" as const, href: "/documente" })),
+    ...(invoiceDueDates ?? []).map((i) => ({
+      id: `inv-${i.id}`,
+      date: i.due_date as string,
+      label: `Factură scadentă: ${new Intl.NumberFormat("ro-RO").format(Number(i.amount))} lei${i.lead ? ` — ${i.lead.name}` : ` (${i.number})`}`,
+      kind: "invoice" as const,
+      href: "/financiar",
+    })),
   ];
 
   return (
