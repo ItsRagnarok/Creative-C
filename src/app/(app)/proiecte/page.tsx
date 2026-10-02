@@ -1,37 +1,11 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import AppShell from "@/components/AppShell";
 import ProjectsBoard, { type ProjectRow, type ProjectTaskRow, type ProjectFileRow } from "@/components/ProjectsBoard";
 import type { Owner } from "@/components/PipelineBoard";
-import type { AppRole } from "@/lib/roles";
-import { accessRequest, resolveAccess } from "@/lib/access";
+import { getAppContext } from "@/lib/app-context";
 import { OWNER_LEAD_SELECT } from "@/lib/selects";
 
 export default async function ProiectePage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const accessReq = accessRequest(supabase);
-
-  const [{ data: profiles }, { data: notifications }] = await Promise.all([
-    supabase.from("profiles").select("*").order("full_name"),
-    supabase
-      .from("notifications")
-      .select("id, title, body, is_read, created_at")
-      .or(`user_id.is.null,user_id.eq.${user.id}`)
-      .order("created_at", { ascending: false })
-      .limit(20),
-  ]);
-
-  const profile = profiles?.find((p) => p.id === user.id) ?? null;
-  if (!profile) redirect("/login");
-  const owners = profiles ?? [];
-
-  const role = profile.role as AppRole;
-  const access = resolveAccess((await accessReq).data, role);
+  const { supabase, user, role, access, team } = await getAppContext();
+  const owners = team;
   const hasAccess = access.proiecte.view;
 
   const [{ data: projects }, { data: tasks }, { data: files }, { data: leads }] = await Promise.all([
@@ -52,17 +26,7 @@ export default async function ProiectePage() {
   ]);
 
   return (
-    <AppShell
-      actualRole={role}
-      access={access}
-      isSuperAdmin={!!profile.is_super_admin}
-      fullName={profile.full_name}
-      initials={profile.initials}
-      activeKey="proiecte"
-      title="Proiecte"
-      subtitle="Livrare"
-      notifications={notifications ?? []}
-    >
+    <>
       {hasAccess ? (
         <ProjectsBoard
           initialProjects={(projects ?? []) as ProjectRow[]}
@@ -79,6 +43,6 @@ export default async function ProiectePage() {
           permisiuni din Setări.
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

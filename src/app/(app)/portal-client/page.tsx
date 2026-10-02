@@ -1,33 +1,8 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import AppShell from "@/components/AppShell";
 import PortalClientBoard, { type ClientOption, type PortalProjectRow, type PortalDocumentRow, type PortalInvoiceRow } from "@/components/PortalClientBoard";
-import type { AppRole } from "@/lib/roles";
-import { accessRequest, resolveAccess } from "@/lib/access";
+import { getAppContext } from "@/lib/app-context";
 
 export default async function PortalClientPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const accessReq = accessRequest(supabase);
-
-  const [{ data: profile }, { data: notifications }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase
-      .from("notifications")
-      .select("id, title, body, is_read, created_at")
-      .or(`user_id.is.null,user_id.eq.${user.id}`)
-      .order("created_at", { ascending: false })
-      .limit(20),
-  ]);
-
-  if (!profile) redirect("/login");
-
-  const role = profile.role as AppRole;
-  const access = resolveAccess((await accessReq).data, role);
+  const { supabase, role, access } = await getAppContext();
   const hasAccess = access.portal.view;
 
   const [{ data: leads }, { data: projects }, { data: documents }, { data: invoices }] = await Promise.all([
@@ -38,17 +13,7 @@ export default async function PortalClientPage() {
   ]);
 
   return (
-    <AppShell
-      actualRole={role}
-      access={access}
-      isSuperAdmin={!!profile.is_super_admin}
-      fullName={profile.full_name}
-      initials={profile.initials}
-      activeKey="portal"
-      title="Portal client (preview)"
-      subtitle="Vitrine"
-      notifications={notifications ?? []}
-    >
+    <>
       {hasAccess ? (
         <PortalClientBoard
           clients={(leads ?? []) as ClientOption[]}
@@ -62,6 +27,6 @@ export default async function PortalClientPage() {
           matricea de permisiuni din Setări.
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

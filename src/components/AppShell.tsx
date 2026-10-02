@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { NAV, ROLE_LABEL, ROLE_NOTE, type AppRole } from "@/lib/roles";
 import type { Access, MenuKey } from "@/lib/access";
 import NotificationsBell, { type NotificationRow } from "@/components/NotificationsBell";
@@ -12,9 +12,6 @@ type Props = {
   actualRole: AppRole;
   fullName: string;
   initials: string;
-  activeKey: string;
-  title: string;
-  subtitle?: string;
   notifications: NotificationRow[];
   access?: Access;
   isSuperAdmin?: boolean;
@@ -25,15 +22,29 @@ export default function AppShell({
   actualRole,
   fullName,
   initials,
-  activeKey,
-  title,
-  subtitle,
   notifications,
   access,
   isSuperAdmin,
   children,
 }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Active menu item, page title and section all come from the URL, so the shell never has to be re-rendered by a page.
+  const current = useMemo(() => {
+    let best: { key: string; label: string; group: string; len: number } | null = null;
+    for (const g of NAV) {
+      for (const i of g.items) {
+        if ((pathname === i.href || pathname.startsWith(i.href + "/")) && (!best || i.href.length > best.len)) {
+          best = { key: i.key, label: i.label, group: g.group, len: i.href.length };
+        }
+      }
+    }
+    return best;
+  }, [pathname]);
+  const activeKey = current?.key ?? "";
+  const title = current?.label ?? "";
+  const subtitle = current?.group;
   const [pwOpen, setPwOpen] = useState(false);
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");

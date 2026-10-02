@@ -1,35 +1,11 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import AppShell from "@/components/AppShell";
 import { NAV, ROLE_LABEL, ROLE_NOTE, type AppRole } from "@/lib/roles";
-import { accessRequest, resolveAccess } from "@/lib/access";
+import { getAppContext } from "@/lib/app-context";
 import AccessMatrix, { type AccessRow, type AccessUser } from "@/components/AccessMatrix";
 
 const ALL_ROLES: AppRole[] = ["admin", "manager", "vanzari", "editor"];
 
 export default async function SetariPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const accessReq = accessRequest(supabase);
-
-  const [{ data: profile }, { data: notifications }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase
-      .from("notifications")
-      .select("id, title, body, is_read, created_at")
-      .or(`user_id.is.null,user_id.eq.${user.id}`)
-      .order("created_at", { ascending: false })
-      .limit(20),
-  ]);
-
-  if (!profile) redirect("/login");
-
-  const role = profile.role as AppRole;
-  const access = resolveAccess((await accessReq).data, role);
+  const { supabase, profile, role } = await getAppContext();
   const hasAccess = !!profile.is_super_admin;
 
   const items = NAV.flatMap((g) => g.items);
@@ -44,17 +20,7 @@ export default async function SetariPage() {
     : [{ data: null }, { data: null }];
 
   return (
-    <AppShell
-      actualRole={role}
-      access={access}
-      isSuperAdmin={!!profile.is_super_admin}
-      fullName={profile.full_name}
-      initials={profile.initials}
-      activeKey="setari"
-      title="Setări & Roluri"
-      subtitle="Sistem"
-      notifications={notifications ?? []}
-    >
+    <>
       {hasAccess ? (
         <>
           <div className="page-head">
@@ -129,6 +95,6 @@ export default async function SetariPage() {
           Contul tău ({ROLE_LABEL[role]}) nu are acces la Setări & Roluri — exclusiv pentru Admin.
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

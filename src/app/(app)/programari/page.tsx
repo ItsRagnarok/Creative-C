@@ -1,39 +1,14 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import AppShell from "@/components/AppShell";
 import BookingsBoard, { type BookingRow, type CalendarExtra } from "@/components/BookingsBoard";
 import type { AvailabilityRow } from "@/components/WorkScheduleModal";
 import BookingAdminTools, { type SlugRow, type PriorityList, type PriorityItem } from "@/components/BookingAdminTools";
 import type { Owner } from "@/components/PipelineBoard";
-import type { AppRole } from "@/lib/roles";
-import { accessRequest, resolveAccess } from "@/lib/access";
+import { getAppContext } from "@/lib/app-context";
 import { BOOKING_SELECT } from "@/lib/selects";
 
 export default async function ProgramariPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const accessReq = accessRequest(supabase);
-
-  const [{ data: profiles }, { data: notifications }] = await Promise.all([
-    supabase.from("profiles").select("*").order("full_name"),
-    supabase
-      .from("notifications")
-      .select("id, title, body, is_read, created_at")
-      .or(`user_id.is.null,user_id.eq.${user.id}`)
-      .order("created_at", { ascending: false })
-      .limit(20),
-  ]);
-
-  const profile = profiles?.find((p) => p.id === user.id) ?? null;
-  if (!profile) redirect("/login");
-  const owners = profiles ?? [];
-
-  const role = profile.role as AppRole;
-  const access = resolveAccess((await accessReq).data, role);
+  const { supabase, user, profile, team, role, access } = await getAppContext();
+  const profiles = team;
+  const owners = team;
   const hasAccess = access.programari.view;
 
   // Wide enough for the calendar's week-back/week-forward navigation, not
@@ -98,17 +73,7 @@ export default async function ProgramariPage() {
   ];
 
   return (
-    <AppShell
-      actualRole={role}
-      access={access}
-      isSuperAdmin={!!profile.is_super_admin}
-      fullName={profile.full_name}
-      initials={profile.initials}
-      activeKey="programari"
-      title="Programări"
-      subtitle="Vânzări"
-      notifications={notifications ?? []}
-    >
+    <>
       {hasAccess ? (
         <BookingsBoard
           initialBookings={(bookings ?? []) as BookingRow[]}
@@ -134,6 +99,6 @@ export default async function ProgramariPage() {
           Contul tău nu are acces la Programări — vezi matricea de permisiuni din Setări.
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

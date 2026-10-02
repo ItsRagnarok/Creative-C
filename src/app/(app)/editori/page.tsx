@@ -1,6 +1,3 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import AppShell from "@/components/AppShell";
 import ChannelsBoard, {
   type ChannelRow,
   type MessageRow,
@@ -10,33 +7,11 @@ import ChannelsBoard, {
 import EditoriTabs from "@/components/EditoriTabs";
 import EditorCards from "@/components/EditorCards";
 import ContentCalendar, { type CalendarEditor } from "@/components/ContentCalendar";
-import type { AppRole } from "@/lib/roles";
-import { accessRequest, resolveAccess } from "@/lib/access";
+import { getAppContext } from "@/lib/app-context";
 import { MESSAGE_SELECT } from "@/lib/selects";
 
 export default async function EditoriPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const accessReq = accessRequest(supabase);
-
-  const [{ data: profile }, { data: notifications }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase
-      .from("notifications")
-      .select("id, title, body, is_read, created_at")
-      .or(`user_id.is.null,user_id.eq.${user.id}`)
-      .order("created_at", { ascending: false })
-      .limit(20),
-  ]);
-
-  if (!profile) redirect("/login");
-
-  const role = profile.role as AppRole;
-  const access = resolveAccess((await accessReq).data, role);
+  const { supabase, user, profile, role, access } = await getAppContext();
   const hasAccess = access.editori.view;
   const today = new Date().toISOString().slice(0, 10);
 
@@ -70,17 +45,7 @@ export default async function EditoriPage() {
   ]);
 
   return (
-    <AppShell
-      actualRole={role}
-      access={access}
-      isSuperAdmin={!!profile.is_super_admin}
-      fullName={profile.full_name}
-      initials={profile.initials}
-      activeKey="editori"
-      title="Canale"
-      subtitle="Livrare"
-      notifications={notifications ?? []}
-    >
+    <>
       {hasAccess ? (
         <EditoriTabs
           defaultTab={role === "editor" ? "calendar" : "chat"}
@@ -117,6 +82,6 @@ export default async function EditoriPage() {
           de permisiuni din Setări.
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

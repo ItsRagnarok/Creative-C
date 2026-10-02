@@ -44,14 +44,14 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isPublic = isPublicPath(path);
 
-  // Three states: a user (signed in), null (definitely no session), or
-  // undefined (couldn't tell — a transient error talking to Supabase).
-  // Only the first two decide a redirect; "undefined" fails open so a
-  // hiccup never bounces someone between /login and /dashboard.
-  let user;
+  // Redirect decisions only need to know whether a session exists, which is read from the cookie (and refreshed
+  // when expired) — no network call on every click. Every page re-validates the user against Supabase Auth
+  // (getUser in getAppContext) and row-level security guards the data, so this is not the security boundary.
+  // user: truthy = signed in, null = definitely signed out, undefined = couldn't tell (fail open).
+  let user: true | null | undefined;
   try {
-    const { data, error } = await supabase.auth.getUser();
-    user = error && error.name !== "AuthSessionMissingError" ? undefined : data.user;
+    const { data, error } = await supabase.auth.getSession();
+    user = error && error.name !== "AuthSessionMissingError" ? undefined : data.session ? true : null;
   } catch {
     user = undefined;
   }
