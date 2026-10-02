@@ -8,7 +8,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { data: notifications } = await supabase
     .from("notifications")
     .select("id, title, body, is_read, created_at")
-    .or(`user_id.is.null,user_id.eq.${user.id}`)
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(20);
 

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 type Row = { id: string };
+type RealtimeTable = "leads" | "bookings" | "projects" | "project_tasks" | "project_files" | "channel_messages" | "prospects";
 
 // Keeps a list of rows live: inserts, updates and deletes made by anyone appear without a refresh.
 // Row-level security decides what this user receives; the changed row is re-read with the page's own
@@ -15,7 +16,7 @@ export function useRealtimeRows<T extends Row>({
   position = "end",
   onChange,
 }: {
-  table: "leads" | "bookings" | "projects" | "channel_messages";
+  table: RealtimeTable;
   select: string;
   setRows: React.Dispatch<React.SetStateAction<T[]>>;
   position?: "start" | "end";
@@ -54,4 +55,23 @@ export function useRealtimeRows<T extends Row>({
       supabase.removeChannel(channel);
     };
   }, [table, select, setRows, position]);
+}
+
+// For views that load a filtered slice (one editor's month, one editor's cards): on any change to the table,
+// re-run the page's own loader. RLS still decides what this user is told about.
+export function useRealtimeRefetch(table: "content_calendar" | "editor_cards", refetch: () => void) {
+  const ref = useRef(refetch);
+  useEffect(() => {
+    ref.current = refetch;
+  });
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`live-refetch-${table}`)
+      .on("postgres_changes", { event: "*", schema: "public", table }, () => ref.current())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [table]);
 }

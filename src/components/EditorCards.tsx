@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useRealtimeRefetch } from "@/lib/useRealtimeRows";
 import type { CalendarEditor } from "@/components/ContentCalendar";
 import { ROLE_LABEL, type AppRole } from "@/lib/roles";
 
@@ -65,6 +66,10 @@ export default function EditorCards({
       cancelled = true;
     };
   }, [editorId, fetchCards]);
+
+  useRealtimeRefetch("editor_cards", () => {
+    if (editorId) fetchCards(editorId).then(({ data }) => data && setCards(data as CardRow[]));
+  });
 
   function pick(id: string) {
     setError(null);

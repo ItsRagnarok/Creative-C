@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useRealtimeRefetch } from "@/lib/useRealtimeRows";
 
 export type CalendarEditor = { id: string; full_name: string; initials: string; role?: string };
 
@@ -79,6 +80,7 @@ export default function ContentCalendar({
   const [uploadDay, setUploadDay] = useState<string | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadLink, setUploadLink] = useState("");
+  const [uploadType, setUploadType] = useState("");
   const [uploading, setUploading] = useState(false);
   const [copyFrom, setCopyFrom] = useState("");
 
@@ -107,6 +109,10 @@ export default function ContentCalendar({
       cancelled = true;
     };
   }, [editorId, month, fetchMonth]);
+
+  useRealtimeRefetch("content_calendar", () => {
+    if (editorId) fetchMonth(editorId, month).then(({ data }) => data && setRows(data as CalendarRow[]));
+  });
 
   function pick(nextEditor: string, nextMonth: string) {
     setError(null);
@@ -173,12 +179,27 @@ export default function ContentCalendar({
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
-    const row = uploadDay ? byDay.get(uploadDay) : null;
-    if (!row) return;
+    if (!uploadDay || !editorId) return;
     const link = uploadLink.trim();
     if (!uploadFile && !link) return setError("Lipește linkul din Drive sau alege un fișier.");
     setUploading(true);
     setError(null);
+
+    // Editors can add a clip on any day of their own calendar; the day's row is created on the first upload.
+    let row = byDay.get(uploadDay);
+    if (!row) {
+      const { data: created, error: createErr } = await supabase
+        .from("content_calendar")
+        .insert({ editor_id: editorId, day: uploadDay, clip_type: uploadType.trim() || "Clip", created_by: currentUserId })
+        .select("*")
+        .single();
+      if (createErr || !created) {
+        setUploading(false);
+        return setError(createErr?.message ?? "Nu am putut crea ziua.");
+      }
+      row = created as CalendarRow;
+      patchRow(row);
+    }
 
     let filePath: string | null = null;
     let fileName: string | null = null;
@@ -210,6 +231,7 @@ export default function ContentCalendar({
     setUploadDay(null);
     setUploadFile(null);
     setUploadLink("");
+    setUploadType("");
   }
 
   async function download(row: CalendarRow) {
@@ -368,9 +390,9 @@ export default function ContentCalendar({
                           )
                         )}
                         {row && !hasFile && <span className="faint" style={{ fontSize: 12 }}>— fără link încă</span>}
-                        {!canManage && row && row.status !== "closed" && (
-                          <button type="button" className="btn sm" onClick={() => { setError(null); setUploadDay(iso); }}>
-                            {hasFile ? "Schimbă link" : "Adaugă link clip"}
+                        {!canManage && row?.status !== "closed" && (
+                          <button type="button" className="btn sm" onClick={() => { setError(null); setUploadType(""); setUploadDay(iso); }}>
+                            {hasFile ? "Schimbă link" : row ? "Adaugă link clip" : "+ Adaugă clip"}
                           </button>
                         )}
                       </div>
@@ -415,7 +437,14 @@ export default function ContentCalendar({
               <button className="modal-close" onClick={() => setUploadDay(null)}>✕</button>
             </div>
             <form onSubmit={handleUpload}>
-              <p className="faint" style={{ marginBottom: 10, fontSize: 12 }}>{byDay.get(uploadDay)?.clip_type}</p>
+              {byDay.get(uploadDay) ? (
+                <p className="faint" style={{ marginBottom: 10, fontSize: 12 }}>{byDay.get(uploadDay)?.clip_type}</p>
+              ) : (
+                <div className="field">
+                  <label>Tip clip (opțional)</label>
+                  <input value={uploadType} onChange={(e) => setUploadType(e.target.value)} placeholder="ex: fake podcast, news…" />
+                </div>
+              )}
               <div className="field">
                 <label>Link clip (Google Drive)</label>
                 <input autoFocus value={uploadLink} onChange={(e) => setUploadLink(e.target.value)} placeholder="Lipește aici linkul din Drive" />

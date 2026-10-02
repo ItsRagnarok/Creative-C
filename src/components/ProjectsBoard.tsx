@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Owner } from "@/components/PipelineBoard";
 import { PROJECT_STAGES, PROJECT_STAGE_LABEL, projectBadge, FILE_KIND_ICON, type ProjectStage } from "@/lib/projects";
 import { OWNER_LEAD_SELECT } from "@/lib/selects";
+import { useRealtimeRows } from "@/lib/useRealtimeRows";
 
 export type ProjectRow = {
   id: string;
@@ -77,6 +78,9 @@ export default function ProjectsBoard({
   const [projects, setProjects] = useState(initialProjects);
   const [tasks, setTasks] = useState(initialTasks);
   const [files, setFiles] = useState(initialFiles);
+  useRealtimeRows({ table: "projects", select: OWNER_LEAD_SELECT, setRows: setProjects });
+  useRealtimeRows({ table: "project_tasks", select: "*, assignee:profiles(id, full_name, initials)", setRows: setTasks });
+  useRealtimeRows({ table: "project_files", select: "*", setRows: setFiles });
   const [selectedId, setSelectedId] = useState<string | null>(initialProjects[0]?.id ?? null);
   const [modal, setModal] = useState<null | { mode: "create" | "edit"; form: ProjectForm }>(null);
   const [saving, setSaving] = useState(false);

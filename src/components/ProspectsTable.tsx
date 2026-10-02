@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/database.types";
+import { useRealtimeRows } from "@/lib/useRealtimeRows";
 
 export type ProspectRow = Database["public"]["Tables"]["prospects"]["Row"];
 
@@ -25,6 +26,7 @@ export default function ProspectsTable({ initialRows, canDelete }: { initialRows
   const supabase = createClient();
   const router = useRouter();
   const [rows, setRows] = useState(initialRows);
+  useRealtimeRows({ table: "prospects", select: "*", setRows });
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("toate");
   const [category, setCategory] = useState("toate");
