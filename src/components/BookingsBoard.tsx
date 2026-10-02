@@ -28,7 +28,8 @@ export type BookingRow = {
   notes: string | null;
   owner_id: string | null;
   owner: Owner | null;
-  link?: { link_owner: Owner | null } | null;
+  created_at?: string;
+  link?: { slug: string | null; link_owner: Owner | null } | null;
 };
 
 type FormState = {
@@ -75,6 +76,7 @@ export default function BookingsBoard({
   isAdmin,
   userId,
   myAvailability,
+  adminTools,
   extraEvents = [],
 }: {
   initialBookings: BookingRow[];
@@ -83,11 +85,12 @@ export default function BookingsBoard({
   isAdmin: boolean;
   userId: string;
   myAvailability: AvailabilityRow[];
+  adminTools?: React.ReactNode;
   extraEvents?: CalendarExtra[];
 }) {
   const supabase = createClient();
   const [bookings, setBookings] = useState(initialBookings);
-  const [modal, setModal] = useState<null | { mode: "create" | "edit"; form: FormState }>(null);
+  const [modal, setModal] = useState<null | { mode: "create" | "edit"; form: FormState; linkInfo?: string | null }>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
@@ -166,8 +169,12 @@ export default function BookingsBoard({
   function openEdit(b: BookingRow) {
     setError(null);
     const dt = new Date(b.scheduled_at);
+    const lo = b.link?.link_owner;
     setModal({
       mode: "edit",
+      linkInfo: isAdmin && lo
+        ? `Link trimis de ${lo.full_name}${b.link?.slug ? ` (/programeaza/${b.link.slug})` : ""} → client: ${b.name}${b.created_at ? `, rezervat ${new Date(b.created_at).toLocaleString("ro-RO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : ""}`
+        : null,
       form: {
         id: b.id,
         name: b.name,
@@ -206,7 +213,7 @@ export default function BookingsBoard({
       const { data, error: err } = await supabase
         .from("bookings")
         .insert(payload)
-        .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link:booking_links(link_owner:profiles!booking_links_link_owner_id_fkey(id, full_name, initials))")
+        .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link:booking_links(slug, link_owner:profiles!booking_links_link_owner_id_fkey(id, full_name, initials))")
         .single();
       setSaving(false);
       if (err) return setError(err.message);
@@ -216,7 +223,7 @@ export default function BookingsBoard({
         .from("bookings")
         .update(payload)
         .eq("id", form.id!)
-        .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link:booking_links(link_owner:profiles!booking_links_link_owner_id_fkey(id, full_name, initials))")
+        .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link:booking_links(slug, link_owner:profiles!booking_links_link_owner_id_fkey(id, full_name, initials))")
         .single();
       setSaving(false);
       if (err) return setError(err.message);
@@ -275,6 +282,7 @@ export default function BookingsBoard({
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button type="button" className="btn ghost" onClick={copyMyLink}>{linkState === "copied" ? "Link copiat ✓" : linkState === "error" ? "Nu am putut copia" : "Copiază linkul meu"}</button>
+          {adminTools}
           <button type="button" className="btn ghost" onClick={() => setScheduleOpen(true)}>Program de lucru</button>
           <button className="btn primary" onClick={() => openCreate()}>+ Programare</button>
         </div>
@@ -370,7 +378,7 @@ export default function BookingsBoard({
         </div>
         <div className="card">
           <h3 style={{ fontSize: 13.5 }}>Notificare echipă</h3>
-          <p style={{ fontSize: 12 }}>La fiecare rezervare nouă, toată echipa primește o notificare (clopoțel).</p>
+          <p style={{ fontSize: 12 }}>Persoana care preia o programare nouă primește o notificare (clopoțel).</p>
         </div>
       </div>
 
@@ -381,6 +389,9 @@ export default function BookingsBoard({
               <h3>{modal.mode === "create" ? "Programare nouă" : "Editează programare"}</h3>
               <button className="modal-close" onClick={() => setModal(null)}>✕</button>
             </div>
+            {modal.linkInfo && (
+              <div className="empty-note" style={{ marginBottom: 12, textAlign: "left" }}>🔗 {modal.linkInfo}</div>
+            )}
             <form onSubmit={handleSave}>
               <div className="field">
                 <label>Nume</label>

@@ -52,16 +52,19 @@ export type Database = {
           booking_id: string
           created_at: string
           link_owner_id: string | null
+          slug: string | null
         }
         Insert: {
           booking_id: string
           created_at?: string
           link_owner_id?: string | null
+          slug?: string | null
         }
         Update: {
           booking_id?: string
           created_at?: string
           link_owner_id?: string | null
+          slug?: string | null
         }
         Relationships: [
           {
@@ -74,6 +77,55 @@ export type Database = {
           {
             foreignKeyName: "booking_links_link_owner_id_fkey"
             columns: ["link_owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_priority: {
+        Row: {
+          position: number
+          user_id: string
+        }
+        Insert: {
+          position: number
+          user_id: string
+        }
+        Update: {
+          position?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_priority_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_slugs: {
+        Row: {
+          created_at: string
+          owner_id: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          owner_id: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          owner_id?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_slugs_owner_id_fkey"
+            columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

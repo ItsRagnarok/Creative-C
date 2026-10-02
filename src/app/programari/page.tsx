@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import BookingsBoard, { type BookingRow, type CalendarExtra } from "@/components/BookingsBoard";
 import type { AvailabilityRow } from "@/components/WorkScheduleModal";
+import BookingAdminTools, { type SlugRow, type PriorityRow } from "@/components/BookingAdminTools";
 import type { Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
 
@@ -40,7 +41,7 @@ export default async function ProgramariPage() {
   const until = new Date(Date.now() + 35 * 86_400_000).toISOString();
 
   const canSeeEverything = role === "admin" || role === "manager";
-  const [{ data: bookings }, { data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }, { data: availability }] = await Promise.all([
+  const [{ data: bookings }, { data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }, { data: availability }, { data: slugRows }, { data: priorityRows }] = await Promise.all([
     hasAccess
       ? supabase
           .from("bookings")
@@ -75,6 +76,8 @@ export default async function ProgramariPage() {
           .lt("due_date", until)
       : Promise.resolve({ data: null }),
     hasAccess ? supabase.from("availability").select("*") : Promise.resolve({ data: null }),
+    profile.is_super_admin ? supabase.from("booking_slugs").select("slug, owner_id") : Promise.resolve({ data: null }),
+    profile.is_super_admin ? supabase.from("booking_priority").select("user_id, position") : Promise.resolve({ data: null }),
   ]);
 
   const extraEvents: CalendarExtra[] = [
@@ -106,6 +109,15 @@ export default async function ProgramariPage() {
           canDelete={role === "admin" || role === "manager"}
           isAdmin={role === "admin"}
           userId={user.id}
+          adminTools={
+            profile.is_super_admin ? (
+              <BookingAdminTools
+                team={(profiles ?? []).filter((p) => p.role === "admin" || p.role === "manager" || p.role === "vanzari").map((p) => ({ id: p.id, full_name: p.full_name }))}
+                initialSlugs={(slugRows ?? []) as SlugRow[]}
+                initialPriority={(priorityRows ?? []) as PriorityRow[]}
+              />
+            ) : null
+          }
           myAvailability={((availability ?? []) as AvailabilityRow[]).filter((r) => r.user_id === user.id)}
           extraEvents={extraEvents}
         />

@@ -134,7 +134,7 @@ export default function PublicBooking({ slug }: { slug: string | null }) {
         <div className="pb-top">
           <div>
             <small>Programare</small>
-            <h1>Apel de strategie</h1>
+            <h1>Apel de strategie content</h1>
             <p>20 de minute · Ora României</p>
           </div>
           {step === "pick" && (
@@ -215,8 +215,8 @@ export default function PublicBooking({ slug }: { slug: string | null }) {
           <div>
             <h2 style={{ fontSize: 24, fontWeight: 600 }}>Programare confirmată</h2>
             <p className="pb-msg" style={{ marginTop: 10, fontSize: 15 }}>
-              Ne vedem pe <b style={{ color: "#fff" }}>{pickedLabel}</b>
-              {assigned ? <>, cu <b style={{ color: "#fff" }}>{assigned}</b></> : null}. Echipa Creative C a fost anunțată.
+              Apel de strategie content — <b style={{ color: "#fff" }}>{pickedLabel}</b>
+              {assigned ? <>, cu <b style={{ color: "#fff" }}>{assigned}</b></> : null}. Echipa Creative Society a fost anunțată.
             </p>
           </div>
         )}
