@@ -213,12 +213,13 @@ export default function ContentCalendar({
       }
       fileName = uploadFile.name;
     }
+    // The link and the uploaded file are independent: adding one never removes the other.
     const { data, error: err } = await supabase
       .from("content_calendar")
       .update({
-        file_path: filePath,
-        file_name: fileName ?? (link ? "Link Drive" : null),
-        file_url: link || null,
+        file_path: filePath ?? row.file_path,
+        file_name: fileName ?? row.file_name,
+        file_url: link || row.file_url,
         status: "incarcat",
         uploaded_at: new Date().toISOString(),
       })
@@ -235,13 +236,10 @@ export default function ContentCalendar({
   }
 
   async function download(row: CalendarRow) {
-    if (row.file_path) {
-      const { data, error: err } = await supabase.storage.from("clips").createSignedUrl(row.file_path, 3600);
-      if (err || !data) return setError(err?.message ?? "Nu am putut deschide fișierul.");
-      window.open(data.signedUrl, "_blank", "noopener");
-    } else if (row.file_url) {
-      window.open(row.file_url, "_blank", "noopener");
-    }
+    if (!row.file_path) return;
+    const { data, error: err } = await supabase.storage.from("clips").createSignedUrl(row.file_path, 3600, { download: row.file_name ?? true });
+    if (err || !data) return setError(err?.message ?? "Nu am putut descărca fișierul.");
+    window.location.assign(data.signedUrl);
   }
 
   async function copyMonth() {
@@ -327,7 +325,7 @@ export default function ContentCalendar({
                 >
                   <span>Zi</span>
                   <span>Tip clip</span>
-                  <span>Link clip</span>
+                  <span>Link / fișier</span>
                   <span>Status</span>
                 </div>
                 {Array.from({ length: daysIn(month) }, (_, i) => {
@@ -378,21 +376,20 @@ export default function ContentCalendar({
 
                       {/* Link clip — visible to everyone with access; only the editor adds/changes it */}
                       <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        {row && hasFile && (
-                          row.file_url ? (
-                            <a href={row.file_url} target="_blank" rel="noreferrer" style={{ color: "var(--accent-2)", fontSize: 12.5, overflowWrap: "anywhere" }}>
-                              🔗 {row.file_url.replace(/^https?:\/\//, "").slice(0, 38)}{row.file_url.length > 45 ? "…" : ""}
-                            </a>
-                          ) : (
-                            <button type="button" className="btn sm ghost" style={{ padding: "2px 8px" }} onClick={() => download(row)}>
-                              📁 {row.file_name ?? "Clip"}
-                            </button>
-                          )
+                        {row?.file_url && (
+                          <a href={row.file_url} target="_blank" rel="noreferrer" style={{ color: "var(--accent-2)", fontSize: 12.5, overflowWrap: "anywhere" }}>
+                            🔗 {row.file_url.replace(/^https?:\/\//, "").slice(0, 38)}{row.file_url.length > 45 ? "…" : ""}
+                          </a>
+                        )}
+                        {row?.file_path && (
+                          <button type="button" className="btn sm ghost" style={{ padding: "2px 8px" }} title="Descarcă fișierul" onClick={() => download(row)}>
+                            ⬇ {row.file_name ?? "Fișier"}
+                          </button>
                         )}
                         {row && !hasFile && <span className="faint" style={{ fontSize: 12 }}>— fără link încă</span>}
                         {!canManage && row?.status !== "closed" && (
                           <button type="button" className="btn sm" onClick={() => { setError(null); setUploadType(""); setUploadDay(iso); }}>
-                            {hasFile ? "Schimbă link" : row ? "Adaugă link clip" : "+ Adaugă clip"}
+                            {hasFile ? "Schimbă / adaugă" : row ? "Adaugă link sau fișier" : "+ Adaugă clip"}
                           </button>
                         )}
                       </div>
@@ -450,8 +447,8 @@ export default function ContentCalendar({
                 <input autoFocus value={uploadLink} onChange={(e) => setUploadLink(e.target.value)} placeholder="Lipește aici linkul din Drive" />
               </div>
               <div className="field">
-                <label>sau încarcă fișierul direct (opțional)</label>
-                <input type="file" accept="video/*,image/*" onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)} />
+                <label>Fișier (opțional) — clip, imagine, document, orice</label>
+                <input type="file" onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)} />
               </div>
               {error && <div className="field-error">{error}</div>}
               <button type="submit" className="btn primary" style={{ width: "100%", justifyContent: "center", marginTop: 6 }} disabled={uploading}>
