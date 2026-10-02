@@ -881,6 +881,7 @@ export type Database = {
       }
       notifications: {
         Row: {
+          channel_id: string | null
           body: string
           created_at: string
           id: string

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getActiveChat } from "@/lib/activeChat";
 
 export type NotificationRow = {
   id: string;
@@ -9,6 +10,7 @@ export type NotificationRow = {
   body: string;
   is_read: boolean;
   created_at: string;
+  channel_id?: string | null;
 };
 
 function timeAgo(iso: string) {
@@ -37,6 +39,12 @@ export default function NotificationsBell({ initial }: { initial: NotificationRo
       .channel("notifications-live")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, (payload) => {
         const n = payload.new as NotificationRow;
+        // A message in the chat you have open is already in front of you: file it as read, no toast.
+        if (n.channel_id && n.channel_id === getActiveChat()) {
+          setItems((prev) => (prev.some((x) => x.id === n.id) ? prev : [{ ...n, is_read: true }, ...prev]));
+          supabase.from("notifications").update({ is_read: true }).eq("id", n.id).then(() => {});
+          return;
+        }
         setItems((prev) => (prev.some((x) => x.id === n.id) ? prev : [n, ...prev]));
         setToast(n);
         setTimeout(() => setToast((t) => (t && t.id === n.id ? null : t)), 6000);
