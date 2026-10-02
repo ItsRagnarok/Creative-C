@@ -143,12 +143,14 @@ export default function BookingAdminTools({
       <button type="button" className="btn ghost" onClick={() => { setMsg(null); setOpen(true); }}>Linkuri & prioritate</button>
       {open && (
         <div className="modal-overlay" onClick={() => setOpen(false)}>
-          <div className="modal" style={{ maxWidth: 600 }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth: 1040, width: "96vw", maxHeight: "90vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <h3>Linkuri & prioritate</h3>
               <button className="modal-close" onClick={() => setOpen(false)}>✕</button>
             </div>
 
+            <div className="admin-tools-grid">
+              <div>
             <div className="nav-label" style={{ padding: 0, marginBottom: 8 }}>Linkuri personalizate</div>
             <form onSubmit={addLink} style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
               <select value={owner} onChange={(e) => setOwner(e.target.value)}>
@@ -173,6 +175,8 @@ export default function BookingAdminTools({
               {slugs.length === 0 && <div className="empty-note">Niciun link personalizat încă.</div>}
             </div>
 
+              </div>
+              <div>
             <div className="nav-label" style={{ padding: 0, marginBottom: 6 }}>Liste de prioritate</div>
             <p className="faint" style={{ fontSize: 12, marginBottom: 8 }}>
               Cât timp o listă e activă, lead-ul merge la primul din listă care e liber la ora aleasă de client (indiferent cine a trimis linkul). Dacă nimeni din listă nu e liber, îl preia cel care a trimis linkul. Fără listă activă se folosește logica de bază (cel care a trimis linkul, apoi cel mai liber coleg).
@@ -225,7 +229,9 @@ export default function BookingAdminTools({
                 </button>
               </>
             )}
-            {msg && <div className="faint" style={{ fontSize: 12, marginTop: 8 }}>{msg}</div>}
+              </div>
+            </div>
+            {msg && <div className="faint" style={{ fontSize: 12, marginTop: 12 }}>{msg}</div>}
           </div>
         </div>
       )}
