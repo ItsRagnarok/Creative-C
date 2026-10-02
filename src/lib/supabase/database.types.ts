@@ -12,6 +12,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      availability: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          start_time: string
+          user_id: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          start_time: string
+          user_id: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          user_id?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           created_at: string
@@ -19,6 +54,7 @@ export type Database = {
           email: string | null
           id: string
           lead_id: string | null
+          link_owner_id: string | null
           name: string
           notes: string | null
           owner_id: string | null
@@ -32,6 +68,7 @@ export type Database = {
           email?: string | null
           id?: string
           lead_id?: string | null
+          link_owner_id?: string | null
           name: string
           notes?: string | null
           owner_id?: string | null
@@ -45,6 +82,7 @@ export type Database = {
           email?: string | null
           id?: string
           lead_id?: string | null
+          link_owner_id?: string | null
           name?: string
           notes?: string | null
           owner_id?: string | null
@@ -58,6 +96,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_link_owner_id_fkey"
+            columns: ["link_owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -595,6 +640,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          booking_slug: string | null
           created_at: string
           full_name: string
           id: string
@@ -603,6 +649,7 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
         }
         Insert: {
+          booking_slug?: string | null
           created_at?: string
           full_name: string
           id: string
@@ -611,6 +658,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
         }
         Update: {
+          booking_slug?: string | null
           created_at?: string
           full_name?: string
           id?: string
@@ -759,6 +807,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      book_slot: {
+        Args: {
+          p_email: string
+          p_name: string
+          p_phone: string
+          p_slot: string
+          p_slug: string
+        }
+        Returns: Json
+      }
+      ensure_booking_slug: { Args: never; Returns: string }
+      get_booking_host: {
+        Args: { p_slug: string }
+        Returns: {
+          full_name: string
+          initials: string
+        }[]
+      }
+      list_available_slots: {
+        Args: { p_from: string; p_slug: string; p_to: string }
+        Returns: {
+          slot: string
+          with_owner: boolean
+        }[]
+      }
       create_public_booking: {
         Args: {
           p_email: string

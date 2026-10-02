@@ -3,6 +3,9 @@ import { type NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/programeaza"];
 
+// /programeaza and every personal link under it (/programeaza/<name>) are public.
+const isPublicPath = (path: string) => PUBLIC_PATHS.includes(path) || path.startsWith("/programeaza/");
+
 // No auth decision ever depends on this path (nothing to redirect to/from) —
 // skip the Supabase round trip entirely instead of paying for it and
 // throwing the result away. /login stays out of this: it still needs the
@@ -10,7 +13,7 @@ const PUBLIC_PATHS = ["/login", "/programeaza"];
 const NO_AUTH_CHECK_PATHS = ["/", "/programeaza"];
 
 export async function proxy(request: NextRequest) {
-  if (NO_AUTH_CHECK_PATHS.includes(request.nextUrl.pathname)) {
+  if (NO_AUTH_CHECK_PATHS.includes(request.nextUrl.pathname) || request.nextUrl.pathname.startsWith("/programeaza/")) {
     return NextResponse.next();
   }
 
@@ -39,7 +42,7 @@ export async function proxy(request: NextRequest) {
   );
 
   const path = request.nextUrl.pathname;
-  const isPublic = PUBLIC_PATHS.some((p) => path === p);
+  const isPublic = isPublicPath(path);
 
   // Three states: a user (signed in), null (definitely no session), or
   // undefined (couldn't tell — a transient error talking to Supabase).

@@ -167,7 +167,7 @@ export default function ChannelsBoard({
     setStockDraft(null);
   }
 
-  const showSide = !!active && active.kind === "editor";
+  const showSide = !!active && active.kind === "editor" && !!active.editor_id;
 
   return (
     <>
@@ -178,7 +178,7 @@ export default function ChannelsBoard({
         </div>
       </div>
 
-      <div className={`chat-shell${showSide ? "" : " no-side"}`}>
+      <div className={`chat-shell chat-fixed${showSide ? "" : " no-side"}`}>
         <div className="chan-list">
           <div className="nav-label" style={{ padding: "4px 10px" }}>General</div>
           {channels.filter((c) => c.kind === "editor" && !c.editor_id).map((c) => (

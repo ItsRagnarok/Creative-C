@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import BookingsBoard, { type BookingRow, type CalendarExtra } from "@/components/BookingsBoard";
+import BookingLinkPanel, { type AvailabilityRow, type TeamMember } from "@/components/BookingLinkPanel";
 import type { Owner } from "@/components/PipelineBoard";
 import type { AppRole } from "@/lib/roles";
 
@@ -39,11 +40,11 @@ export default async function ProgramariPage() {
   const until = new Date(Date.now() + 35 * 86_400_000).toISOString();
 
   const canSeeEverything = role === "admin" || role === "manager";
-  const [{ data: bookings }, { data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }] = await Promise.all([
+  const [{ data: bookings }, { data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }, { data: availability }] = await Promise.all([
     hasAccess
       ? supabase
           .from("bookings")
-          .select("*, owner:profiles(id, full_name, initials)")
+          .select("*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link_owner:profiles!bookings_link_owner_id_fkey(id, full_name, initials)")
           .gte("scheduled_at", since)
           .lt("scheduled_at", until)
           .order("scheduled_at", { ascending: true })
@@ -73,7 +74,10 @@ export default async function ProgramariPage() {
           .gte("due_date", since)
           .lt("due_date", until)
       : Promise.resolve({ data: null }),
+    hasAccess ? supabase.from("availability").select("*") : Promise.resolve({ data: null }),
   ]);
+
+  const team = (profiles ?? []).filter((p) => p.role === "admin" || p.role === "manager" || p.role === "vanzari");
 
   const extraEvents: CalendarExtra[] = [
     ...(projectDeadlines ?? []).map((p) => ({ id: `proj-${p.id}`, date: p.deadline as string, label: `Deadline proiect: ${p.title}`, kind: "deadline" as const, href: "/proiecte" })),
@@ -98,12 +102,20 @@ export default async function ProgramariPage() {
       notifications={notifications ?? []}
     >
       {hasAccess ? (
+        <>
+        <BookingLinkPanel
+          userId={user.id}
+          team={team as TeamMember[]}
+          availability={(availability ?? []) as AvailabilityRow[]}
+          canSeeTeam={canSeeEverything}
+        />
         <BookingsBoard
           initialBookings={(bookings ?? []) as BookingRow[]}
           owners={(owners ?? []) as Owner[]}
           canDelete={role === "admin" || role === "manager"}
           extraEvents={extraEvents}
         />
+        </>
       ) : (
         <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
           Contul tău nu are acces la Programări — vezi matricea de permisiuni din Setări.
