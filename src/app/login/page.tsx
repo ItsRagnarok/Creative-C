@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -45,13 +46,13 @@ function LoginForm() {
     <div className="auth-wrap">
       <div className="auth-side">
         <div style={{ position: "relative" }}>
-          <div className="brand" style={{ padding: "0 0 40px" }}>
+          <Link href="/" className="brand" style={{ padding: "0 0 40px" }}>
             <div className="brand-mark" style={{ width: 44, height: 44, fontSize: 18 }}>CC</div>
             <div>
               <div className="brand-name" style={{ fontSize: 19 }}>Creative C</div>
               <div className="brand-sub">CRM intern</div>
             </div>
-          </div>
+          </Link>
           <h1 style={{ fontSize: 32, maxWidth: 460 }}>Clienți, proiecte și echipă, într-un singur loc.</h1>
           <p style={{ maxWidth: 420, marginTop: 10 }}>
             Pipeline de vânzări, contracte, facturare, proiecte video și canalele editorilor — un
