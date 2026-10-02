@@ -70,7 +70,7 @@ export default async function EditoriPage() {
       fullName={profile.full_name}
       initials={profile.initials}
       activeKey="editori"
-      title="Canale editori"
+      title="Canale"
       subtitle="Livrare"
       notifications={notifications ?? []}
     >
@@ -104,7 +104,7 @@ export default async function EditoriPage() {
         />
       ) : (
         <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
-          Contul tău ({role === "vanzari" ? "Vânzări" : role}) nu are acces la Canale editori — vezi matricea
+          Contul tău ({role === "vanzari" ? "Vânzări" : role}) nu are acces la Canale — vezi matricea
           de permisiuni din Setări.
         </div>
       )}

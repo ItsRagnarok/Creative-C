@@ -172,14 +172,14 @@ export default function ChannelsBoard({
     <>
       <div className="page-head">
         <div>
-          <h1>Canale editori</h1>
+          <h1>Canale</h1>
           <p>Fiecare editor are propriul canal — își pune acolo clipurile (Drive + dată + nr. clip), tu descarci direct de acolo.</p>
         </div>
       </div>
 
       <div className={`chat-shell${showSide ? "" : " no-side"}`}>
         <div className="chan-list">
-          <div className="nav-label" style={{ padding: "4px 10px" }}>Canale editori</div>
+          <div className="nav-label" style={{ padding: "4px 10px" }}>Editori</div>
           {channels.filter((c) => c.kind === "editor").map((c) => (
             <button key={c.id} className={`chan-item${activeId === c.id ? " active" : ""}`} onClick={() => setActiveId(c.id)}>
               <span className="status-dot" style={{ background: "var(--accent-2)" }} />
