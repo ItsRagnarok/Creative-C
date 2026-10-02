@@ -1,7 +1,6 @@
 import ChannelsBoard, {
   type ChannelRow,
   type MessageRow,
-  type DailyStatusRow,
   type ClipStockRow,
 } from "@/components/ChannelsBoard";
 import EditoriTabs from "@/components/EditoriTabs";
@@ -13,10 +12,9 @@ import { MESSAGE_SELECT } from "@/lib/selects";
 export default async function EditoriPage() {
   const { supabase, user, profile, role, access } = await getAppContext();
   const hasAccess = access.editori.view;
-  const today = new Date().toISOString().slice(0, 10);
 
   const isManager = role === "admin" || role === "manager";
-  const [{ data: channels }, { data: messages }, { data: statuses }, { data: stock }, { data: editorProfiles }] = await Promise.all([
+  const [{ data: channels }, { data: messages }, { data: stock }, { data: editorProfiles }] = await Promise.all([
     hasAccess
       ? supabase
           .from("channels")
@@ -30,12 +28,6 @@ export default async function EditoriPage() {
           .select(MESSAGE_SELECT)
           .order("created_at", { ascending: false })
           .limit(400)
-      : Promise.resolve({ data: null }),
-    hasAccess
-      ? supabase
-          .from("editor_daily_status")
-          .select("*, editor:profiles(id, full_name, initials)")
-          .eq("status_date", today)
       : Promise.resolve({ data: null }),
     hasAccess ? supabase.from("editor_clip_stock").select("*") : Promise.resolve({ data: null }),
     // Managers see every editor's calendar; an editor only ever gets their own.
@@ -53,7 +45,6 @@ export default async function EditoriPage() {
             <ChannelsBoard
               channels={(channels ?? []) as ChannelRow[]}
               initialMessages={((messages ?? []) as MessageRow[]).slice().reverse()}
-              initialStatuses={(statuses ?? []) as DailyStatusRow[]}
               initialStock={(stock ?? []) as ClipStockRow[]}
               canManage={isManager}
               currentUserId={user.id}
