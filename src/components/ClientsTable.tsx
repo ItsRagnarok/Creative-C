@@ -318,7 +318,7 @@ export default function ClientsTable({ initialLeads, canDelete, editors }: { ini
                   <button type="button" className="btn ghost" style={{ flex: 1, justifyContent: "center" }} onClick={closeConfirm}>
                     Renunță
                   </button>
-                  <button type="button" className="btn danger" style={{ flex: 1, justifyContent: "center" }} onClick={() => setConfirmStep(2)}>
+                  <button autoFocus type="button" className="btn danger" style={{ flex: 1, justifyContent: "center" }} onClick={() => setConfirmStep(2)}>
                     Continuă
                   </button>
                 </div>
@@ -334,7 +334,7 @@ export default function ClientsTable({ initialLeads, canDelete, editors }: { ini
                     autoFocus
                     value={confirmText}
                     onChange={(e) => setConfirmText(e.target.value)}
-                    placeholder={CONFIRM_WORD}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !deleting && confirmText.trim().toUpperCase() === CONFIRM_WORD) { e.preventDefault(); handleConfirmedDelete(); } }} placeholder={CONFIRM_WORD}
                   />
                 </div>
                 {deleteError && <div className="field-error">{deleteError}</div>}

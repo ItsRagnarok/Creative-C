@@ -505,7 +505,7 @@ export default function FinanciarBoard({
                   <button type="button" className="btn ghost" style={{ flex: 1, justifyContent: "center" }} onClick={closeConfirm}>
                     Renunță
                   </button>
-                  <button type="button" className="btn danger" style={{ flex: 1, justifyContent: "center" }} onClick={() => setConfirmStep(2)}>
+                  <button autoFocus type="button" className="btn danger" style={{ flex: 1, justifyContent: "center" }} onClick={() => setConfirmStep(2)}>
                     Continuă
                   </button>
                 </div>
@@ -517,7 +517,7 @@ export default function FinanciarBoard({
                   {confirmIds.length > 1 ? ` cele ${confirmIds.length} facturi` : " această factură"}.
                 </p>
                 <div className="field">
-                  <input autoFocus value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder={CONFIRM_WORD} />
+                  <input autoFocus value={confirmText} onChange={(e) => setConfirmText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !deleting && confirmText.trim().toUpperCase() === CONFIRM_WORD) { e.preventDefault(); handleConfirmedDelete(); } }} placeholder={CONFIRM_WORD} />
                 </div>
                 {deleteError && <div className="field-error">{deleteError}</div>}
                 <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
