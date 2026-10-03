@@ -145,6 +145,11 @@ export default function PipelineBoard({
       setFormError("Numele clientului e obligatoriu.");
       return;
     }
+    const dupName = (n: string) => n.trim().replace(/\s+/g, " ").toLowerCase();
+    if (mode === "create" && leads.some((l) => l.source === "Manual" && dupName(l.name) === dupName(form.name))) {
+      setFormError("Există deja un client adăugat manual cu acest nume.");
+      return;
+    }
     const inStatus = form.stage === "confirmat";
     if (inStatus && form.status === "pierdut" && !form.lost_reason.trim()) {
       setFormError("Scrie motivul pierderii (de ex: n-are buget, nu ne potrivim).");
@@ -182,7 +187,7 @@ export default function PipelineBoard({
         .single();
       setSaving(false);
       if (error) {
-        setFormError(error.message);
+        setFormError(error.code === "23505" ? "Există deja un client adăugat manual cu acest nume." : error.message);
         return;
       }
       setLeads((prev) => [data as LeadRow, ...prev]);

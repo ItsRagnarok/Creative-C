@@ -19,6 +19,7 @@ const STATUS: Record<string, { label: string; badge: string }> = {
 // Same rule as the original spreadsheet: fewer Google reviews = smaller business = checked first.
 const priority = (r: number | null) => (r == null ? "—" : r < 100 ? "Mare" : r < 300 ? "Medie" : "Mică");
 const PRIORITY_BADGE: Record<string, string> = { Mare: "green", Medie: "amber", Mică: "gray", "—": "gray" };
+const dupKey = (name: string, city: string) => `${name.trim().replace(/\s+/g, " ").toLowerCase()}|${city.trim().toLowerCase()}`;
 const google = (q: string) => `https://www.google.com/search?q=${encodeURIComponent(q)}`;
 
 // CSV template = the columns of the prospecting spreadsheet, so everyone uploads the same way.
@@ -137,7 +138,7 @@ export default function ProspectsTable({ initialRows, canDelete }: { initialRows
       if (table.length < 2) return setMsg("Fișierul e gol sau nu are rânduri sub antet. Descarcă șablonul și completează-l.");
       const cols = table[0].map((h) => HEADER_KEYS[norm(h)] ?? null);
       if (!cols.includes("name") || !cols.includes("city")) return setMsg('Lipsesc coloanele „Oraș” și „Nume firmă”. Folosește șablonul din butonul „Șablon CSV”.');
-      const seen = new Set(rows.map((r) => `${r.name.toLowerCase()}|${r.city.toLowerCase()}`));
+      const seen = new Set(rows.map((r) => dupKey(r.name, r.city)));
       const fresh: Record<string, string | number | null>[] = [];
       let skipped = 0;
       let dup = 0;
@@ -145,7 +146,7 @@ export default function ProspectsTable({ initialRows, canDelete }: { initialRows
         const rec: Record<string, string> = {};
         cols.forEach((k, i) => { if (k) rec[k] = (line[i] ?? "").trim(); });
         if (!rec.name || !rec.city || rec.name.toUpperCase().startsWith("EXEMPLU")) { skipped++; continue; }
-        const key = `${rec.name.toLowerCase()}|${rec.city.toLowerCase()}`;
+        const key = dupKey(rec.name, rec.city);
         if (seen.has(key)) { dup++; continue; }
         seen.add(key);
         const rating = Number(rec.rating?.replace(",", "."));
@@ -175,6 +176,7 @@ export default function ProspectsTable({ initialRows, canDelete }: { initialRows
 
   async function add() {
     if (!draft.name.trim() || !draft.city.trim()) return setMsg("Numele firmei și orașul sunt obligatorii.");
+    if (rows.some((r) => dupKey(r.name, r.city) === dupKey(draft.name, draft.city))) return setMsg("Firma asta există deja în același oraș.");
     const clean = Object.fromEntries(Object.entries(draft).map(([k, v]) => [k, v.trim() || null]));
     const { data, error } = await supabase.from("prospects").insert(clean as never).select("*").single();
     if (error) return setMsg(error.code === "23505" ? "Firma asta există deja în același oraș." : error.message);
