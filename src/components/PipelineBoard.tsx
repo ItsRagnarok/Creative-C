@@ -20,6 +20,7 @@ export type LeadRow = {
   last_activity_at: string;
   clips_count: number | null;
   editor_pay: number;
+  editor_id: string | null;
   project_start: string | null;
   owner: Owner | null;
 };

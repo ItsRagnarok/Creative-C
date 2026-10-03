@@ -893,6 +893,7 @@ export type Database = {
         Row: {
           clips_count: number | null
           editor_pay: number
+          editor_id: string | null
           project_start: string | null
           created_at: string
           id: string
@@ -908,6 +909,7 @@ export type Database = {
         Insert: {
           clips_count?: number | null
           editor_pay?: number
+          editor_id?: string | null
           project_start?: string | null
           created_at?: string
           id?: string
@@ -923,6 +925,7 @@ export type Database = {
         Update: {
           clips_count?: number | null
           editor_pay?: number
+          editor_id?: string | null
           project_start?: string | null
           created_at?: string
           id?: string
@@ -1252,6 +1255,10 @@ export type Database = {
       ensure_booking_slug: { Args: never; Returns: string }
       my_access: { Args: never; Returns: Json }
       convert_prospect: { Args: { p_id: string }; Returns: string }
+      editor_penalties_v2: {
+        Args: { p_editor: string; p_month: string }
+        Returns: { day: string; expected: number; uploaded: number; missing: number; penalty: number; clients: string | null }[]
+      }
       editor_penalties: {
         Args: { p_editor: string; p_month: string }
         Returns: { day: string; expected: number; uploaded: number; missing: number; penalty: number }[]

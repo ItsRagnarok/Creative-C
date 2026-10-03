@@ -10,7 +10,7 @@ import { useRealtimeRows } from "@/lib/useRealtimeRows";
 
 const CONFIRM_WORD = "STERGE";
 
-export default function ClientsTable({ initialLeads, canDelete }: { initialLeads: LeadRow[]; canDelete: boolean }) {
+export default function ClientsTable({ initialLeads, canDelete, editors }: { initialLeads: LeadRow[]; canDelete: boolean; editors: { id: string; full_name: string }[] }) {
   const router = useRouter();
   const supabase = createClient();
   const [leads, setLeads] = useState(initialLeads);
@@ -33,7 +33,7 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
   }, [leads]);
 
   // Admin / manager set clips, editor pay and start date straight in the table.
-  async function patchLead(id: string, values: Partial<Pick<LeadRow, "clips_count" | "editor_pay" | "project_start">>) {
+  async function patchLead(id: string, values: Partial<Pick<LeadRow, "clips_count" | "editor_pay" | "project_start" | "editor_id">>) {
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...values } : l)));
     const { error } = await supabase.from("leads").update(values).eq("id", id);
     if (error) window.alert(error.message);
@@ -168,6 +168,7 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
                 </th>
               )}
               <th>Client</th>
+              <th>Editor</th>
               <th>Nr. clipuri</th>
               <th>Plată editor</th>
               <th>Început proiect</th>
@@ -198,6 +199,16 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
                       <div className="p-sub">client din {monthYear(l.created_at)}</div>
                     </div>
                   </div>
+                </td>
+                <td onClick={(e) => e.stopPropagation()}>
+                  {canDelete ? (
+                    <select value={l.editor_id ?? ""} onChange={(e) => patchLead(l.id, { editor_id: e.target.value || null })} title="Editorul primește automat un calendar pentru acest client">
+                      <option value="">— fără editor —</option>
+                      {editors.map((ed) => <option key={ed.id} value={ed.id}>{ed.full_name}</option>)}
+                    </select>
+                  ) : (
+                    editors.find((ed) => ed.id === l.editor_id)?.full_name ?? <span className="faint">—</span>
+                  )}
                 </td>
                 <td onClick={(e) => e.stopPropagation()}>
                   {canDelete ? (
@@ -269,7 +280,7 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={canDelete ? 9 : 7}>
+                <td colSpan={canDelete ? 10 : 8}>
                   <div className="empty-note">Niciun client nu corespunde filtrelor alese.</div>
                 </td>
               </tr>

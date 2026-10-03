@@ -6,7 +6,7 @@ import { useRealtimeRefetch } from "@/lib/useRealtimeRows";
 
 export type SheetRow = { id: string; editor_id: string; client_name: string; lead_id: string | null; created_at: string };
 type LeadOption = { id: string; name: string; editor_pay: number };
-type PenaltyDay = { day: string; expected: number; uploaded: number; missing: number; penalty: number };
+type PenaltyDay = { day: string; expected: number; uploaded: number; missing: number; penalty: number; clients: string | null };
 
 export type CalendarEditor = { id: string; full_name: string; initials: string; role?: string };
 
@@ -204,7 +204,7 @@ export default function ContentCalendar({
   useEffect(() => {
     if (!editorId) return;
     let cancelled = false;
-    supabase.rpc("editor_penalties", { p_editor: editorId, p_month: `${month}-01` }).then(({ data }) => {
+    supabase.rpc("editor_penalties_v2", { p_editor: editorId, p_month: `${month}-01` }).then(({ data }) => {
       if (!cancelled) setPenalties((data ?? []) as PenaltyDay[]);
     });
     return () => {
@@ -214,15 +214,6 @@ export default function ContentCalendar({
 
   const basePay = sheets.reduce((sum, x) => sum + Number(leads.find((l) => l.id === x.lead_id)?.editor_pay ?? 0), 0);
   const penaltyTotal = penalties.reduce((sum, d) => sum + d.penalty, 0);
-
-  async function linkClient(leadId: string) {
-    if (!sheet) return;
-    const lead = leads.find((l) => l.id === leadId) ?? null;
-    const patch = { lead_id: lead?.id ?? null, ...(lead ? { client_name: lead.name } : {}) };
-    setSheets((p) => p.map((x) => (x.id === sheet.id ? { ...x, ...patch } : x)));
-    const { error: err } = await supabase.from("calendar_sheets").update(patch).eq("id", sheet.id);
-    if (err) setError(err.message);
-  }
 
   function pickSheet(id: string) {
     setError(null);
@@ -491,13 +482,13 @@ export default function ContentCalendar({
                   )}
                 </div>
                 <div className="faint" style={{ fontSize: 11.5, marginTop: 6 }}>
-                  Regulă: pentru fiecare clip planificat și neîncărcat până la ora 17:00 din ziua lui, se scad 25 lei.
+                  Regulă: fiecare client are câte un clip în fiecare zi lucrătoare, de la începerea proiectului. Clipul neîncărcat până la 17:00 înseamnă −25 lei.
                 </div>
                 {showPenalties && (
                   <div style={{ marginTop: 8, display: "grid", gap: 4, fontSize: 12.5 }}>
                     {penalties.map((d) => (
                       <div key={d.day}>
-                        {new Date(d.day + "T00:00:00").toLocaleDateString("ro-RO", { day: "numeric", month: "short" })}: {d.uploaded} din {d.expected} clipuri încărcate până la 17:00 → <b style={{ color: "var(--danger)" }}>−{d.penalty} lei</b>
+                        {new Date(d.day + "T00:00:00").toLocaleDateString("ro-RO", { day: "numeric", month: "short" })}: {d.uploaded} din {d.expected} clipuri încărcate până la 17:00{d.clients ? ` (lipsă: ${d.clients})` : ""} → <b style={{ color: "var(--danger)" }}>−{d.penalty} lei</b>
                       </div>
                     ))}
                   </div>
@@ -518,13 +509,7 @@ export default function ContentCalendar({
               {sheet && (
                 <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 14 }}>
                   <span className="faint" style={{ fontSize: 12 }}>Client:</span>
-                  {canManage && (
-                    <select value={sheet.lead_id ?? ""} onChange={(e) => linkClient(e.target.value)} style={{ maxWidth: 220 }} title="Leagă calendarul de un client din CRM (plata editorului se ia de acolo)">
-                      <option value="">— alege din CRM —</option>
-                      {leads.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-                    </select>
-                  )}
-                  {canManage ? (
+                  {canManage && !sheet.lead_id ? (
                     <input
                       style={{ minWidth: 220 }}
                       placeholder="Numele clientului (ex: Clinica Smile)"

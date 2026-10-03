@@ -4,7 +4,7 @@ import { getAppContext } from "@/lib/app-context";
 import { OWNER_SELECT } from "@/lib/selects";
 
 export default async function ClientiPage() {
-  const { supabase, role, access } = await getAppContext();
+  const { supabase, role, access, team } = await getAppContext();
   const hasAccess = access.clienti.view;
 
   const { data: leads } = hasAccess
@@ -20,6 +20,7 @@ export default async function ClientiPage() {
         <ClientsTable
           initialLeads={(leads ?? []) as LeadRow[]}
           canDelete={role === "admin" || role === "manager"}
+          editors={team.filter((p) => p.role === "editor").map((p) => ({ id: p.id, full_name: p.full_name }))}
         />
       ) : (
         <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>

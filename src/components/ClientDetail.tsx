@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { STAGES, STAGE_LABEL, STAGE_BADGE, formatLei, monthYear, type LeadStage } from "@/lib/pipeline";
+import { formatLei, monthYear, type LeadStage } from "@/lib/pipeline";
 import type { LeadRow, Owner } from "@/components/PipelineBoard";
 import { OWNER_SELECT } from "@/lib/selects";
 
@@ -18,6 +18,7 @@ type FormState = {
   clips_count: string;
   editor_pay: string;
   project_start: string;
+  editor_id: string;
 };
 
 export default function ClientDetail({
@@ -25,11 +26,13 @@ export default function ClientDetail({
   owners,
   canEdit,
   canDelete,
+  editors,
 }: {
   lead: LeadRow;
   owners: Owner[];
   canEdit: boolean;
   canDelete: boolean;
+  editors: { id: string; full_name: string }[];
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -47,6 +50,7 @@ export default function ClientDetail({
     clips_count: lead.clips_count == null ? "" : String(lead.clips_count),
     editor_pay: lead.editor_pay ? String(lead.editor_pay) : "",
     project_start: lead.project_start ?? "",
+    editor_id: lead.editor_id ?? "",
   });
 
   async function handleSave(e: React.FormEvent) {
@@ -61,8 +65,6 @@ export default function ClientDetail({
       .from("leads")
       .update({
         name: form.name.trim(),
-        source: form.source.trim() || "Site",
-        stage: form.stage,
         value_monthly: Number(form.value_monthly) || 0,
         owner_id: form.owner_id || null,
         notes: form.notes.trim() || null,
@@ -71,6 +73,7 @@ export default function ClientDetail({
               clips_count: form.clips_count.trim() === "" ? null : Math.max(0, Math.round(Number(form.clips_count)) || 0),
               editor_pay: Math.max(0, Number(form.editor_pay.replace(",", ".")) || 0),
               project_start: form.project_start || null,
+              editor_id: form.editor_id || null,
             }
           : {}),
         last_activity_at: new Date().toISOString(),
@@ -114,7 +117,7 @@ export default function ClientDetail({
           <div>
             <h1>{current.name}</h1>
             <p>
-              client din {monthYear(current.created_at)} · sursă: <span className="tag">{current.source}</span>
+              client din {monthYear(current.created_at)} · clipuri: <span className="tag">{current.clips_count ?? "—"}</span>
               {current.owner && (
                 <>
                   {" "}
@@ -140,10 +143,8 @@ export default function ClientDetail({
 
       <div className="grid g-4" style={{ marginBottom: 10 }}>
         <div className="card kpi">
-          <div className="label">Status</div>
-          <div className="value" style={{ fontSize: 18 }}>
-            <span className={`badge ${STAGE_BADGE[current.stage]}`}>{STAGE_LABEL[current.stage]}</span>
-          </div>
+          <div className="label">Plată editor</div>
+          <div className="value mono">{current.editor_pay > 0 ? formatLei(current.editor_pay) : "—"}</div>
         </div>
         <div className="card kpi">
           <div className="label">Valoare lunară</div>
@@ -187,20 +188,15 @@ export default function ClientDetail({
                 <label>Nume client</label>
                 <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </div>
-              <div className="grid g-2">
+              {canDelete && (
                 <div className="field">
-                  <label>Sursă</label>
-                  <input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} />
-                </div>
-                <div className="field">
-                  <label>Etapă</label>
-                  <select value={form.stage} onChange={(e) => setForm({ ...form, stage: e.target.value as LeadStage })}>
-                    {STAGES.map((s) => (
-                      <option key={s.key} value={s.key}>{s.label}</option>
-                    ))}
+                  <label>Editor (primește automat calendarul clientului)</label>
+                  <select value={form.editor_id} onChange={(e) => setForm({ ...form, editor_id: e.target.value })}>
+                    <option value="">— fără editor —</option>
+                    {editors.map((ed) => <option key={ed.id} value={ed.id}>{ed.full_name}</option>)}
                   </select>
                 </div>
-              </div>
+              )}
               <div className="grid g-2">
                 <div className="field">
                   <label>Valoare lunară (lei)</label>

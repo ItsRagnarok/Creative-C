@@ -25,6 +25,7 @@ export default async function ClientDetailPage({
         owners={(owners ?? []) as Owner[]}
         canEdit={access.clienti.edit}
         canDelete={role === "admin" || role === "manager"}
+        editors={owners.filter((p) => p.role === "editor").map((p) => ({ id: p.id, full_name: p.full_name }))}
       />
     </>
   );
