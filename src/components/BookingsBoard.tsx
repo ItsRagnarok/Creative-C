@@ -75,6 +75,7 @@ export default function BookingsBoard({
   initialBookings,
   owners,
   canDelete,
+  canCreate,
   isAdmin,
   userId,
   myAvailability,
@@ -87,6 +88,7 @@ export default function BookingsBoard({
   initialBookings: BookingRow[];
   owners: Owner[];
   canDelete: boolean;
+  canCreate: boolean; // closers cannot add bookings by hand
   isAdmin: boolean;
   userId: string;
   myAvailability: AvailabilityRow[];
@@ -300,7 +302,7 @@ export default function BookingsBoard({
             </button>
           )}
           <button type="button" className="btn ghost" onClick={() => setScheduleOpen(true)}>Program de lucru</button>
-          <button className="btn primary" onClick={() => openCreate()}>+ Programare</button>
+          {canCreate && <button className="btn primary" onClick={() => openCreate()}>+ Programare</button>}
         </div>
       </div>
 
@@ -355,7 +357,7 @@ export default function BookingsBoard({
                 {items.length === 0 && (
                   <div className="cal-col-empty">
                     liber toată ziua
-                    <button className="cal-add-btn" onClick={() => openCreate(d)} title="Adaugă programare">+</button>
+                    {canCreate && <button className="cal-add-btn" onClick={() => openCreate(d)} title="Adaugă programare">+</button>}
                   </div>
                 )}
                 {items.map((b) => {

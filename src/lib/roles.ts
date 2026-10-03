@@ -10,7 +10,7 @@ export const ROLE_LABEL: Record<AppRole, string> = {
 export const ROLE_NOTE: Record<AppRole, string> = {
   admin: "Acces complet: date, financiar, roluri, integrări.",
   manager: "Acces operațional complet, fără gestionarea rolurilor.",
-  vanzari: "Pipeline, clienți, programări, documente. Fără financiar.",
+  vanzari: "Pipeline, prospecți, programări. Clienții doar îi vede. Fără documente și financiar.",
   editor: "Canalele, calendarul de clipuri al clienților tăi și ghidurile pentru editori.",
 };
 
@@ -48,7 +48,7 @@ export const NAV: NavGroup[] = [
   {
     group: "Business",
     items: [
-      { key: "documente", label: "Documente & Contracte", href: "/documente", icon: "▥", roles: ["admin", "manager", "vanzari"], enabled: true },
+      { key: "documente", label: "Documente & Contracte", href: "/documente", icon: "▥", roles: ["admin", "manager"], enabled: true },
       { key: "financiar", label: "Financiar", href: "/financiar", icon: "◑", roles: ["admin", "manager"], enabled: true },
       { key: "automatizari", label: "Automatizări", href: "/automatizari", icon: "⚡", roles: ["admin", "manager"], enabled: true },
     ],

@@ -20,6 +20,7 @@ export default async function ClientiPage() {
         <ClientsTable
           initialLeads={(leads ?? []) as LeadRow[]}
           canDelete={role === "admin" || role === "manager"}
+          canEdit={access.clienti.edit}
           editors={team.filter((p) => p.role === "editor").map((p) => ({ id: p.id, full_name: p.full_name }))}
         />
       ) : (

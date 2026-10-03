@@ -24,10 +24,12 @@ export function roleDefault(role: AppRole, menu: MenuKey, kind: AccessKind): boo
   if (role === "admin") return menu !== "portal" || kind === "view";
   switch (menu) {
     case "dashboard":
-    case "clienti":
     case "programari":
-    case "documente":
       return role === "manager" || role === "vanzari";
+    case "clienti": // closers only look at the clients
+      return role === "manager" || (role === "vanzari" && kind === "view");
+    case "documente":
+      return role === "manager";
     case "editori":
       return role === "manager" || role === "editor";
     case "financiar":

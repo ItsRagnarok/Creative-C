@@ -38,6 +38,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           canDelete={role === "admin" || role === "manager"}
           editors={team.filter((p) => p.role === "editor").map((p) => ({ id: p.id, full_name: p.full_name }))}
           currentUserId={user.id}
+          canExport={role === "admin" || role === "manager"}
           startAsClient={client === "1"}
         />
       )}

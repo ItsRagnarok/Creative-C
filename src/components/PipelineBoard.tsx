@@ -73,12 +73,14 @@ export default function PipelineBoard({
   editors,
   currentUserId,
   startAsClient,
+  canExport,
 }: {
   initialLeads: LeadRow[];
   owners: Owner[];
   canDelete: boolean;
   editors: { id: string; full_name: string }[];
   currentUserId: string;
+  canExport?: boolean; // closers cannot export the pipeline
   startAsClient?: boolean; // opened from "+ Client nou" in Clienți: the form starts as a confirmed client
 }) {
   const [allLeads, setLeads] = useState(initialLeads);
@@ -257,7 +259,7 @@ export default function PipelineBoard({
           <p>Lead-urile: Nou → În discuție (când e setat meeting-ul) → Status (Pending / Confirmat / Respins). Lead-urile vin din Prospecți (butonul &bdquo;Lead&rdquo;).</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <button className="btn ghost" onClick={exportCsv}>Exportă CSV</button>
+          {canExport && <button className="btn ghost" onClick={exportCsv}>Exportă CSV</button>}
         </div>
       </div>
 

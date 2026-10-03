@@ -11,7 +11,7 @@ const ROLE_NAME: Record<string, string> = { admin: "Admin", manager: "Manager", 
 const clean = (s: string) =>
   s.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-// Admin S only. The general link goes to admins + closers (general hours; priority person first if enabled, else round robin);
+// Admin S only. The general link goes to the closers (general hours; the priority person first if enabled and working then, else round robin);
 // each team member can have exactly one personal link, which books strictly with that person.
 export default function BookingAdminTools({
   team,
@@ -31,7 +31,7 @@ export default function BookingAdminTools({
   const [settings, setSettings] = useState(initialSettings);
   const [msg, setMsg] = useState<string | null>(null);
 
-  const pool = team.filter((t) => t.role === "admin" || t.role === "vanzari"); // who can receive from the general link: admins + closers
+  const pool = team.filter((t) => t.role === "admin" || t.role === "vanzari"); // who can be set as the priority person (admins + closers)
   const linkOf = (s: string) => `${window.location.origin}/programeaza${s ? `/${s}` : ""}`;
   const slugOf = (ownerId: string) => slugs.find((s) => s.owner_id === ownerId)?.slug ?? null;
 
@@ -135,7 +135,7 @@ export default function BookingAdminTools({
               <div>
                 <div className="nav-label" style={{ padding: 0, marginBottom: 6 }}>Prioritate</div>
                 <p className="faint" style={{ fontSize: 12, marginBottom: 10 }}>
-                  Cât timp e activă, clienții de pe linkul general merg automat la persoana aleasă (dacă n-are altă programare atunci). Fără prioritate, se împarte pe rând între admini și closeri. Alegerea o activează automat.
+                  Cât timp e activă, clienții de pe linkul general merg automat la persoana aleasă, dacă programul ei de lucru e activ și n-are altă programare atunci. Altfel (sau fără prioritate), se împarte pe rând între closeri. Alegerea o activează automat.
                 </p>
                 <select
                   style={{ width: "100%", marginBottom: 10 }}

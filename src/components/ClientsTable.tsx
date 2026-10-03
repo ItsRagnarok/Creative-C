@@ -10,7 +10,7 @@ import { useRealtimeRows } from "@/lib/useRealtimeRows";
 
 const CONFIRM_WORD = "STERGE";
 
-export default function ClientsTable({ initialLeads, canDelete, editors }: { initialLeads: LeadRow[]; canDelete: boolean; editors: { id: string; full_name: string }[] }) {
+export default function ClientsTable({ initialLeads, canDelete, canEdit, editors }: { initialLeads: LeadRow[]; canDelete: boolean; canEdit: boolean; editors: { id: string; full_name: string }[] }) {
   const router = useRouter();
   const supabase = createClient();
   const [leads, setLeads] = useState(initialLeads);
@@ -116,9 +116,11 @@ export default function ClientsTable({ initialLeads, canDelete, editors }: { ini
           <h1>Clienți</h1>
           <p>{clients.length} clienți — editor, clipuri, plăți și data de început. Lead-urile sunt în Pipeline.</p>
         </div>
-        <button className="btn primary" onClick={() => router.push("/dashboard?client=1")}>
-          + Client nou
-        </button>
+        {canEdit && (
+          <button className="btn primary" onClick={() => router.push("/dashboard?client=1")}>
+            + Client nou
+          </button>
+        )}
       </div>
 
       {canDelete && selected.size > 0 && (
