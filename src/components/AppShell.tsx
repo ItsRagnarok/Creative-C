@@ -166,11 +166,15 @@ function ShellInner({
           <div className="top-actions">
             <NotificationsBell />
             <button className="account-chip" title="Contul tău — apasă ca să îți schimbi parola" onClick={() => setPwOpen(true)}>
-              <span className="avatar">{initials}</span>
+              <span className="account-avatar">
+                {initials}
+                <i className="account-online" aria-hidden />
+              </span>
               <span className="account-text">
                 <b>{fullName}</b>
                 <small>{isSuperAdmin ? "Admin S" : ROLE_LABEL[actualRole]}</small>
               </span>
+              <span className="account-caret" aria-hidden>▾</span>
             </button>
             <button className="btn ghost sm logout-btn" title="Deconectare" aria-label="Deconectare" onClick={handleLogout}>
               ⏻ Deconectare
