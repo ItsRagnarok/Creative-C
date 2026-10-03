@@ -1,10 +1,22 @@
+import { redirect } from "next/navigation";
 import PipelineBoard, { type LeadRow, type Owner } from "@/components/PipelineBoard";
 import { getAppContext } from "@/lib/app-context";
 import { OWNER_SELECT } from "@/lib/selects";
+import { NAV } from "@/lib/roles";
+import type { MenuKey } from "@/lib/access";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ client?: string }> }) {
   const { client } = await searchParams;
-  const { supabase, user, role, team } = await getAppContext();
+  const { supabase, user, role, team, access } = await getAppContext();
+
+  // Landing page: someone without the Pipeline (an editor, for instance) goes straight to the first menu they can use.
+  if (!access.dashboard.view) {
+    const key = (k: string) => (k === "prospecti" ? "clienti" : k === "standarde" || k === "regulament" ? "editori" : k);
+    const first = NAV.flatMap((g) => g.items).find(
+      (i) => i.key !== "dashboard" && i.key !== "setari" && i.key !== "email" && access[key(i.key) as MenuKey]?.view,
+    );
+    if (first) redirect(first.href);
+  }
   const owners = team;
 
   const { data: leads } =

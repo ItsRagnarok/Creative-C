@@ -11,7 +11,7 @@ export const ROLE_NOTE: Record<AppRole, string> = {
   admin: "Acces complet: date, financiar, roluri, integrări.",
   manager: "Acces operațional complet, fără gestionarea rolurilor.",
   vanzari: "Pipeline, clienți, programări, documente. Fără financiar.",
-  editor: "Doar canalul propriu și task-urile alocate din proiecte.",
+  editor: "Canalele, calendarul de clipuri al clienților tăi și ghidurile pentru editori.",
 };
 
 export type NavItem = {
