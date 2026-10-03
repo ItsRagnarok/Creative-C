@@ -22,8 +22,6 @@ const PRIORITY_BADGE: Record<string, string> = { Mare: "green", Medie: "amber", 
 const dupKey = (name: string, city: string) => `${name.trim().replace(/\s+/g, " ").toLowerCase()}|${city.trim().toLowerCase()}`;
 const google = (q: string) => `https://www.google.com/search?q=${encodeURIComponent(q)}`;
 
-// CSV template = the columns of the prospecting spreadsheet, so everyone uploads the same way.
-const CSV_COLUMNS = ["Oraș", "Nume firmă", "Categorie", "Adresă", "Telefon", "Rating Google", "Nr. recenzii Google", "Link Google Maps", "Instagram (@cont)", "Note"];
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9@]+/g, " ").trim();
 const HEADER_KEYS: Record<string, string> = {
   oras: "city", city: "city",
@@ -118,18 +116,6 @@ export default function ProspectsTable({ initialRows, canDelete }: { initialRows
     setRows((p) => p.filter((x) => x.id !== r.id));
   }
 
-  function downloadTemplate() {
-    const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
-    const example = ["Oradea", "EXEMPLU — șterge acest rând", "Cafenea", "Str. Exemplu 1, Oradea", "+40 700 000 000", "4.8", "120", "https://www.google.com/maps/place/...", "@exemplu", ""];
-    const csv = [CSV_COLUMNS, example].map((r) => r.map(esc).join(";")).join("\r\n");
-    const url = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "sablon-prospecti.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
   async function importCsv(file: File) {
     setMsg(null);
     setImporting(true);
@@ -137,7 +123,7 @@ export default function ProspectsTable({ initialRows, canDelete }: { initialRows
       const table = parseCsv(await file.text());
       if (table.length < 2) return setMsg("Fișierul e gol sau nu are rânduri sub antet. Descarcă șablonul și completează-l.");
       const cols = table[0].map((h) => HEADER_KEYS[norm(h)] ?? null);
-      if (!cols.includes("name") || !cols.includes("city")) return setMsg('Lipsesc coloanele „Oraș” și „Nume firmă”. Folosește șablonul din butonul „Șablon CSV”.');
+      if (!cols.includes("name") || !cols.includes("city")) return setMsg('Lipsesc coloanele „Oraș” și „Nume firmă”. Folosește șablonul din butonul „Șablon”.');
       const seen = new Set(rows.map((r) => dupKey(r.name, r.city)));
       const fresh: Record<string, string | number | null>[] = [];
       let skipped = 0;
@@ -194,7 +180,7 @@ export default function ProspectsTable({ initialRows, canDelete }: { initialRows
           <p>{rows.length} firme găsite de noi, pe care nu le-am contactat încă. Când răspunde cineva, apeși „→ Lead” și trece în Pipeline.</p>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button className="btn ghost" onClick={downloadTemplate} title="Fișier CSV gol, cu coloanele de completat">⬇ Șablon CSV</button>
+          <a className="btn ghost" href="/sablon-prospecti.xlsx" download="sablon-prospecti.xlsx" title="Fișier Excel gol, cu coloanele de completat">⬇ Șablon</a>
           <label className="btn ghost" style={{ cursor: importing ? "wait" : "pointer" }} title="Încarcă un CSV completat după șablon">
             {importing ? "Se importă…" : "⬆ Importă CSV"}
             <input
