@@ -153,11 +153,15 @@ export default function AppShell({
           </div>
           <div className="top-actions">
             <NotificationsBell initial={notifications} />
-            <button className="avatar" title={`${fullName} — schimbă parola`} onClick={() => setPwOpen(true)}>
-              {initials}
+            <button className="account-chip" title="Contul tău — apasă ca să îți schimbi parola" onClick={() => setPwOpen(true)}>
+              <span className="avatar">{initials}</span>
+              <span className="account-text">
+                <b>{fullName}</b>
+                <small>{isSuperAdmin ? "Admin S" : ROLE_LABEL[actualRole]}</small>
+              </span>
             </button>
-            <button className="icon-btn logout" title="Deconectare" aria-label="Deconectare" onClick={handleLogout}>
-              ⏻
+            <button className="btn ghost sm logout-btn" title="Deconectare" aria-label="Deconectare" onClick={handleLogout}>
+              ⏻ Deconectare
             </button>
           </div>
         </header>

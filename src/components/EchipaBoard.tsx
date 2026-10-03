@@ -35,7 +35,7 @@ function monthYear(iso: string) {
 }
 
 type InviteForm = { full_name: string; email: string; password: string; role: AppRole };
-type EditForm = { id: string; full_name: string; role: AppRole; newPassword: string };
+type EditForm = { id: string; full_name: string; role: AppRole; newPassword: string; email: string };
 
 function emptyInvite(): InviteForm {
   return { full_name: "", email: "", password: "", role: "editor" };
@@ -137,7 +137,7 @@ export default function EchipaBoard({
 
   function openEdit(p: ProfileRow) {
     setError(null);
-    setEditModal({ id: p.id, full_name: p.full_name, role: p.role, newPassword: "" });
+    setEditModal({ id: p.id, full_name: p.full_name, role: p.role, newPassword: "", email: emails[p.id] ?? "" });
   }
 
   async function handleEditSave(e: React.FormEvent) {
@@ -166,6 +166,18 @@ export default function EchipaBoard({
     if (err) {
       setSaving(false);
       return setError(err.message);
+    }
+    const newEmail = editModal.email.trim().toLowerCase();
+    if (newEmail && newEmail !== (emails[editModal.id] ?? "")) {
+      const { data: em, error: emErr } = await supabase.functions.invoke("manage-team-member", {
+        body: { action: "set_email", user_id: editModal.id, email: newEmail },
+      });
+      if (emErr || !em?.ok) {
+        setSaving(false);
+        return setError(await functionErrorMessage(emErr ?? new Error(em?.error), "Datele au fost salvate, dar emailul nu a putut fi schimbat."));
+      }
+      setEmails((prev) => ({ ...prev, [editModal.id]: newEmail }));
+      setNotice(`Emailul pentru ${editModal.full_name.trim()} este acum ${newEmail}. Cu el se loghează de acum.`);
     }
     if (editModal.newPassword) {
       const { data: pw, error: pwErr } = await supabase.functions.invoke("manage-team-member", {
@@ -377,9 +389,10 @@ export default function EchipaBoard({
                 <label>Nume complet</label>
                 <input value={editModal.full_name} onChange={(e) => setEditModal({ ...editModal, full_name: e.target.value })} />
               </div>
-              {emails[editModal.id] && (
-                <div className="faint" style={{ fontSize: 12, marginBottom: 12 }}>{emails[editModal.id]}</div>
-              )}
+              <div className="field">
+                <label>Email (cu el se loghează)</label>
+                <input type="email" value={editModal.email} onChange={(e) => setEditModal({ ...editModal, email: e.target.value })} placeholder="nume@exemplu.ro" />
+              </div>
               <div className="field">
                 <label>Rol</label>
                 <select

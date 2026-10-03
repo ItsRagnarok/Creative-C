@@ -4,7 +4,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Owner } from "@/components/PipelineBoard";
 import { MESSAGE_SELECT } from "@/lib/selects";
-import { useRealtimeRows } from "@/lib/useRealtimeRows";
+import { useRealtimeRows, useRealtimeRefetch } from "@/lib/useRealtimeRows";
 import { EditoriTabContext } from "@/components/EditoriTabs";
 import { setActiveChat } from "@/lib/activeChat";
 
@@ -66,7 +66,8 @@ export default function ChannelsBoard({
   const [fileName, setFileName] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [sending, setSending] = useState(false);
-  const [stockDraft, setStockDraft] = useState<{ remaining: string; total: string } | null>(null);
+  const [stockDraft, setStockDraft] = useState<string | null>(null);
+  const [uploaded, setUploaded] = useState(0);
 
   const ownChannel = channels.find((c) => c.editor_id === currentUserId) ?? null;
   const [activeId, setActiveIdState] = useState<string | null>(ownChannel?.id ?? channels[0]?.id ?? null);
@@ -147,20 +148,43 @@ export default function ChannelsBoard({
     setAttaching(false);
   }
 
-  function openStockEdit() {
-    setStockDraft({
-      remaining: String(activeStock?.clips_remaining ?? 0),
-      total: String(activeStock?.clips_total ?? 40),
+  // Clips this editor has uploaded this month (a file or a link on any calendar day) — counted automatically, starts at 0.
+  const countUploaded = (editorId: string) => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+    return supabase
+      .from("content_calendar")
+      .select("id", { count: "exact", head: true })
+      .eq("editor_id", editorId)
+      .gte("day", iso(start))
+      .lt("day", iso(next))
+      .or("file_path.not.is.null,file_url.not.is.null");
+  };
+  const stockEditorId = active?.editor_id ?? null;
+  useEffect(() => {
+    if (!stockEditorId) return;
+    let cancelled = false;
+    countUploaded(stockEditorId).then(({ count }) => {
+      if (!cancelled) setUploaded(count ?? 0);
     });
-  }
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stockEditorId]);
+  useRealtimeRefetch("content_calendar", () => {
+    if (stockEditorId) countUploaded(stockEditorId).then(({ count }) => setUploaded(count ?? 0));
+  });
 
+  // One number, set by the manager: how many clips this editor has to do this month.
   async function saveStock() {
-    if (!active?.editor_id || !stockDraft) return;
-    const remaining = Number(stockDraft.remaining) || 0;
-    const total = Number(stockDraft.total) || 0;
+    if (!active?.editor_id || stockDraft === null) return;
+    const total = Math.max(0, Math.round(Number(stockDraft)) || 0);
     const { data, error } = await supabase
       .from("editor_clip_stock")
-      .upsert({ editor_id: active.editor_id, clips_remaining: remaining, clips_total: total })
+      .upsert({ editor_id: active.editor_id, clips_remaining: total, clips_total: total })
       .select("*")
       .single();
     if (error) return;
@@ -290,51 +314,29 @@ export default function ChannelsBoard({
 
         {showSide && active?.editor_id && (
           <div className="chat-side">
-            <h4>Stoc clipuri lună curentă</h4>
+            <h4>Clipuri de făcut luna aceasta</h4>
             <div className="card" style={{ padding: 12, background: "var(--surface)" }}>
-              {stockDraft ? (
-                <>
-                  <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                    <input
-                      type="number"
-                      min="0"
-                      value={stockDraft.remaining}
-                      onChange={(e) => setStockDraft({ ...stockDraft, remaining: e.target.value })}
-                      style={{ width: "50%", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 8px", fontSize: 12 }}
-                    />
-                    <input
-                      type="number"
-                      min="0"
-                      value={stockDraft.total}
-                      onChange={(e) => setStockDraft({ ...stockDraft, total: e.target.value })}
-                      style={{ width: "50%", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 8px", fontSize: 12 }}
-                    />
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button className="btn sm ghost" style={{ flex: 1 }} onClick={() => setStockDraft(null)}>Renunță</button>
-                    <button className="btn sm primary" style={{ flex: 1 }} onClick={saveStock}>Salvează</button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span className="faint" style={{ fontSize: 12 }}>Rămase din pachet</span>
-                    <span className="mono" style={{ fontWeight: 700, color: "var(--warning)" }}>
-                      {activeStock ? `${activeStock.clips_remaining} / ${activeStock.clips_total}` : "—"}
-                    </span>
-                  </div>
-                  <div className="progress" style={{ marginTop: 8 }}>
-                    <span style={{ width: activeStock && activeStock.clips_total > 0 ? `${Math.round((activeStock.clips_remaining / activeStock.clips_total) * 100)}%` : "0%", background: "var(--warning)" }} />
-                  </div>
-                  <div className="faint" style={{ fontSize: 11, marginTop: 8 }}>
-                    Sub 10 → alertă automată către manager pentru a programa filmarea următoare.
-                  </div>
-                  {canManage && (
-                    <button className="btn sm ghost" style={{ width: "100%", justifyContent: "center", marginTop: 10 }} onClick={openStockEdit}>
-                      Editează stocul
-                    </button>
-                  )}
-                </>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span className="faint" style={{ fontSize: 12 }}>Încărcate</span>
+                <span className="mono" style={{ fontWeight: 700 }}>
+                  {uploaded} / {activeStock?.clips_total ?? 0}
+                </span>
+              </div>
+              <div className="progress" style={{ marginTop: 8 }}>
+                <span style={{ width: activeStock && activeStock.clips_total > 0 ? `${Math.min(100, Math.round((uploaded / activeStock.clips_total) * 100))}%` : "0%", background: "var(--accent-2)" }} />
+              </div>
+              {canManage && (
+                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Nr. clipuri"
+                    value={stockDraft ?? String(activeStock?.clips_total ?? 0)}
+                    onChange={(e) => setStockDraft(e.target.value)}
+                    style={{ width: "100%", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 8px", fontSize: 12 }}
+                  />
+                  <button className="btn sm primary" disabled={stockDraft === null} onClick={saveStock}>Salvează</button>
+                </div>
               )}
             </div>
           </div>

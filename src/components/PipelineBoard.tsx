@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import InfoTip from "@/components/InfoTip";
-import { STAGES, STAGE_LABEL, LEAD_STATUSES, STATUS_BADGE, STATUS_LABEL, daysSince, timeAgo, formatLei, type LeadStage, type LeadStatus } from "@/lib/pipeline";
+import { STAGES, STAGE_LABEL, LEAD_STATUSES, STATUS_BADGE, STATUS_LABEL, daysSince, formatLei, type LeadStage, type LeadStatus } from "@/lib/pipeline";
 import { OWNER_SELECT } from "@/lib/selects";
 import { useRealtimeRows } from "@/lib/useRealtimeRows";
 
@@ -39,11 +39,14 @@ type FormState = {
   status: LeadStatus;
   lost_reason: string;
   package: string;
+  clips_count: string;
+  editor_pay: string;
+  created_at?: string;
 };
 
 const EMPTY_FORM: FormState = {
   name: "",
-  source: "Site",
+  source: "Manual",
   stage: "nou",
   value_monthly: "0",
   owner_id: "",
@@ -51,6 +54,8 @@ const EMPTY_FORM: FormState = {
   status: "pending",
   lost_reason: "",
   package: "",
+  clips_count: "",
+  editor_pay: "",
 };
 
 export default function PipelineBoard({
@@ -88,7 +93,7 @@ export default function PipelineBoard({
 
   function openCreate() {
     setFormError(null);
-    setModal({ mode: "create", form: { ...EMPTY_FORM, owner_id: owners[0]?.id ?? "" } });
+    setModal({ mode: "create", form: { ...EMPTY_FORM, owner_id: owners[0]?.id ?? "", created_at: new Date().toISOString() } });
   }
 
   function openEdit(lead: LeadRow) {
@@ -106,6 +111,9 @@ export default function PipelineBoard({
         status: lead.status,
         lost_reason: lead.lost_reason ?? "",
         package: lead.package ?? "",
+        clips_count: lead.clips_count == null ? "" : String(lead.clips_count),
+        editor_pay: lead.editor_pay ? String(lead.editor_pay) : "",
+        created_at: lead.created_at,
       },
     });
   }
@@ -136,6 +144,12 @@ export default function PipelineBoard({
       status: inStatus ? form.status : ("pending" as LeadStatus),
       lost_reason: inStatus && form.status === "pierdut" ? form.lost_reason.trim() : null,
       package: form.package.trim() || null,
+      ...(canDelete
+        ? {
+            clips_count: form.clips_count.trim() === "" ? null : Math.max(0, Math.round(Number(form.clips_count)) || 0),
+            editor_pay: Math.max(0, Number(form.editor_pay.replace(",", ".")) || 0),
+          }
+        : {}),
       last_activity_at: new Date().toISOString(),
     };
 
@@ -281,7 +295,7 @@ export default function PipelineBoard({
                     </div>
                     {lead.status === "pierdut" && lead.lost_reason && <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>Motiv: {lead.lost_reason}</div>}
                     <div className="meta">
-                      <span className="faint">{timeAgo(lead.last_activity_at)}</span>
+                      <span className="faint">{new Date(lead.created_at).toLocaleString("ro-RO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                       {lead.owner && (
                         <div className="p-avatar" style={{ width: 22, height: 22, fontSize: 10 }}>
                           {lead.owner.initials}
@@ -313,15 +327,32 @@ export default function PipelineBoard({
                   placeholder="ex: Bella Cosmetics SRL"
                 />
               </div>
-              <div className="grid g-2">
-                <div className="field">
-                  <label>Sursă</label>
-                  <input
-                    value={modal.form.source}
-                    onChange={(e) => setModal({ ...modal, form: { ...modal.form, source: e.target.value } })}
-                    placeholder="Site, Recomandare, Social media…"
-                  />
+              <div className="faint" style={{ fontSize: 12, marginBottom: 12 }}>
+                Lead introdus: <b style={{ color: "var(--text)" }}>{new Date(modal.form.created_at ?? 0).toLocaleString("ro-RO", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</b>
+              </div>
+              {canDelete && (
+                <div className="grid g-2">
+                  <div className="field">
+                    <label>Număr clipuri</label>
+                    <input
+                      inputMode="numeric"
+                      value={modal.form.clips_count}
+                      onChange={(e) => setModal({ ...modal, form: { ...modal.form, clips_count: e.target.value } })}
+                      placeholder="ex: 20"
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Plată editor (lei)</label>
+                    <input
+                      inputMode="decimal"
+                      value={modal.form.editor_pay}
+                      onChange={(e) => setModal({ ...modal, form: { ...modal.form, editor_pay: e.target.value } })}
+                      placeholder="ex: 800"
+                    />
+                  </div>
                 </div>
+              )}
+              {modal.mode === "edit" && (
                 <div className="field">
                   <label>Etapă</label>
                   <select
@@ -333,7 +364,7 @@ export default function PipelineBoard({
                     ))}
                   </select>
                 </div>
-              </div>
+              )}
               {modal.form.stage === "confirmat" && (
                 <div className="field">
                   <label>Status</label>
