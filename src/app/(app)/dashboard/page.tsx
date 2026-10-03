@@ -16,7 +16,7 @@ export default async function DashboardPage() {
       {role === "editor" ? (
         <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
           Contul tău (Editor) nu are acces la Pipeline & Clienți — vezi matricea de permisiuni din
-          Setări. Ai acces la Proiecte și la Canalul tău de editor.
+          Setări. Ai acces la Canalul tău de editor.
         </div>
       ) : (
         <PipelineBoard

@@ -1,5 +1,6 @@
 // Shared PostgREST select strings, so every page and every live update loads rows in exactly the same shape.
-export const OWNER_SELECT = "*, owner:profiles(id, full_name, initials)";
+// leads has two links to profiles (owner and editor), so the owner join must name its foreign key
+export const OWNER_SELECT = "*, owner:profiles!leads_owner_id_fkey(id, full_name, initials)";
 export const OWNER_LEAD_SELECT = "*, owner:profiles(id, full_name, initials), lead:leads(id, name)";
 export const BOOKING_SELECT =
   "*, owner:profiles!bookings_owner_id_fkey(id, full_name, initials), link:booking_links(slug, kind, link_owner:profiles!booking_links_link_owner_id_fkey(id, full_name, initials))";
