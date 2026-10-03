@@ -1298,6 +1298,10 @@ export type Database = {
       my_access: { Args: never; Returns: Json }
       convert_prospect: { Args: { p_id: string }; Returns: string }
       open_dm: { Args: { p_other: string }; Returns: string }
+      search_messages: {
+        Args: { p_channel: string; p_q: string }
+        Returns: { id: string; channel_id: string; author_id: string | null; body: string; file_name: string | null; file_url: string | null; created_at: string }[]
+      }
       editor_penalties_v2: {
         Args: { p_editor: string; p_month: string }
         Returns: { day: string; expected: number; uploaded: number; missing: number; penalty: number; clients: string | null }[]

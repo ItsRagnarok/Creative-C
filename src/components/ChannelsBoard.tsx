@@ -79,6 +79,9 @@ export default function ChannelsBoard({
   const [stickers, setStickers] = useState<StickerRow[]>([]);
   const [stickerBusy, setStickerBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [search, setSearch] = useState<string | null>(null); // null = search closed
+  const [found, setFound] = useState<{ key: string; rows: MessageRow[] }>({ key: "", rows: [] });
+  const [focusId, setFocusId] = useState<string | null>(null);
 
   const ownChannel = channels.find((c) => c.kind === "editor" && c.editor_id === currentUserId) ?? null;
   const [activeId, setActiveIdState] = useState<string | null>(ownChannel?.id ?? channels.find((c) => c.kind !== "dm")?.id ?? null);
@@ -94,6 +97,7 @@ export default function ChannelsBoard({
     setActiveIdState(id);
     setRenaming(null);
     setStickerOpen(false);
+    setSearch(null);
     if (id) markChannelRead(id);
   }
 
@@ -169,8 +173,66 @@ export default function ChannelsBoard({
 
   const isGroup = !!active && active.kind === "editor" && !active.editor_id;
   useEffect(() => {
+    if (focusId) {
+      document.getElementById(`msg-${focusId}`)?.scrollIntoView({ block: "center" });
+      const t = setTimeout(() => setFocusId(null), 3500);
+      return () => clearTimeout(t);
+    }
     endRef.current?.scrollIntoView({ block: "end" });
-  }, [activeMessages.length, activeId]);
+  }, [activeMessages.length, activeId, focusId]);
+
+  // ---- search inside the open chat (all of its history, not just what is loaded) ----
+  useEffect(() => {
+    const term = search?.trim() ?? "";
+    if (!activeId || term.length < 2) return;
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      const { data } = await supabase.rpc("search_messages", { p_channel: activeId, p_q: term });
+      if (cancelled) return;
+      setFound({
+        key: `${activeId}|${term}`,
+        rows: (data ?? []).map((m) => ({ ...m, author: team.find((x) => x.id === m.author_id) ?? null })) as unknown as MessageRow[],
+      });
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, activeId]);
+
+  const searchTerm = search?.trim() ?? "";
+  const searching = searchTerm.length >= 2 && found.key !== `${activeId}|${searchTerm}`;
+  const results = searching ? [] : found.rows;
+
+  // Open the conversation around an old message: load 25 messages before and after it, then scroll to it.
+  async function jumpTo(m: MessageRow) {
+    const [before, after] = await Promise.all([
+      supabase.from("channel_messages").select(MESSAGE_SELECT).eq("channel_id", m.channel_id).lte("created_at", m.created_at).order("created_at", { ascending: false }).limit(25),
+      supabase.from("channel_messages").select(MESSAGE_SELECT).eq("channel_id", m.channel_id).gt("created_at", m.created_at).order("created_at", { ascending: true }).limit(25),
+    ]);
+    const extra = [...((before.data ?? []) as unknown as MessageRow[]), ...((after.data ?? []) as unknown as MessageRow[])];
+    setMessages((prev) => {
+      const known = new Set(prev.map((x) => x.id));
+      return [...prev, ...extra.filter((x) => !known.has(x.id))];
+    });
+    setSearch(null);
+    setFocusId(m.id);
+  }
+
+  const highlight = (text: string) => {
+    const term = search?.trim() ?? "";
+    if (term.length < 2) return text;
+    const i = text.toLowerCase().indexOf(term.toLowerCase());
+    if (i < 0) return text;
+    return (
+      <>
+        {text.slice(0, i)}
+        <mark style={{ background: "#ffd54a", color: "#111", borderRadius: 3, padding: "0 2px" }}>{text.slice(i, i + term.length)}</mark>
+        {text.slice(i + term.length)}
+      </>
+    );
+  };
 
   const canPost =
     !!active && (active.kind === "dm" || (active.kind === "automat" ? canManage : canManage || active.editor_id === currentUserId || isGroup));
@@ -334,12 +396,45 @@ export default function ChannelsBoard({
                   )}
                   {active.deadline_note && <div className="faint" style={{ fontSize: 12 }}>{active.deadline_note}</div>}
                 </div>
+                {search === null ? (
+                  <button type="button" className="icon-btn" title="Caută în acest chat" aria-label="Caută în acest chat" onClick={() => setSearch("")}>🔍</button>
+                ) : (
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <input
+                      autoFocus
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      onKeyDown={(e) => e.key === "Escape" && setSearch(null)}
+                      placeholder="Caută un cuvânt…"
+                      style={{ width: 220 }}
+                    />
+                    <button type="button" className="icon-btn" title="Închide căutarea" onClick={() => setSearch(null)}>✕</button>
+                  </div>
+                )}
               </div>
+              {search !== null && search.trim().length >= 2 ? (
+              <div className="chat-msgs">
+                <div className="faint" style={{ fontSize: 12, marginBottom: 6 }}>
+                  {searching ? "Se caută…" : results.length === 0 ? "Niciun mesaj găsit." : `${results.length}${results.length === 100 ? "+" : ""} mesaje găsite, cele mai noi primele. Apasă pe unul ca să-l vezi în conversație.`}
+                </div>
+                {results.map((m) => (
+                  <button key={m.id} type="button" className="msg" onClick={() => jumpTo(m)} style={{ background: "none", border: "none", textAlign: "left", cursor: "pointer", padding: 0, color: "inherit" }}>
+                    <div className="p-avatar">{m.author ? m.author.initials : "CC"}</div>
+                    <div>
+                      <div className="p-sub">
+                        <b style={{ color: "var(--text-muted)" }}>{m.author ? m.author.full_name : "Creative C Bot"}</b> · {new Date(m.created_at).toLocaleString("ro-RO", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                      <div className="bubble">{highlight(m.body)}{m.file_name ? <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>📁 {highlight(m.file_name)}</div> : null}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              ) : (
               <div className="chat-msgs">
                 {activeMessages.map((m) => {
                   const sticker = renderBody(m);
                   return (
-                    <div key={m.id} className="msg">
+                    <div key={m.id} id={`msg-${m.id}`} className="msg" style={focusId === m.id ? { outline: "2px solid #ffd54a", outlineOffset: 4, borderRadius: 10 } : undefined}>
                       <div className="p-avatar">{m.author ? m.author.initials : "CC"}</div>
                       <div>
                         <div className="p-sub">
@@ -369,6 +464,7 @@ export default function ChannelsBoard({
                 {activeMessages.length === 0 && <div className="empty-note">Niciun mesaj încă în acest chat.</div>}
                 <div ref={endRef} />
               </div>
+              )}
               {canPost ? (
                 <>
                   {attaching && (
