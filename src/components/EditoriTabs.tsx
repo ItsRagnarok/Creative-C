@@ -39,7 +39,7 @@ export default function EditoriTabs({
           Calendar content
         </button>
         <button type="button" className={`btn sm ${tab === "cards" ? "primary" : "ghost"}`} onClick={() => openTab("cards")}>
-          Cartonașe
+          Editor credits
         </button>
       </div>
       <div style={{ display: tab === "chat" ? "block" : "none" }}>{chat}</div>

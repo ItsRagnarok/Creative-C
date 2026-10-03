@@ -46,6 +46,9 @@ type FormState = {
   created_at?: string;
 };
 
+// today as yyyy-mm-dd in the user's own time zone
+const todayLocal = () => new Date().toLocaleDateString("sv-SE");
+
 const EMPTY_FORM: FormState = {
   name: "",
   source: "Manual",
@@ -83,7 +86,7 @@ export default function PipelineBoard({
     startAsClient
       ? {
           mode: "create",
-          form: { ...EMPTY_FORM, stage: "confirmat", status: "confirmat", owner_id: currentUserId, created_at: new Date().toISOString() },
+          form: { ...EMPTY_FORM, stage: "confirmat", status: "confirmat", owner_id: currentUserId, project_start: todayLocal(), created_at: new Date().toISOString() },
         }
       : null,
   );
@@ -110,7 +113,7 @@ export default function PipelineBoard({
 
   function openCreate() {
     setFormError(null);
-    setModal({ mode: "create", form: { ...EMPTY_FORM, owner_id: currentUserId, created_at: new Date().toISOString() } });
+    setModal({ mode: "create", form: { ...EMPTY_FORM, owner_id: currentUserId, project_start: todayLocal(), created_at: new Date().toISOString() } });
   }
 
   function openEdit(lead: LeadRow) {
@@ -173,7 +176,7 @@ export default function PipelineBoard({
             clips_count: form.clips_count.trim() === "" ? null : Math.max(0, Math.round(Number(form.clips_count)) || 0),
             editor_pay: Math.max(0, Number(form.editor_pay.replace(",", ".")) || 0),
             editor_id: form.editor_id || null,
-            project_start: form.project_start || null,
+            project_start: form.project_start || (mode === "create" ? todayLocal() : null),
           }
         : {}),
       last_activity_at: new Date().toISOString(),

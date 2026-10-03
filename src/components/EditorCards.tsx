@@ -21,6 +21,17 @@ const COLORS: { key: CardRow["color"]; emoji: string; label: string }[] = [
 ];
 const EMOJI = Object.fromEntries(COLORS.map((c) => [c.key, c.emoji])) as Record<CardRow["color"], string>;
 
+type PenaltyDay = { day: string; expected: number; uploaded: number; missing: number; penalty: number; clients: string | null };
+const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const shiftMonth = (m: string, delta: number) => {
+  const [y, mo] = m.split("-").map(Number);
+  return monthKey(new Date(y, mo - 1 + delta, 1));
+};
+const monthLabel = (m: string) => {
+  const [y, mo] = m.split("-").map(Number);
+  return new Date(y, mo - 1, 1).toLocaleDateString("ro-RO", { month: "long", year: "numeric" });
+};
+
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString("ro-RO", { day: "numeric", month: "short", year: "numeric" });
 }
@@ -46,6 +57,8 @@ export default function EditorCards({
   const [color, setColor] = useState<CardRow["color"]>("galben");
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
+  const [month, setMonth] = useState(() => monthKey(new Date()));
+  const [penalties, setPenalties] = useState<PenaltyDay[]>([]);
 
   const fetchCards = useCallback(
     async (id: string) =>
@@ -70,6 +83,27 @@ export default function EditorCards({
   useRealtimeRefetch("editor_cards", () => {
     if (editorId) fetchCards(editorId).then(({ data }) => data && setCards(data as CardRow[]));
   });
+
+  // Money penalties for the chosen month (25 lei per clip not uploaded by 17:00), computed in the database.
+  const loadPenalties = useCallback(
+    (id: string, m: string) =>
+      supabase.rpc("editor_penalties_v2", { p_editor: id, p_month: `${m}-01` }).then(({ data }) => setPenalties((data ?? []) as PenaltyDay[])),
+    [supabase],
+  );
+  useEffect(() => {
+    if (!editorId) return;
+    let cancelled = false;
+    supabase.rpc("editor_penalties_v2", { p_editor: editorId, p_month: `${month}-01` }).then(({ data }) => {
+      if (!cancelled) setPenalties((data ?? []) as PenaltyDay[]);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [editorId, month, supabase]);
+  useRealtimeRefetch("content_calendar", () => {
+    if (editorId) loadPenalties(editorId, month);
+  });
+  const penaltyTotal = penalties.reduce((sum, d) => sum + d.penalty, 0);
 
   function pick(id: string) {
     setError(null);
@@ -109,8 +143,8 @@ export default function EditorCards({
     <>
       <div className="page-head">
         <div>
-          <h1>Cartonașe</h1>
-          <p>{isAdminViewer ? "Sancțiuni și observații pentru fiecare membru al echipei, cu motivul scris. Doar adminii pot da cartonașe." : canManage ? "Cartonașele echipei. Doar adminii le pot da." : "Cartonașele primite, cu motivul fiecăruia."}</p>
+          <h1>Editor credits</h1>
+          <p>{isAdminViewer ? "Cartonașele și penalizările în bani ale fiecărui membru. Doar adminii pot da cartonașe." : canManage ? "Cartonașele și penalizările echipei. Doar adminii dau cartonașe." : "Cartonașele tale și penalizările din luna aleasă."}</p>
         </div>
       </div>
 
@@ -136,6 +170,29 @@ export default function EditorCards({
                 {COLORS.map((c) => (
                   <span key={c.key} className="badge gray">{c.emoji} {count(c.key)}</span>
                 ))}
+              </div>
+
+              {/* Penalties in money, per month */}
+              <div className="card" style={{ padding: "12px 16px", marginBottom: 14, background: "var(--surface-2)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <button type="button" className="btn sm ghost" onClick={() => setMonth((m) => shiftMonth(m, -1))} aria-label="Luna anterioară">‹</button>
+                  <b style={{ textTransform: "capitalize", minWidth: 120, textAlign: "center" }}>{monthLabel(month)}</b>
+                  <button type="button" className="btn sm ghost" onClick={() => setMonth((m) => shiftMonth(m, 1))} aria-label="Luna următoare">›</button>
+                  <div style={{ marginLeft: "auto", textAlign: "right" }}>
+                    <div className="faint" style={{ fontSize: 11 }}>PENALIZĂRI ÎN BANI</div>
+                    <b style={{ fontSize: 18, color: penaltyTotal ? "var(--danger)" : undefined }}>{penaltyTotal ? `−${penaltyTotal}` : "0"} lei</b>
+                  </div>
+                </div>
+                <div className="faint" style={{ fontSize: 11.5, marginTop: 6 }}>Fiecare clip neîncărcat până la 17:00 din ziua lui înseamnă −25 lei.</div>
+                {penalties.length > 0 && (
+                  <div style={{ marginTop: 8, display: "grid", gap: 4, fontSize: 12.5 }}>
+                    {penalties.map((d) => (
+                      <div key={d.day}>
+                        {new Date(d.day + "T00:00:00").toLocaleDateString("ro-RO", { day: "numeric", month: "short" })}: {d.uploaded} din {d.expected} clipuri încărcate până la 17:00{d.clients ? ` (lipsă: ${d.clients})` : ""} → <b style={{ color: "var(--danger)" }}>−{d.penalty} lei</b>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {canGive && (
