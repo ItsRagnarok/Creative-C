@@ -1,8 +1,4 @@
-import ChannelsBoard, {
-  type ChannelRow,
-  type MessageRow,
-  type ClipStockRow,
-} from "@/components/ChannelsBoard";
+import ChannelsBoard, { type ChannelRow, type MessageRow, type TeamMember } from "@/components/ChannelsBoard";
 import EditoriTabs from "@/components/EditoriTabs";
 import EditorCards from "@/components/EditorCards";
 import ContentCalendar, { type CalendarEditor } from "@/components/ContentCalendar";
@@ -10,15 +6,16 @@ import { getAppContext } from "@/lib/app-context";
 import { MESSAGE_SELECT } from "@/lib/selects";
 
 export default async function EditoriPage() {
-  const { supabase, user, profile, role, access } = await getAppContext();
+  const { supabase, user, profile, role, access, team } = await getAppContext();
   const hasAccess = access.editori.view;
 
   const isManager = role === "admin" || role === "manager";
-  const [{ data: channels }, { data: messages }, { data: stock }, { data: editorProfiles }] = await Promise.all([
+  const [{ data: channels }, { data: messages }, { data: editorProfiles }] = await Promise.all([
     hasAccess
       ? supabase
           .from("channels")
-          .select("*, editor:profiles(id, full_name, initials)")
+          // channels links to profiles several ways (editor, direct-message pair): the editor join names its key
+          .select("*, editor:profiles!channels_editor_id_fkey(id, full_name, initials)")
           .order("kind", { ascending: false })
           .order("slug")
       : Promise.resolve({ data: null }),
@@ -29,7 +26,6 @@ export default async function EditoriPage() {
           .order("created_at", { ascending: false })
           .limit(400)
       : Promise.resolve({ data: null }),
-    hasAccess ? supabase.from("editor_clip_stock").select("*") : Promise.resolve({ data: null }),
     // Managers see every editor's calendar; an editor only ever gets their own.
     isManager
       ? supabase.from("profiles").select("id, full_name, initials, role").order("full_name")
@@ -43,9 +39,10 @@ export default async function EditoriPage() {
           defaultTab={role === "editor" ? "calendar" : "chat"}
           chat={
             <ChannelsBoard
-              channels={(channels ?? []) as ChannelRow[]}
+              channels={(channels ?? []) as unknown as ChannelRow[]}
               initialMessages={((messages ?? []) as MessageRow[]).slice().reverse()}
-              initialStock={(stock ?? []) as ClipStockRow[]}
+              team={team.map((p) => ({ id: p.id, full_name: p.full_name, initials: p.initials, role: p.role })) as TeamMember[]}
+              isSuperAdmin={!!profile.is_super_admin}
               canManage={isManager}
               currentUserId={user.id}
             />

@@ -285,6 +285,9 @@ export type Database = {
       channels: {
         Row: {
           created_at: string
+          custom_name: string | null
+          dm_a: string | null
+          dm_b: string | null
           deadline_note: string | null
           editor_id: string | null
           id: string
@@ -294,6 +297,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_name?: string | null
+          dm_a?: string | null
+          dm_b?: string | null
           deadline_note?: string | null
           editor_id?: string | null
           id?: string
@@ -303,6 +309,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_name?: string | null
+          dm_a?: string | null
+          dm_b?: string | null
           deadline_note?: string | null
           editor_id?: string | null
           id?: string
@@ -759,6 +768,30 @@ export type Database = {
           title?: string
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      stickers: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          path: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          path: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          path?: string
         }
         Relationships: []
       }
@@ -1264,6 +1297,7 @@ export type Database = {
       ensure_booking_slug: { Args: never; Returns: string }
       my_access: { Args: never; Returns: Json }
       convert_prospect: { Args: { p_id: string }; Returns: string }
+      open_dm: { Args: { p_other: string }; Returns: string }
       editor_penalties_v2: {
         Args: { p_editor: string; p_month: string }
         Returns: { day: string; expected: number; uploaded: number; missing: number; penalty: number; clients: string | null }[]

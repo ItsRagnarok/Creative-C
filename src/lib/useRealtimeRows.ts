@@ -9,7 +9,7 @@ type Row = { id: string };
 // (Supabase returns the already-subscribed channel for a repeated name, and adding listeners to it throws).
 let channelSeq = 0;
 const channelName = (base: string) => `${base}-${++channelSeq}`;
-type RealtimeTable = "leads" | "bookings" | "projects" | "project_tasks" | "project_files" | "channel_messages" | "prospects";
+type RealtimeTable = "leads" | "bookings" | "projects" | "project_tasks" | "project_files" | "channel_messages" | "channels" | "prospects";
 
 // Keeps a list of rows live: inserts, updates and deletes made by anyone appear without a refresh.
 // Row-level security decides what this user receives; the changed row is re-read with the page's own
