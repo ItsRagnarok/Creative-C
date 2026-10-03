@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import InfoTip from "@/components/InfoTip";
 import { STAGES, STAGE_LABEL, LEAD_STATUSES, STATUS_BADGE, STATUS_LABEL, daysSince, formatLei, type LeadStage, type LeadStatus } from "@/lib/pipeline";
@@ -80,8 +81,10 @@ export default function PipelineBoard({
   currentUserId: string;
   startAsClient?: boolean; // opened from "+ Client nou" in Clienți: the form starts as a confirmed client
 }) {
-  const [leads, setLeads] = useState(initialLeads);
+  const [allLeads, setLeads] = useState(initialLeads);
   useRealtimeRows({ table: "leads", select: OWNER_SELECT, setRows: setLeads });
+  // The pipeline only holds leads that came from Prospecți or from a booking; clients added by hand live in Clienți.
+  const leads = useMemo(() => allLeads.filter((l) => l.source !== "Manual"), [allLeads]);
   const [modal, setModal] = useState<null | { mode: "create" | "edit"; form: FormState }>(() =>
     startAsClient
       ? {
@@ -93,6 +96,7 @@ export default function PipelineBoard({
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const supabase = createClient();
+  const router = useRouter();
 
   const kpis = useMemo(() => {
     // Day-granularity KPIs — a few ms of drift across renders doesn't change
@@ -110,11 +114,6 @@ export default function PipelineBoard({
     ).length;
     return { newLast7d, pipelineValue, conversionRate, overdue };
   }, [leads]);
-
-  function openCreate() {
-    setFormError(null);
-    setModal({ mode: "create", form: { ...EMPTY_FORM, owner_id: currentUserId, project_start: todayLocal(), created_at: new Date().toISOString() } });
-  }
 
   function openEdit(lead: LeadRow) {
     setFormError(null);
@@ -149,7 +148,7 @@ export default function PipelineBoard({
       return;
     }
     const dupName = (n: string) => n.trim().replace(/\s+/g, " ").toLowerCase();
-    if (mode === "create" && leads.some((l) => l.source === "Manual" && dupName(l.name) === dupName(form.name))) {
+    if (mode === "create" && allLeads.some((l) => l.source === "Manual" && dupName(l.name) === dupName(form.name))) {
       setFormError("Există deja un client adăugat manual cu acest nume.");
       return;
     }
@@ -195,6 +194,7 @@ export default function PipelineBoard({
       }
       setLeads((prev) => [data as LeadRow, ...prev]);
       setModal(null);
+      if (payload.source === "Manual") router.push("/clienti"); // manual clients live in Clienți, not in the pipeline
     } else {
       const { data, error } = await supabase
         .from("leads")
@@ -254,11 +254,10 @@ export default function PipelineBoard({
       <div className="page-head">
         <div>
           <h1>Pipeline & Dashboard</h1>
-          <p>Lead-urile: Nou → În discuție (când e setat meeting-ul) → Status (Pending / Confirmat / Pierdut).</p>
+          <p>Lead-urile: Nou → În discuție (când e setat meeting-ul) → Status (Pending / Confirmat / Respins). Lead-urile vin din Prospecți (butonul &bdquo;Lead&rdquo;).</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button className="btn ghost" onClick={exportCsv}>Exportă CSV</button>
-          <button className="btn primary" onClick={openCreate}>+ Lead manual</button>
         </div>
       </div>
 
@@ -279,7 +278,7 @@ export default function PipelineBoard({
         </div>
         <div className="card kpi">
           <div className="label">
-            <span className="title-row">Valoare pipeline activ <InfoTip text="Suma valorilor lunare ale lead-urilor încă în joc (fără cele Pierdute sau deja confirmate). Editează valoarea oricărui card ca să vezi cum se schimbă suma." align="right" /></span>
+            <span className="title-row">Valoare pipeline activ <InfoTip text="Suma valorilor lunare ale lead-urilor încă în joc (fără cele Respinse sau deja confirmate). Editează valoarea oricărui card ca să vezi cum se schimbă suma." align="right" /></span>
           </div>
           <div className="value mono">{formatLei(kpis.pipelineValue)}</div>
           <div className="delta up">editabil pe fiecare card</div>

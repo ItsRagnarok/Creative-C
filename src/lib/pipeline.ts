@@ -16,7 +16,7 @@ export const STAGES: { key: LeadStage; label: string; help: string }[] = [
   {
     key: "confirmat",
     label: "Status",
-    help: "Aici closerul alege rezultatul: Pending, Confirmat sau Pierdut (cu motivul pierderii). La Confirmat, managerii și adminii primesc o notificare ca să creeze clientul.",
+    help: "Aici closerul alege rezultatul: Pending, Confirmat sau Respins (cu motivul). La Confirmat, managerii și adminii primesc o notificare ca să creeze clientul.",
   },
 ];
 
@@ -24,7 +24,7 @@ export type LeadStatus = "pending" | "confirmat" | "pierdut";
 export const LEAD_STATUSES: { key: LeadStatus; label: string; badge: string }[] = [
   { key: "pending", label: "Pending", badge: "amber" },
   { key: "confirmat", label: "Confirmat", badge: "green" },
-  { key: "pierdut", label: "Pierdut", badge: "red" },
+  { key: "pierdut", label: "Respins", badge: "red" },
 ];
 export const STATUS_LABEL: Record<LeadStatus, string> = Object.fromEntries(LEAD_STATUSES.map((s) => [s.key, s.label])) as Record<LeadStatus, string>;
 export const STATUS_BADGE: Record<LeadStatus, string> = Object.fromEntries(LEAD_STATUSES.map((s) => [s.key, s.badge])) as Record<LeadStatus, string>;
