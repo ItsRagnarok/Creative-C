@@ -386,7 +386,7 @@ export default function PipelineBoard({
                   </div>
                 </div>
               )}
-              {(
+              {modal.mode === "edit" && (
                 <div className="field">
                   <label>Etapă</label>
                   <select
