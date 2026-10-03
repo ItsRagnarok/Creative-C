@@ -4,6 +4,11 @@ import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 type Row = { id: string };
+
+// Every hook instance gets its own channel: two components listening to the same table must not share one
+// (Supabase returns the already-subscribed channel for a repeated name, and adding listeners to it throws).
+let channelSeq = 0;
+const channelName = (base: string) => `${base}-${++channelSeq}`;
 type RealtimeTable = "leads" | "bookings" | "projects" | "project_tasks" | "project_files" | "channel_messages" | "prospects";
 
 // Keeps a list of rows live: inserts, updates and deletes made by anyone appear without a refresh.
@@ -30,7 +35,7 @@ export function useRealtimeRows<T extends Row>({
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
-      .channel(`live-${table}`)
+      .channel(channelName(`live-${table}`))
       .on("postgres_changes", { event: "*", schema: "public", table }, async (payload) => {
         if (payload.eventType === "DELETE") {
           const id = (payload.old as Row).id;
@@ -67,7 +72,7 @@ export function useRealtimeRefetch(table: "content_calendar" | "calendar_sheets"
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
-      .channel(`live-refetch-${table}`)
+      .channel(channelName(`live-refetch-${table}`))
       .on("postgres_changes", { event: "*", schema: "public", table }, () => ref.current())
       .subscribe();
     return () => {
