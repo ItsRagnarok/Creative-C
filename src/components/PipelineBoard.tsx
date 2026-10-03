@@ -67,12 +67,14 @@ export default function PipelineBoard({
   owners,
   canDelete,
   editors,
+  currentUserId,
   startAsClient,
 }: {
   initialLeads: LeadRow[];
   owners: Owner[];
   canDelete: boolean;
   editors: { id: string; full_name: string }[];
+  currentUserId: string;
   startAsClient?: boolean; // opened from "+ Client nou" in Clienți: the form starts as a confirmed client
 }) {
   const [leads, setLeads] = useState(initialLeads);
@@ -81,7 +83,7 @@ export default function PipelineBoard({
     startAsClient
       ? {
           mode: "create",
-          form: { ...EMPTY_FORM, stage: "confirmat", status: "confirmat", owner_id: owners[0]?.id ?? "", created_at: new Date().toISOString() },
+          form: { ...EMPTY_FORM, stage: "confirmat", status: "confirmat", owner_id: currentUserId, created_at: new Date().toISOString() },
         }
       : null,
   );
@@ -108,7 +110,7 @@ export default function PipelineBoard({
 
   function openCreate() {
     setFormError(null);
-    setModal({ mode: "create", form: { ...EMPTY_FORM, owner_id: owners[0]?.id ?? "", created_at: new Date().toISOString() } });
+    setModal({ mode: "create", form: { ...EMPTY_FORM, owner_id: currentUserId, created_at: new Date().toISOString() } });
   }
 
   function openEdit(lead: LeadRow) {
@@ -332,7 +334,7 @@ export default function PipelineBoard({
 
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" style={{ maxHeight: "92vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <h3>{modal.mode === "create" ? "Lead / client nou" : "Editează lead"}</h3>
               <button className="modal-close" onClick={() => setModal(null)}>✕</button>
@@ -340,135 +342,102 @@ export default function PipelineBoard({
             <form onSubmit={handleSave}>
               <div className="field">
                 <label>Nume client</label>
-                <input
-                  value={modal.form.name}
-                  onChange={(e) => setModal({ ...modal, form: { ...modal.form, name: e.target.value } })}
-                  placeholder="ex: Bella Cosmetics SRL"
-                />
-              </div>
-              <div className="faint" style={{ fontSize: 12, marginBottom: 12 }}>
-                Lead introdus: <b style={{ color: "var(--text)" }}>{new Date(modal.form.created_at ?? 0).toLocaleString("ro-RO", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</b>
+                <input value={modal.form.name} onChange={(e) => setModal({ ...modal, form: { ...modal.form, name: e.target.value } })} placeholder="ex: Bella Cosmetics SRL" />
               </div>
               {canDelete && (
-                <div className="grid g-2">
-                  <div className="field">
-                    <label>Număr clipuri</label>
-                    <input
-                      inputMode="numeric"
-                      value={modal.form.clips_count}
-                      onChange={(e) => setModal({ ...modal, form: { ...modal.form, clips_count: e.target.value } })}
-                      placeholder="ex: 20"
-                    />
+                <>
+                  <div className="grid g-2">
+                    <div className="field">
+                      <label>Număr clipuri</label>
+                      <input inputMode="numeric" value={modal.form.clips_count} onChange={(e) => setModal({ ...modal, form: { ...modal.form, clips_count: e.target.value } })} placeholder="ex: 20" />
+                    </div>
+                    <div className="field">
+                      <label>Plată editor (lei)</label>
+                      <input inputMode="decimal" value={modal.form.editor_pay} onChange={(e) => setModal({ ...modal, form: { ...modal.form, editor_pay: e.target.value } })} placeholder="ex: 800" />
+                    </div>
                   </div>
-                  <div className="field">
-                    <label>Plată editor (lei)</label>
-                    <input
-                      inputMode="decimal"
-                      value={modal.form.editor_pay}
-                      onChange={(e) => setModal({ ...modal, form: { ...modal.form, editor_pay: e.target.value } })}
-                      placeholder="ex: 800"
-                    />
+                  <div className="grid g-2">
+                    <div className="field">
+                      <label>Editor</label>
+                      <select value={modal.form.editor_id} onChange={(e) => setModal({ ...modal, form: { ...modal.form, editor_id: e.target.value } })}>
+                        <option value="">— fără editor —</option>
+                        {editors.map((ed) => <option key={ed.id} value={ed.id}>{ed.full_name}</option>)}
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label>Data începere proiect</label>
+                      <input type="date" value={modal.form.project_start} onChange={(e) => setModal({ ...modal, form: { ...modal.form, project_start: e.target.value } })} />
+                    </div>
                   </div>
-                </div>
-              )}
-              {canDelete && (
-                <div className="grid g-2">
-                  <div className="field">
-                    <label>Editor (primește calendarul clientului)</label>
-                    <select value={modal.form.editor_id} onChange={(e) => setModal({ ...modal, form: { ...modal.form, editor_id: e.target.value } })}>
-                      <option value="">— fără editor —</option>
-                      {editors.map((ed) => <option key={ed.id} value={ed.id}>{ed.full_name}</option>)}
-                    </select>
-                  </div>
-                  <div className="field">
-                    <label>Data începere proiect</label>
-                    <input type="date" value={modal.form.project_start} onChange={(e) => setModal({ ...modal, form: { ...modal.form, project_start: e.target.value } })} />
-                  </div>
-                </div>
-              )}
-              {modal.mode === "edit" && (
-                <div className="field">
-                  <label>Etapă</label>
-                  <select
-                    value={modal.form.stage}
-                    onChange={(e) => setModal({ ...modal, form: { ...modal.form, stage: e.target.value as LeadStage } })}
-                  >
-                    {STAGES.map((s) => (
-                      <option key={s.key} value={s.key}>{s.label}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              {modal.form.stage === "confirmat" && (
-                <div className="field">
-                  <label>Status</label>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    {LEAD_STATUSES.map((s) => (
-                      <button
-                        key={s.key}
-                        type="button"
-                        className={`btn sm ${modal.form.status === s.key ? "primary" : "ghost"}`}
-                        onClick={() => setModal({ ...modal, form: { ...modal.form, status: s.key } })}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
-                  </div>
-                  {modal.form.status === "pierdut" && (
-                    <textarea
-                      style={{ marginTop: 8 }}
-                      rows={2}
-                      placeholder="Motivul pierderii — scrie orice (ex: n-are buget, nu ne potrivim)"
-                      value={modal.form.lost_reason}
-                      onChange={(e) => setModal({ ...modal, form: { ...modal.form, lost_reason: e.target.value } })}
-                    />
-                  )}
-                  {modal.form.status === "confirmat" && (
-                    <p className="faint" style={{ fontSize: 12, marginTop: 6 }}>
-                      Completează mai jos pachetul și valoarea lunară. Managerii și adminii primesc notificare ca să creeze clientul.
-                    </p>
-                  )}
-                </div>
+                </>
               )}
               <div className="grid g-2">
                 <div className="field">
                   <label>Valoare lunară (lei)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="50"
-                    value={modal.form.value_monthly}
-                    onChange={(e) => setModal({ ...modal, form: { ...modal.form, value_monthly: e.target.value } })}
-                  />
+                  <input type="number" min="0" step="50" value={modal.form.value_monthly} onChange={(e) => setModal({ ...modal, form: { ...modal.form, value_monthly: e.target.value } })} />
                 </div>
                 <div className="field">
-                  <label>Responsabil</label>
-                  <select
-                    value={modal.form.owner_id}
-                    onChange={(e) => setModal({ ...modal, form: { ...modal.form, owner_id: e.target.value } })}
-                  >
-                    <option value="">— fără responsabil —</option>
-                    {owners.map((o) => (
-                      <option key={o.id} value={o.id}>{o.full_name}</option>
-                    ))}
-                  </select>
+                  <label>Pachet</label>
+                  <input value={modal.form.package} onChange={(e) => setModal({ ...modal, form: { ...modal.form, package: e.target.value } })} placeholder="ex: 20 clipuri / lună" />
                 </div>
               </div>
-              <div className="field">
-                <label>Pachet</label>
-                <input
-                  value={modal.form.package}
-                  onChange={(e) => setModal({ ...modal, form: { ...modal.form, package: e.target.value } })}
-                  placeholder="ce pachet a luat (ex: 20 clipuri / lună)"
-                />
-              </div>
+
+              {/* Only when editing an existing lead: where it is in the pipeline, its status and who handles it */}
+              {modal.mode === "edit" && (
+                <>
+                  <div className="grid g-2">
+                    <div className="field">
+                      <label>Etapă</label>
+                      <select value={modal.form.stage} onChange={(e) => setModal({ ...modal, form: { ...modal.form, stage: e.target.value as LeadStage } })}>
+                        {STAGES.map((s) => (
+                          <option key={s.key} value={s.key}>{s.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label>Responsabil</label>
+                      <select value={modal.form.owner_id} onChange={(e) => setModal({ ...modal, form: { ...modal.form, owner_id: e.target.value } })}>
+                        <option value="">— fără responsabil —</option>
+                        {owners.map((o) => (
+                          <option key={o.id} value={o.id}>{o.full_name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  {modal.form.stage === "confirmat" && (
+                    <div className="field">
+                      <label>Status</label>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {LEAD_STATUSES.map((st) => (
+                          <button
+                            key={st.key}
+                            type="button"
+                            className={`btn sm ${modal.form.status === st.key ? "primary" : "ghost"}`}
+                            onClick={() => setModal({ ...modal, form: { ...modal.form, status: st.key } })}
+                          >
+                            {st.label}
+                          </button>
+                        ))}
+                      </div>
+                      {modal.form.status === "pierdut" && (
+                        <textarea
+                          style={{ marginTop: 8 }}
+                          rows={2}
+                          placeholder="Motivul pierderii — scrie orice (ex: n-are buget, nu ne potrivim)"
+                          value={modal.form.lost_reason}
+                          onChange={(e) => setModal({ ...modal, form: { ...modal.form, lost_reason: e.target.value } })}
+                        />
+                      )}
+                    </div>
+                  )}
+                  <div className="faint" style={{ fontSize: 12, marginBottom: 10 }}>
+                    Lead introdus: {new Date(modal.form.created_at ?? 0).toLocaleString("ro-RO", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                </>
+              )}
               <div className="field">
                 <label>Notițe</label>
-                <textarea
-                  rows={3}
-                  value={modal.form.notes}
-                  onChange={(e) => setModal({ ...modal, form: { ...modal.form, notes: e.target.value } })}
-                />
+                <textarea rows={2} value={modal.form.notes} onChange={(e) => setModal({ ...modal, form: { ...modal.form, notes: e.target.value } })} />
               </div>
 
               {formError && <div className="field-error">{formError}</div>}

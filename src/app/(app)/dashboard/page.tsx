@@ -4,7 +4,7 @@ import { OWNER_SELECT } from "@/lib/selects";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ client?: string }> }) {
   const { client } = await searchParams;
-  const { supabase, role, team } = await getAppContext();
+  const { supabase, user, role, team } = await getAppContext();
   const owners = team;
 
   const { data: leads } =
@@ -25,6 +25,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           owners={(owners ?? []) as Owner[]}
           canDelete={role === "admin" || role === "manager"}
           editors={team.filter((p) => p.role === "editor").map((p) => ({ id: p.id, full_name: p.full_name }))}
+          currentUserId={user.id}
           startAsClient={client === "1"}
         />
       )}
