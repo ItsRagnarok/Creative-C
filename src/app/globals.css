@@ -410,7 +410,7 @@ table{ width:100%; border-collapse:collapse; }
 .tab-blink{ animation:tab-blink 1.3s ease-in-out infinite; }
 
 /* Top bar: who is signed in, clearly, next to notifications and logout */
-.account-chip{ display:flex; align-items:center; gap:11px; padding:4px 10px 4px 4px; border-radius:12px; background:transparent; border:1px solid transparent; color:var(--text); cursor:pointer; transition:border-color .15s, background .15s; }
+.account-chip{ display:flex; align-items:center; gap:11px; padding:4px 14px 4px 4px; border-radius:999px; background:transparent; border:1px solid transparent; color:var(--text); cursor:pointer; transition:border-color .15s, background .15s; }
 .account-chip:hover, .account-chip:focus-visible{ outline:none; background:var(--surface-2); border-color:var(--border); }
 .account-avatar{ position:relative; width:38px; height:38px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center;
   background:linear-gradient(135deg, var(--accent), #8a0f1f); color:#fff; font-family:var(--font-display); font-size:17px; letter-spacing:.04em; box-shadow:inset 0 0 0 1px rgba(255,255,255,.18); }
@@ -419,6 +419,8 @@ table{ width:100%; border-collapse:collapse; }
 .account-text b{ font-size:13.5px; font-weight:600; }
 .account-text small{ font-size:10px; text-transform:uppercase; letter-spacing:.12em; color:var(--accent); font-weight:600; margin-top:2px; }
 .account-caret{ font-size:10px; color:var(--text-faint); margin-left:2px; }
+.top-actions .icon-btn{ border-radius:50%; }
+.top-actions .logout-btn{ border-radius:999px; padding-inline:16px; }
 .logout-btn:hover{ border-color:var(--danger); color:var(--danger); }
 @media (max-width:820px){ .account-text, .account-caret{ display:none; } .account-chip{ padding:4px; } }
 
