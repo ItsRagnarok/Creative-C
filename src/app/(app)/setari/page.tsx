@@ -1,12 +1,19 @@
+import Link from "next/link";
 import { NAV, ROLE_LABEL, ROLE_NOTE, type AppRole } from "@/lib/roles";
 import { getAppContext } from "@/lib/app-context";
+import EchipaBoard, { type ProfileRow } from "@/components/EchipaBoard";
 import AccessMatrix, { type AccessRow, type AccessUser } from "@/components/AccessMatrix";
 
 const ALL_ROLES: AppRole[] = ["admin", "manager", "vanzari", "editor"];
 
-export default async function SetariPage() {
-  const { supabase, profile, role } = await getAppContext();
-  const hasAccess = !!profile.is_super_admin;
+export default async function SetariPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const { tab: tabParam } = await searchParams;
+  const { supabase, user, profile, role, access, team } = await getAppContext();
+  const isSuper = !!profile.is_super_admin;
+  const canTeam = access.echipa.view;
+  // Submenus: "Roluri & acces" (admin S only) and "Echipă" (anyone with the Echipă access).
+  const tab: "roluri" | "echipa" = tabParam === "echipa" && canTeam ? "echipa" : isSuper ? "roluri" : "echipa";
+  const hasAccess = tab === "roluri" && isSuper;
 
   const items = NAV.flatMap((g) => g.items);
   const { count: teamCount } = hasAccess
@@ -19,13 +26,35 @@ export default async function SetariPage() {
       ])
     : [{ data: null }, { data: null }];
 
+  const tabs = (
+    <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+      {isSuper && <Link href="/setari?tab=roluri" className={`btn sm ${tab === "roluri" ? "primary" : "ghost"}`}>Roluri & acces</Link>}
+      {canTeam && <Link href="/setari?tab=echipa" className={`btn sm ${tab === "echipa" ? "primary" : "ghost"}`}>Echipă</Link>}
+    </div>
+  );
+
+  if (tab === "echipa" && canTeam) {
+    return (
+      <>
+        {tabs}
+        <EchipaBoard
+          initialProfiles={team as ProfileRow[]}
+          canManage={role === "admin"}
+          currentIsSuper={isSuper}
+          currentUserId={user.id}
+        />
+      </>
+    );
+  }
+
   return (
     <>
+      {hasAccess && tabs}
       {hasAccess ? (
         <>
           <div className="page-head">
             <div>
-              <h1>Setări & Roluri</h1>
+              <h1>Setări</h1>
               <p>Matricea de permisiuni e generată direct din configurația meniului — mereu la zi, nu poate să rămână în urmă.</p>
             </div>
           </div>
@@ -85,14 +114,14 @@ export default async function SetariPage() {
               <h3 style={{ fontSize: 13.5 }}>Conturi active</h3>
               <p style={{ fontSize: 12 }}>
                 {teamCount ?? "—"} conturi în platformă. Gestionarea lor (invitare, schimbare rol, ștergere)
-                se face din <a href="/echipa">Echipă</a>.
+                se face din <Link href="/setari?tab=echipa">Echipă</Link>.
               </p>
             </div>
           </div>
         </>
       ) : (
         <div className="empty-note" style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
-          Contul tău ({ROLE_LABEL[role]}) nu are acces la Setări & Roluri — exclusiv pentru Admin.
+          Contul tău ({ROLE_LABEL[role]}) nu are acces la Setări.
         </div>
       )}
     </>

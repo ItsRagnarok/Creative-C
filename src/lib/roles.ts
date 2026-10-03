@@ -43,7 +43,6 @@ export const NAV: NavGroup[] = [
     group: "Livrare",
     items: [
       { key: "editori", label: "Canale", href: "/editori", icon: "◈", roles: ["admin", "manager", "editor"], enabled: true },
-      { key: "echipa", label: "Echipă", href: "/echipa", icon: "◐", roles: ["admin", "manager"], enabled: true },
     ],
   },
   {
@@ -70,7 +69,7 @@ export const NAV: NavGroup[] = [
   {
     group: "Sistem",
     items: [
-      { key: "setari", label: "Setări & Roluri", href: "/setari", icon: "⚙", roles: ["admin"], enabled: true },
+      { key: "setari", label: "Setări", href: "/setari", icon: "⚙", roles: ["admin", "manager"], enabled: true },
       { key: "email", label: "Email", href: "/email", icon: "✉", roles: ["admin"], enabled: true },
     ],
   },

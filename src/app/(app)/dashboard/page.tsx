@@ -11,7 +11,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   // Landing page: someone without the Pipeline (an editor, for instance) goes straight to the first menu they can use.
   if (!access.dashboard.view) {
-    const key = (k: string) => (k === "prospecti" ? "clienti" : k === "standarde" || k === "regulament" ? "editori" : k);
+    const key = (k: string) => (k === "prospecti" ? "clienti" : k === "setari" ? "echipa" : k === "standarde" || k === "regulament" ? "editori" : k);
     const first = NAV.flatMap((g) => g.items).find(
       (i) => i.key !== "dashboard" && i.key !== "setari" && i.key !== "email" && access[key(i.key) as MenuKey]?.view,
     );

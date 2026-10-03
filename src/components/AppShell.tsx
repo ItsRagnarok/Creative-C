@@ -95,7 +95,8 @@ function ShellInner({
       NAV.map((g) => ({
         ...g,
         items: g.items.filter((i) => {
-          if (i.key === "setari" || i.key === "email") return !!isSuperAdmin; // roles, access & email are admin S only
+          if (i.key === "setari") return !!isSuperAdmin || (access?.echipa.view ?? false); // Setări holds roles & access (admin S only) and Echipă
+          if (i.key === "email") return !!isSuperAdmin; // email is admin S only
           if (access) return access[(i.key === "prospecti" ? "clienti" : i.key === "standarde" || i.key === "regulament" ? "editori" : i.key) as MenuKey]?.view ?? false; // prospects follow Clienți, the editor guides follow Canale
           return i.roles.includes(effectiveRole);
         }),
