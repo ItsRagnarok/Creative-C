@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRealtimeRefetch } from "@/lib/useRealtimeRows";
 
 export type SheetRow = { id: string; editor_id: string; client_name: string; lead_id: string | null; created_at: string };
-type LeadOption = { id: string; name: string; editor_pay: number };
+type LeadOption = { id: string; name: string; editor_pay: number; clips_count: number | null };
 type PenaltyDay = { day: string; expected: number; uploaded: number; missing: number; penalty: number; clients: string | null };
 
 export type CalendarEditor = { id: string; full_name: string; initials: string; role?: string };
@@ -188,7 +188,7 @@ export default function ContentCalendar({
   const leadKey = canManage ? "all" : sheets.map((x) => x.lead_id ?? "").join(",");
   useEffect(() => {
     let cancelled = false;
-    const q = supabase.from("leads").select("id, name, editor_pay").order("name");
+    const q = supabase.from("leads").select("id, name, editor_pay, clips_count").order("name");
     const ids = sheets.map((x) => x.lead_id).filter(Boolean) as string[];
     if (!canManage && ids.length === 0) return;
     (canManage ? q : q.in("id", ids)).then(({ data }) => {
@@ -529,6 +529,15 @@ export default function ContentCalendar({
                   )}
                 </div>
               )}
+              {sheet && (() => {
+                const lead = leads.find((l) => l.id === sheet.lead_id);
+                const done = rows.filter((r) => r.file_path || r.file_url).length;
+                return lead?.clips_count != null ? (
+                  <div className="faint" style={{ fontSize: 12.5, marginBottom: 12 }}>
+                    Număr clipuri pentru acest client: <b style={{ color: "var(--text)" }}>{lead.clips_count}</b> · încărcate în {monthLabel(month)}: <b style={{ color: "var(--text)" }}>{done}</b>
+                  </div>
+                ) : null;
+              })()}
               {!sheet && !loading && (
                 <div className="empty-note" style={{ margin: "10px 0 18px" }}>
                   {canManage ? "Editorul nu are încă niciun calendar. Apasă „+ Calendar nou”." : "Nu ai încă un calendar. Managerul ți-l creează."}

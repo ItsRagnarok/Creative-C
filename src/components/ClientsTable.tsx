@@ -39,8 +39,8 @@ export default function ClientsTable({ initialLeads, canDelete, editors }: { ini
     if (error) window.alert(error.message);
   }
 
-  // Clienți = leads whose status is Confirmat (the closer confirmed them in the pipeline)
-  const clients = useMemo(() => leads.filter((l) => l.status === "confirmat"), [leads]);
+  // Clienți = leads confirmed by a closer, plus every lead added manually (those go straight to Clienți)
+  const clients = useMemo(() => leads.filter((l) => l.status === "confirmat" || l.source === "Manual"), [leads]);
   const filtered = useMemo(() => {
     return clients.filter((l) => {
       if (search && !l.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -114,7 +114,7 @@ export default function ClientsTable({ initialLeads, canDelete, editors }: { ini
       <div className="page-head">
         <div>
           <h1>Clienți</h1>
-          <p>{clients.length} clienți confirmați — editor, clipuri, plăți și data de început. Lead-urile sunt în Pipeline.</p>
+          <p>{clients.length} clienți — editor, clipuri, plăți și data de început. Lead-urile sunt în Pipeline.</p>
         </div>
         <button className="btn primary" onClick={() => router.push("/dashboard?client=1")}>
           + Client nou
