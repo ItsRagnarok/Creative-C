@@ -188,11 +188,12 @@ export default function ContentCalendar({
   const leadKey = canManage ? "all" : sheets.map((x) => x.lead_id ?? "").join(",");
   useEffect(() => {
     let cancelled = false;
-    const q = supabase.from("leads").select("id, name, editor_pay, clips_count").order("name");
+    // the editor pay is for managers only; an editor just needs the client name and the number of clips
+    const q = supabase.from("leads").select(canManage ? "id, name, editor_pay, clips_count" : "id, name, clips_count").order("name");
     const ids = sheets.map((x) => x.lead_id).filter(Boolean) as string[];
     if (!canManage && ids.length === 0) return;
     (canManage ? q : q.in("id", ids)).then(({ data }) => {
-      if (!cancelled) setLeads((data ?? []) as LeadOption[]);
+      if (!cancelled) setLeads((data ?? []) as unknown as LeadOption[]);
     });
     return () => {
       cancelled = true;
@@ -472,9 +473,13 @@ export default function ContentCalendar({
               {/* Monthly pay for this editor: what the linked clients pay minus the 17:00 penalties */}
               <div className="card" style={{ padding: "12px 16px", marginBottom: 14, background: "var(--surface-2)" }}>
                 <div style={{ display: "flex", gap: 18, alignItems: "baseline", flexWrap: "wrap" }}>
-                  <div><div className="faint" style={{ fontSize: 11 }}>PLATĂ EDITOR — {monthLabel(month).toUpperCase()}</div><b style={{ fontSize: 18 }}>{basePay.toLocaleString("ro-RO")} lei</b></div>
-                  <div><div className="faint" style={{ fontSize: 11 }}>PENALIZĂRI</div><b style={{ fontSize: 18, color: penaltyTotal ? "var(--danger)" : undefined }}>{penaltyTotal ? `−${penaltyTotal}` : "0"} lei</b></div>
-                  <div><div className="faint" style={{ fontSize: 11 }}>DE PLĂTIT</div><b style={{ fontSize: 18 }}>{(basePay - penaltyTotal).toLocaleString("ro-RO")} lei</b></div>
+                  {canManage && (
+                    <div><div className="faint" style={{ fontSize: 11 }}>PLATĂ EDITOR — {monthLabel(month).toUpperCase()}</div><b style={{ fontSize: 18 }}>{basePay.toLocaleString("ro-RO")} lei</b></div>
+                  )}
+                  <div><div className="faint" style={{ fontSize: 11 }}>PENALIZĂRI{canManage ? "" : ` — ${monthLabel(month).toUpperCase()}`}</div><b style={{ fontSize: 18, color: penaltyTotal ? "var(--danger)" : undefined }}>{penaltyTotal ? `−${penaltyTotal}` : "0"} lei</b></div>
+                  {canManage && (
+                    <div><div className="faint" style={{ fontSize: 11 }}>DE PLĂTIT</div><b style={{ fontSize: 18 }}>{(basePay - penaltyTotal).toLocaleString("ro-RO")} lei</b></div>
+                  )}
                   {penalties.length > 0 && (
                     <button type="button" className="btn sm ghost" style={{ marginLeft: "auto" }} onClick={() => setShowPenalties((v) => !v)}>
                       {showPenalties ? "Ascunde detaliile" : "Vezi detaliile"}
