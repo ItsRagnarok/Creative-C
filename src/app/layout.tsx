@@ -24,8 +24,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Creative C · CRM",
-  description: "CRM intern Creative C",
+  title: "CS Studio",
+  description: "Platforma Creative Society Studio",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

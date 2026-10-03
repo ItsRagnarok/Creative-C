@@ -422,7 +422,7 @@ export default function ChannelsBoard({
                     <div className="p-avatar">{m.author ? m.author.initials : "CC"}</div>
                     <div>
                       <div className="p-sub">
-                        <b style={{ color: "var(--text-muted)" }}>{m.author ? m.author.full_name : "Creative C Bot"}</b> · {new Date(m.created_at).toLocaleString("ro-RO", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        <b style={{ color: "var(--text-muted)" }}>{m.author ? m.author.full_name : "CS Studio Bot"}</b> · {new Date(m.created_at).toLocaleString("ro-RO", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </div>
                       <div className="bubble">{highlight(m.body)}{m.file_name ? <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>📁 {highlight(m.file_name)}</div> : null}</div>
                     </div>
@@ -438,7 +438,7 @@ export default function ChannelsBoard({
                       <div className="p-avatar">{m.author ? m.author.initials : "CC"}</div>
                       <div>
                         <div className="p-sub">
-                          <b style={{ color: "var(--text-muted)" }}>{m.author ? m.author.full_name : "Creative C Bot"}</b> · {fmtMsgDate(m.created_at, today)}
+                          <b style={{ color: "var(--text-muted)" }}>{m.author ? m.author.full_name : "CS Studio Bot"}</b> · {fmtMsgDate(m.created_at, today)}
                         </div>
                         {sticker ? (
                           <div style={{ marginTop: 4 }}>{sticker}</div>

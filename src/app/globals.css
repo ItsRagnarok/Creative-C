@@ -90,6 +90,7 @@ select option{ background: var(--surface-2); color: var(--text); }
   display:flex;align-items:center;justify-content:center;
   font-family:var(--font-display); font-weight:400; color:#fff; font-size:15px;
 }
+.brand-logo{ height:32px; width:auto; flex:none; }
 .brand-name{ font-family:var(--font-display); font-weight:700; font-size:15px; }
 .brand-sub{ font-size:11px; color:var(--text-faint); }
 

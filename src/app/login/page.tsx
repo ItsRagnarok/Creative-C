@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -47,10 +48,10 @@ function LoginForm() {
       <div className="auth-side">
         <div style={{ position: "relative" }}>
           <Link href="/" className="brand" style={{ padding: "0 0 40px" }}>
-            <div className="brand-mark" style={{ width: 44, height: 44, fontSize: 18 }}>CC</div>
+            <Image src="/logo.png" alt="CS Studio" width={280} height={228} className="brand-logo" style={{ height: 48 }} priority />
             <div>
-              <div className="brand-name" style={{ fontSize: 19 }}>Creative C</div>
-              <div className="brand-sub">CRM intern</div>
+              <div className="brand-name" style={{ fontSize: 19 }}>CS Studio</div>
+              <div className="brand-sub">Creative Society Studio</div>
             </div>
           </Link>
           <h1 style={{ fontSize: 32, maxWidth: 460 }}>Clienți, proiecte și echipă, într-un singur loc.</h1>
@@ -71,7 +72,7 @@ function LoginForm() {
       <div className="auth-form-wrap">
         <div className="auth-card">
           <h2 style={{ fontSize: 20 }}>Autentificare</h2>
-          <p style={{ marginBottom: 22 }}>Introdu datele contului tău Creative C.</p>
+          <p style={{ marginBottom: 22 }}>Introdu datele contului tău CS Studio.</p>
 
           <form onSubmit={handleSubmit}>
             <div className="field">

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { NAV, ROLE_LABEL, ROLE_NOTE, type AppRole } from "@/lib/roles";
 import type { Access, MenuKey } from "@/lib/access";
@@ -108,10 +109,10 @@ function ShellInner({
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">CC</div>
+          <Image src="/logo.png" alt="CS Studio" width={280} height={228} className="brand-logo" priority />
           <div>
-            <div className="brand-name">Creative C</div>
-            <div className="brand-sub">CRM intern</div>
+            <div className="brand-name">CS Studio</div>
+            <div className="brand-sub">Creative Society Studio</div>
           </div>
         </div>
 
