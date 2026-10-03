@@ -7,10 +7,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { supabase, user, profile, role, access } = await getAppContext();
   const { data: notifications } = await supabase
     .from("notifications")
-    .select("id, title, body, is_read, created_at")
+    .select("id, title, body, is_read, created_at, channel_id")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
-    .limit(20);
+    .limit(100);
 
   return (
     <AppShell

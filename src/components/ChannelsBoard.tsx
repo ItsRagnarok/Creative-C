@@ -6,6 +6,7 @@ import type { Owner } from "@/components/PipelineBoard";
 import { MESSAGE_SELECT } from "@/lib/selects";
 import { useRealtimeRows, useRealtimeRefetch } from "@/lib/useRealtimeRows";
 import { EditoriTabContext } from "@/components/EditoriTabs";
+import { useNotifications } from "@/components/NotificationsProvider";
 import { setActiveChat } from "@/lib/activeChat";
 
 export type ChannelRow = {
@@ -71,8 +72,8 @@ export default function ChannelsBoard({
 
   const ownChannel = channels.find((c) => c.editor_id === currentUserId) ?? null;
   const [activeId, setActiveIdState] = useState<string | null>(ownChannel?.id ?? channels[0]?.id ?? null);
-  const [unread, setUnread] = useState<Record<string, number>>({});
-  const { tab, setChatUnread } = useContext(EditoriTabContext);
+  const { unreadByChannel: unread, markChannelRead } = useNotifications();
+  const { tab, chatSeen } = useContext(EditoriTabContext);
   const tabRef = useRef(tab);
   const activeIdRef = useRef(activeId);
   const endRef = useRef<HTMLDivElement>(null);
@@ -81,7 +82,7 @@ export default function ChannelsBoard({
     activeIdRef.current = id;
     if (tabRef.current === "chat") setActiveChat(id);
     setActiveIdState(id);
-    if (id) setUnread((u) => ({ ...u, [id]: 0 }));
+    if (id) markChannelRead(id);
   }
 
   // Live: new messages from anyone appear instantly (RLS decides which ones this user receives).
@@ -89,11 +90,6 @@ export default function ChannelsBoard({
     table: "channel_messages",
     select: MESSAGE_SELECT,
     setRows: setMessages,
-    onChange: (m, event) => {
-      if (event === "INSERT" && m.author_id !== currentUserId && (m.channel_id !== activeIdRef.current || tabRef.current !== "chat")) {
-        setUnread((u) => ({ ...u, [m.channel_id]: (u[m.channel_id] ?? 0) + 1 }));
-      }
-    },
   });
 
   const [today] = useState(() => new Date());
@@ -102,12 +98,10 @@ export default function ChannelsBoard({
   useEffect(() => {
     tabRef.current = tab;
     setActiveChat(tab === "chat" ? activeIdRef.current : null);
-    if (tab === "chat" && activeIdRef.current) setUnread((u) => (u[activeIdRef.current!] ? { ...u, [activeIdRef.current!]: 0 } : u));
-  }, [tab]);
+    // the open channel counts as read once you have clicked the Canale tab (until then its counter stays, so you notice it)
+    if (tab === "chat" && chatSeen && activeIdRef.current) markChannelRead(activeIdRef.current);
+  }, [tab, chatSeen, markChannelRead]);
   useEffect(() => () => setActiveChat(null), []);
-  useEffect(() => {
-    setChatUnread(Object.values(unread).reduce((a, b) => a + b, 0));
-  }, [unread, setChatUnread]);
 
   const active = channels.find((c) => c.id === activeId) ?? null;
   const activeMessages = useMemo(

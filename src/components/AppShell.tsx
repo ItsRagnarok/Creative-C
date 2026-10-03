@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { NAV, ROLE_LABEL, ROLE_NOTE, type AppRole } from "@/lib/roles";
 import type { Access, MenuKey } from "@/lib/access";
-import NotificationsBell, { type NotificationRow } from "@/components/NotificationsBell";
+import NotificationsBell from "@/components/NotificationsBell";
+import NotificationsProvider, { useNotifications, type NotificationRow } from "@/components/NotificationsProvider";
 import { createClient } from "@/lib/supabase/client";
 
 type Props = {
@@ -18,17 +19,25 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default function AppShell({
+export default function AppShell(props: Props) {
+  return (
+    <NotificationsProvider initial={props.notifications}>
+      <ShellInner {...props} />
+    </NotificationsProvider>
+  );
+}
+
+function ShellInner({
   actualRole,
   fullName,
   initials,
-  notifications,
   access,
   isSuperAdmin,
   children,
 }: Props) {
   const router = useRouter();
   const pathname = usePathname();
+  const { chatUnread } = useNotifications();
 
   // Active menu item, page title and section all come from the URL, so the shell never has to be re-rendered by a page.
   const current = useMemo(() => {
@@ -113,10 +122,11 @@ export default function AppShell({
                 <Link
                   key={item.key}
                   href={item.href}
-                  className={`nav-item ${item.key === activeKey ? "active" : ""}`}
+                  className={`nav-item ${item.key === activeKey ? "active" : ""}${item.key === "editori" && chatUnread > 0 && item.key !== activeKey ? " nav-blink" : ""}`}
                 >
                   <span className="ic">{item.icon}</span>
                   <span>{item.label}</span>
+                  {item.key === "editori" && chatUnread > 0 && item.key !== activeKey && <span className="badge red" style={{ marginLeft: "auto" }}>{chatUnread}</span>}
                   {item.ext && <span className="ext">{item.ext}</span>}
                 </Link>
               ) : (
@@ -152,7 +162,7 @@ export default function AppShell({
             <span>Caută clienți, proiecte, facturi…</span>
           </div>
           <div className="top-actions">
-            <NotificationsBell initial={notifications} />
+            <NotificationsBell />
             <button className="account-chip" title="Contul tău — apasă ca să îți schimbi parola" onClick={() => setPwOpen(true)}>
               <span className="avatar">{initials}</span>
               <span className="account-text">
