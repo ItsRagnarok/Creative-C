@@ -19,7 +19,7 @@ export default async function ProgramariPage() {
   const until = new Date(Date.now() + 35 * 86_400_000).toISOString();
 
   const canSeeEverything = role === "admin" || role === "manager";
-  const [{ data: bookings }, { data: projectDeadlines }, { data: documentExpiries }, { data: invoiceDueDates }, { data: availability }, { data: slugRows }, { data: settingsRow }, { data: mySlugRow }, { data: generalRows }] = await Promise.all([
+  const [{ data: bookings }, { data: documentExpiries }, { data: invoiceDueDates }, { data: availability }, { data: slugRows }, { data: settingsRow }, { data: mySlugRow }, { data: generalRows }] = await Promise.all([
     hasAccess
       ? supabase
           .from("bookings")
@@ -28,14 +28,6 @@ export default async function ProgramariPage() {
           .lt("scheduled_at", until)
           .order("scheduled_at", { ascending: true })
           .limit(300)
-      : Promise.resolve({ data: null }),
-    canSeeEverything
-      ? supabase
-          .from("projects")
-          .select("id, title, deadline")
-          .neq("stage", "finalizat")
-          .gte("deadline", since)
-          .lt("deadline", until)
       : Promise.resolve({ data: null }),
     canSeeEverything
       ? supabase
@@ -61,7 +53,6 @@ export default async function ProgramariPage() {
   ]);
 
   const extraEvents: CalendarExtra[] = [
-    ...(projectDeadlines ?? []).map((p) => ({ id: `proj-${p.id}`, date: p.deadline as string, label: `Deadline proiect: ${p.title}`, kind: "deadline" as const, href: "/proiecte" })),
     ...(documentExpiries ?? []).map((d) => ({ id: `doc-${d.id}`, date: d.expiry_date as string, label: `Expiră contract: ${d.title}`, kind: "document" as const, href: "/documente" })),
     ...(invoiceDueDates ?? []).map((i) => ({
       id: `inv-${i.id}`,

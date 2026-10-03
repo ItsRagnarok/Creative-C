@@ -893,6 +893,9 @@ export type Database = {
         Row: {
           clips_count: number | null
           editor_pay: number
+          status: string
+          lost_reason: string | null
+          package: string | null
           editor_id: string | null
           project_start: string | null
           created_at: string
@@ -909,6 +912,9 @@ export type Database = {
         Insert: {
           clips_count?: number | null
           editor_pay?: number
+          status?: string
+          lost_reason?: string | null
+          package?: string | null
           editor_id?: string | null
           project_start?: string | null
           created_at?: string
@@ -925,6 +931,9 @@ export type Database = {
         Update: {
           clips_count?: number | null
           editor_pay?: number
+          status?: string
+          lost_reason?: string | null
+          package?: string | null
           editor_id?: string | null
           project_start?: string | null
           created_at?: string

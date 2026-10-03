@@ -7,7 +7,6 @@ export const MENUS = [
   { key: "dashboard", label: "Pipeline & Dashboard" },
   { key: "clienti", label: "Clienți" },
   { key: "programari", label: "Programări" },
-  { key: "proiecte", label: "Proiecte" },
   { key: "editori", label: "Canale" },
   { key: "echipa", label: "Echipă" },
   { key: "documente", label: "Documente & Contracte" },
@@ -29,7 +28,6 @@ export function roleDefault(role: AppRole, menu: MenuKey, kind: AccessKind): boo
     case "programari":
     case "documente":
       return role === "manager" || role === "vanzari";
-    case "proiecte":
     case "editori":
       return role === "manager" || role === "editor";
     case "financiar":

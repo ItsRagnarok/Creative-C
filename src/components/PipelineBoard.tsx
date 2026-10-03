@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import InfoTip from "@/components/InfoTip";
-import { STAGES, STAGE_LABEL, daysSince, timeAgo, formatLei, type LeadStage } from "@/lib/pipeline";
+import { STAGES, STAGE_LABEL, LEAD_STATUSES, STATUS_BADGE, STATUS_LABEL, daysSince, timeAgo, formatLei, type LeadStage, type LeadStatus } from "@/lib/pipeline";
 import { OWNER_SELECT } from "@/lib/selects";
 import { useRealtimeRows } from "@/lib/useRealtimeRows";
 
@@ -22,6 +22,9 @@ export type LeadRow = {
   editor_pay: number;
   editor_id: string | null;
   project_start: string | null;
+  status: LeadStatus;
+  lost_reason: string | null;
+  package: string | null;
   owner: Owner | null;
 };
 
@@ -33,6 +36,9 @@ type FormState = {
   value_monthly: string;
   owner_id: string;
   notes: string;
+  status: LeadStatus;
+  lost_reason: string;
+  package: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -42,6 +48,9 @@ const EMPTY_FORM: FormState = {
   value_monthly: "0",
   owner_id: "",
   notes: "",
+  status: "pending",
+  lost_reason: "",
+  package: "",
 };
 
 export default function PipelineBoard({
@@ -67,9 +76,9 @@ export default function PipelineBoard({
     const now = Date.now();
     const newLast7d = leads.filter((l) => now - new Date(l.created_at).getTime() < 7 * 86_400_000).length;
     const pipelineValue = leads
-      .filter((l) => l.stage !== "finalizat")
+      .filter((l) => l.status === "pending" || (l.stage !== "confirmat" && l.status !== "pierdut"))
       .reduce((sum, l) => sum + Number(l.value_monthly), 0);
-    const reachedConfirmed = leads.filter((l) => ["confirmat", "lucru", "finalizat"].includes(l.stage)).length;
+    const reachedConfirmed = leads.filter((l) => l.stage === "confirmat" && l.status === "confirmat").length;
     const conversionRate = leads.length ? Math.round((reachedConfirmed / leads.length) * 100) : 0;
     const overdue = leads.filter(
       (l) => ["nou", "discutie"].includes(l.stage) && daysSince(l.last_activity_at) > 3,
@@ -94,6 +103,9 @@ export default function PipelineBoard({
         value_monthly: String(lead.value_monthly),
         owner_id: lead.owner_id ?? "",
         notes: lead.notes ?? "",
+        status: lead.status,
+        lost_reason: lead.lost_reason ?? "",
+        package: lead.package ?? "",
       },
     });
   }
@@ -106,6 +118,11 @@ export default function PipelineBoard({
       setFormError("Numele clientului e obligatoriu.");
       return;
     }
+    const inStatus = form.stage === "confirmat";
+    if (inStatus && form.status === "pierdut" && !form.lost_reason.trim()) {
+      setFormError("Scrie motivul pierderii (de ex: n-are buget, nu ne potrivim).");
+      return;
+    }
     setSaving(true);
     setFormError(null);
 
@@ -116,6 +133,9 @@ export default function PipelineBoard({
       value_monthly: Number(form.value_monthly) || 0,
       owner_id: form.owner_id || null,
       notes: form.notes.trim() || null,
+      status: inStatus ? form.status : ("pending" as LeadStatus),
+      lost_reason: inStatus && form.status === "pierdut" ? form.lost_reason.trim() : null,
+      package: form.package.trim() || null,
       last_activity_at: new Date().toISOString(),
     };
 
@@ -164,11 +184,11 @@ export default function PipelineBoard({
   }
 
   function exportCsv() {
-    const header = ["Nume", "Sursă", "Etapă", "Valoare lunară (lei)", "Responsabil", "Creat", "Ultima activitate"];
+    const header = ["Nume", "Sursă", "Etapă / status", "Valoare lunară (lei)", "Responsabil", "Creat", "Ultima activitate"];
     const rows = leads.map((l) => [
       l.name,
       l.source,
-      STAGE_LABEL[l.stage],
+      l.stage === "confirmat" ? `Status: ${STATUS_LABEL[l.status]}` : STAGE_LABEL[l.stage],
       String(l.value_monthly),
       l.owner?.full_name ?? "",
       new Date(l.created_at).toLocaleDateString("ro-RO"),
@@ -191,7 +211,7 @@ export default function PipelineBoard({
       <div className="page-head">
         <div>
           <h1>Pipeline & Dashboard</h1>
-          <p>Toate lead-urile active, de la primul contact până la proiect finalizat.</p>
+          <p>Lead-urile: Nou → În discuție (când e setat meeting-ul) → Status (Pending / Confirmat / Pierdut).</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button className="btn ghost" onClick={exportCsv}>Exportă CSV</button>
@@ -209,14 +229,14 @@ export default function PipelineBoard({
         </div>
         <div className="card kpi">
           <div className="label">
-            <span className="title-row">Rată de conversie <InfoTip text="Procentul de lead-uri care au ajuns cel puțin la etapa Confirmat, din totalul lead-urilor create vreodată." /></span>
+            <span className="title-row">Rată de conversie <InfoTip text="Procentul de lead-uri cu status Confirmat, din totalul lead-urilor create vreodată." /></span>
           </div>
           <div className="value">{kpis.conversionRate}%</div>
           <div className="delta up">calculată automat din pipeline</div>
         </div>
         <div className="card kpi">
           <div className="label">
-            <span className="title-row">Valoare pipeline activ <InfoTip text="Suma valorilor lunare ale tuturor lead-urilor care nu sunt Finalizate. Editează valoarea oricărui card ca să vezi cum se schimbă suma." align="right" /></span>
+            <span className="title-row">Valoare pipeline activ <InfoTip text="Suma valorilor lunare ale lead-urilor încă în joc (fără cele Pierdute sau deja confirmate). Editează valoarea oricărui card ca să vezi cum se schimbă suma." align="right" /></span>
           </div>
           <div className="value mono">{formatLei(kpis.pipelineValue)}</div>
           <div className="delta up">editabil pe fiecare card</div>
@@ -233,7 +253,7 @@ export default function PipelineBoard({
       <div className="card">
         <div className="card-title">
           <h3>Pipeline lead-uri</h3>
-          <span className="hint">Click pe un card = editează stadiul, valoarea sau responsabilul</span>
+          <span className="hint">Click pe un card = editează etapa, statusul, valoarea sau responsabilul</span>
         </div>
 
         <div className="kanban">
@@ -252,9 +272,14 @@ export default function PipelineBoard({
                   <button className="kcard" key={lead.id} onClick={() => openEdit(lead)}>
                     <div className="title">{lead.name}</div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      <span className="badge gray">{lead.source}</span>
+                      {lead.stage === "confirmat" ? (
+                        <span className={`badge ${STATUS_BADGE[lead.status]}`}>{STATUS_LABEL[lead.status]}</span>
+                      ) : (
+                        <span className="badge gray">{lead.source}</span>
+                      )}
                       {lead.value_monthly > 0 && <span className="tag mono">{formatLei(lead.value_monthly)}</span>}
                     </div>
+                    {lead.status === "pierdut" && lead.lost_reason && <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>Motiv: {lead.lost_reason}</div>}
                     <div className="meta">
                       <span className="faint">{timeAgo(lead.last_activity_at)}</span>
                       {lead.owner && (
@@ -309,6 +334,37 @@ export default function PipelineBoard({
                   </select>
                 </div>
               </div>
+              {modal.form.stage === "confirmat" && (
+                <div className="field">
+                  <label>Status</label>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {LEAD_STATUSES.map((s) => (
+                      <button
+                        key={s.key}
+                        type="button"
+                        className={`btn sm ${modal.form.status === s.key ? "primary" : "ghost"}`}
+                        onClick={() => setModal({ ...modal, form: { ...modal.form, status: s.key } })}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                  {modal.form.status === "pierdut" && (
+                    <textarea
+                      style={{ marginTop: 8 }}
+                      rows={2}
+                      placeholder="Motivul pierderii — scrie orice (ex: n-are buget, nu ne potrivim)"
+                      value={modal.form.lost_reason}
+                      onChange={(e) => setModal({ ...modal, form: { ...modal.form, lost_reason: e.target.value } })}
+                    />
+                  )}
+                  {modal.form.status === "confirmat" && (
+                    <p className="faint" style={{ fontSize: 12, marginTop: 6 }}>
+                      Completează mai jos pachetul și valoarea lunară. Managerii și adminii primesc notificare ca să creeze clientul.
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="grid g-2">
                 <div className="field">
                   <label>Valoare lunară (lei)</label>
@@ -332,6 +388,14 @@ export default function PipelineBoard({
                     ))}
                   </select>
                 </div>
+              </div>
+              <div className="field">
+                <label>Pachet</label>
+                <input
+                  value={modal.form.package}
+                  onChange={(e) => setModal({ ...modal, form: { ...modal.form, package: e.target.value } })}
+                  placeholder="ce pachet a luat (ex: 20 clipuri / lună)"
+                />
               </div>
               <div className="field">
                 <label>Notițe</label>

@@ -6,29 +6,28 @@ export const STAGES: { key: LeadStage; label: string; help: string }[] = [
   {
     key: "nou",
     label: "Nou",
-    help: "Lead abia intrat în sistem — nu a fost încă contactat sau discuția e la început.",
+    help: "Closerul a apăsat că e lead — intră aici automat.",
   },
   {
     key: "discutie",
     label: "În discuție",
-    help: 'Am luat legătura și discutăm oferta. Fără activitate 3 zile aici → apare la „Follow-up-uri întârziate”.',
+    help: 'Trece aici singur când s-a setat un meeting. Fără activitate 3 zile → apare la „Follow-up-uri întârziate”.',
   },
   {
     key: "confirmat",
-    label: "Confirmat",
-    help: "Clientul a acceptat oferta/pachetul. Urmează contractul și prima factură.",
-  },
-  {
-    key: "lucru",
-    label: "În lucru",
-    help: "Client activ, cu proiect sau abonament lunar în derulare.",
-  },
-  {
-    key: "finalizat",
-    label: "Finalizat",
-    help: "Proiect încheiat sau colaborare oprită. Rămâne în istoric, dar nu mai e activ în pipeline.",
+    label: "Status",
+    help: "Aici closerul alege rezultatul: Pending, Confirmat sau Pierdut (cu motivul pierderii). La Confirmat, managerii și adminii primesc o notificare ca să creeze clientul.",
   },
 ];
+
+export type LeadStatus = "pending" | "confirmat" | "pierdut";
+export const LEAD_STATUSES: { key: LeadStatus; label: string; badge: string }[] = [
+  { key: "pending", label: "Pending", badge: "amber" },
+  { key: "confirmat", label: "Confirmat", badge: "green" },
+  { key: "pierdut", label: "Pierdut", badge: "red" },
+];
+export const STATUS_LABEL: Record<LeadStatus, string> = Object.fromEntries(LEAD_STATUSES.map((s) => [s.key, s.label])) as Record<LeadStatus, string>;
+export const STATUS_BADGE: Record<LeadStatus, string> = Object.fromEntries(LEAD_STATUSES.map((s) => [s.key, s.badge])) as Record<LeadStatus, string>;
 
 export const STAGE_LABEL: Record<LeadStage, string> = Object.fromEntries(
   STAGES.map((s) => [s.key, s.label]),

@@ -42,7 +42,6 @@ export const NAV: NavGroup[] = [
   {
     group: "Livrare",
     items: [
-      { key: "proiecte", label: "Proiecte", href: "/proiecte", icon: "▤", roles: ["admin", "manager", "editor"], enabled: true },
       { key: "editori", label: "Canale", href: "/editori", icon: "◈", roles: ["admin", "manager", "editor"], enabled: true },
       { key: "echipa", label: "Echipă", href: "/echipa", icon: "◐", roles: ["admin", "manager"], enabled: true },
     ],
