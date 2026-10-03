@@ -116,8 +116,8 @@ export default function ClientsTable({ initialLeads, canDelete, editors }: { ini
           <h1>Clienți</h1>
           <p>{clients.length} clienți confirmați — editor, clipuri, plăți și data de început. Lead-urile sunt în Pipeline.</p>
         </div>
-        <button className="btn primary" onClick={() => router.push("/dashboard")}>
-          + Client nou (din Pipeline)
+        <button className="btn primary" onClick={() => router.push("/dashboard?client=1")}>
+          + Client nou
         </button>
       </div>
 

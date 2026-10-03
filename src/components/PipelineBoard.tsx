@@ -41,6 +41,8 @@ type FormState = {
   package: string;
   clips_count: string;
   editor_pay: string;
+  editor_id: string;
+  project_start: string;
   created_at?: string;
 };
 
@@ -56,20 +58,33 @@ const EMPTY_FORM: FormState = {
   package: "",
   clips_count: "",
   editor_pay: "",
+  editor_id: "",
+  project_start: "",
 };
 
 export default function PipelineBoard({
   initialLeads,
   owners,
   canDelete,
+  editors,
+  startAsClient,
 }: {
   initialLeads: LeadRow[];
   owners: Owner[];
   canDelete: boolean;
+  editors: { id: string; full_name: string }[];
+  startAsClient?: boolean; // opened from "+ Client nou" in Clienți: the form starts as a confirmed client
 }) {
   const [leads, setLeads] = useState(initialLeads);
   useRealtimeRows({ table: "leads", select: OWNER_SELECT, setRows: setLeads });
-  const [modal, setModal] = useState<null | { mode: "create" | "edit"; form: FormState }>(null);
+  const [modal, setModal] = useState<null | { mode: "create" | "edit"; form: FormState }>(() =>
+    startAsClient
+      ? {
+          mode: "create",
+          form: { ...EMPTY_FORM, stage: "confirmat", status: "confirmat", owner_id: owners[0]?.id ?? "", created_at: new Date().toISOString() },
+        }
+      : null,
+  );
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const supabase = createClient();
@@ -113,6 +128,8 @@ export default function PipelineBoard({
         package: lead.package ?? "",
         clips_count: lead.clips_count == null ? "" : String(lead.clips_count),
         editor_pay: lead.editor_pay ? String(lead.editor_pay) : "",
+        editor_id: lead.editor_id ?? "",
+        project_start: lead.project_start ?? "",
         created_at: lead.created_at,
       },
     });
@@ -148,6 +165,8 @@ export default function PipelineBoard({
         ? {
             clips_count: form.clips_count.trim() === "" ? null : Math.max(0, Math.round(Number(form.clips_count)) || 0),
             editor_pay: Math.max(0, Number(form.editor_pay.replace(",", ".")) || 0),
+            editor_id: form.editor_id || null,
+            project_start: form.project_start || null,
           }
         : {}),
       last_activity_at: new Date().toISOString(),
@@ -352,7 +371,22 @@ export default function PipelineBoard({
                   </div>
                 </div>
               )}
-              {modal.mode === "edit" && (
+              {canDelete && (
+                <div className="grid g-2">
+                  <div className="field">
+                    <label>Editor (primește calendarul clientului)</label>
+                    <select value={modal.form.editor_id} onChange={(e) => setModal({ ...modal, form: { ...modal.form, editor_id: e.target.value } })}>
+                      <option value="">— fără editor —</option>
+                      {editors.map((ed) => <option key={ed.id} value={ed.id}>{ed.full_name}</option>)}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Data începere proiect</label>
+                    <input type="date" value={modal.form.project_start} onChange={(e) => setModal({ ...modal, form: { ...modal.form, project_start: e.target.value } })} />
+                  </div>
+                </div>
+              )}
+              {(
                 <div className="field">
                   <label>Etapă</label>
                   <select

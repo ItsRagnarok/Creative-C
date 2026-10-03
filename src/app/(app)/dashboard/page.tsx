@@ -2,7 +2,8 @@ import PipelineBoard, { type LeadRow, type Owner } from "@/components/PipelineBo
 import { getAppContext } from "@/lib/app-context";
 import { OWNER_SELECT } from "@/lib/selects";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ client?: string }> }) {
+  const { client } = await searchParams;
   const { supabase, role, team } = await getAppContext();
   const owners = team;
 
@@ -23,6 +24,8 @@ export default async function DashboardPage() {
           initialLeads={(leads ?? []) as LeadRow[]}
           owners={(owners ?? []) as Owner[]}
           canDelete={role === "admin" || role === "manager"}
+          editors={team.filter((p) => p.role === "editor").map((p) => ({ id: p.id, full_name: p.full_name }))}
+          startAsClient={client === "1"}
         />
       )}
     </>
