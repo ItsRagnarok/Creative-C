@@ -475,6 +475,7 @@ export type Database = {
           created_by: string | null
           editor_id: string
           id: string
+          lead_id: string | null
         }
         Insert: {
           client_name?: string
@@ -482,6 +483,7 @@ export type Database = {
           created_by?: string | null
           editor_id: string
           id?: string
+          lead_id?: string | null
         }
         Update: {
           client_name?: string
@@ -489,6 +491,7 @@ export type Database = {
           created_by?: string | null
           editor_id?: string
           id?: string
+          lead_id?: string | null
         }
         Relationships: []
       }
@@ -888,6 +891,9 @@ export type Database = {
       }
       leads: {
         Row: {
+          clips_count: number | null
+          editor_pay: number
+          project_start: string | null
           created_at: string
           id: string
           last_activity_at: string
@@ -900,6 +906,9 @@ export type Database = {
           value_monthly: number
         }
         Insert: {
+          clips_count?: number | null
+          editor_pay?: number
+          project_start?: string | null
           created_at?: string
           id?: string
           last_activity_at?: string
@@ -912,6 +921,9 @@ export type Database = {
           value_monthly?: number
         }
         Update: {
+          clips_count?: number | null
+          editor_pay?: number
+          project_start?: string | null
           created_at?: string
           id?: string
           last_activity_at?: string
@@ -1240,6 +1252,10 @@ export type Database = {
       ensure_booking_slug: { Args: never; Returns: string }
       my_access: { Args: never; Returns: Json }
       convert_prospect: { Args: { p_id: string }; Returns: string }
+      editor_penalties: {
+        Args: { p_editor: string; p_month: string }
+        Returns: { day: string; expected: number; uploaded: number; missing: number; penalty: number }[]
+      }
       get_booking_host: {
         Args: { p_slug: string }
         Returns: {

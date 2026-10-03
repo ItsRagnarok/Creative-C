@@ -15,6 +15,9 @@ type FormState = {
   value_monthly: string;
   owner_id: string;
   notes: string;
+  clips_count: string;
+  editor_pay: string;
+  project_start: string;
 };
 
 export default function ClientDetail({
@@ -41,6 +44,9 @@ export default function ClientDetail({
     value_monthly: String(lead.value_monthly),
     owner_id: lead.owner_id ?? "",
     notes: lead.notes ?? "",
+    clips_count: lead.clips_count == null ? "" : String(lead.clips_count),
+    editor_pay: lead.editor_pay ? String(lead.editor_pay) : "",
+    project_start: lead.project_start ?? "",
   });
 
   async function handleSave(e: React.FormEvent) {
@@ -60,6 +66,13 @@ export default function ClientDetail({
         value_monthly: Number(form.value_monthly) || 0,
         owner_id: form.owner_id || null,
         notes: form.notes.trim() || null,
+        ...(canDelete
+          ? {
+              clips_count: form.clips_count.trim() === "" ? null : Math.max(0, Math.round(Number(form.clips_count)) || 0),
+              editor_pay: Math.max(0, Number(form.editor_pay.replace(",", ".")) || 0),
+              project_start: form.project_start || null,
+            }
+          : {}),
         last_activity_at: new Date().toISOString(),
       })
       .eq("id", lead.id)
@@ -209,6 +222,22 @@ export default function ClientDetail({
                   </select>
                 </div>
               </div>
+              {canDelete && (
+                <div className="grid g-3">
+                  <div className="field">
+                    <label>Nr. clipuri</label>
+                    <input inputMode="numeric" value={form.clips_count} onChange={(e) => setForm({ ...form, clips_count: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label>Plată editor (lei)</label>
+                    <input inputMode="decimal" value={form.editor_pay} onChange={(e) => setForm({ ...form, editor_pay: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label>Început proiect</label>
+                    <input type="date" value={form.project_start} onChange={(e) => setForm({ ...form, project_start: e.target.value })} />
+                  </div>
+                </div>
+              )}
               <div className="field">
                 <label>Notițe</label>
                 <textarea rows={4} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />

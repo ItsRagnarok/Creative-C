@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRealtimeRefetch } from "@/lib/useRealtimeRows";
 
-export type SheetRow = { id: string; editor_id: string; client_name: string; created_at: string };
+export type SheetRow = { id: string; editor_id: string; client_name: string; lead_id: string | null; created_at: string };
+type LeadOption = { id: string; name: string; editor_pay: number };
+type PenaltyDay = { day: string; expected: number; uploaded: number; missing: number; penalty: number };
 
 export type CalendarEditor = { id: string; full_name: string; initials: string; role?: string };
 
@@ -92,6 +94,9 @@ export default function ContentCalendar({
   const [dupEditor, setDupEditor] = useState("");
   const [dupName, setDupName] = useState("");
   const [clientDraft, setClientDraft] = useState<string | null>(null);
+  const [leads, setLeads] = useState<LeadOption[]>([]);
+  const [penalties, setPenalties] = useState<PenaltyDay[]>([]);
+  const [showPenalties, setShowPenalties] = useState(false);
 
   const fetchSheets = useCallback(
     async (forEditor: string) =>
@@ -177,6 +182,46 @@ export default function ContentCalendar({
     setClientDraft(null);
     setEditorId(nextEditor);
     setMonth(nextMonth);
+  }
+
+  // Clients from the CRM: managers pick from all of them; an editor only needs the pay of the clients their calendars are tied to.
+  const leadKey = canManage ? "all" : sheets.map((x) => x.lead_id ?? "").join(",");
+  useEffect(() => {
+    let cancelled = false;
+    const q = supabase.from("leads").select("id, name, editor_pay").order("name");
+    const ids = sheets.map((x) => x.lead_id).filter(Boolean) as string[];
+    if (!canManage && ids.length === 0) return;
+    (canManage ? q : q.in("id", ids)).then(({ data }) => {
+      if (!cancelled) setLeads((data ?? []) as LeadOption[]);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leadKey, canManage, supabase]);
+
+  // 25 lei for every planned clip not uploaded by 17:00 on its day — computed in the database.
+  useEffect(() => {
+    if (!editorId) return;
+    let cancelled = false;
+    supabase.rpc("editor_penalties", { p_editor: editorId, p_month: `${month}-01` }).then(({ data }) => {
+      if (!cancelled) setPenalties((data ?? []) as PenaltyDay[]);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [editorId, month, rows, supabase]);
+
+  const basePay = sheets.reduce((sum, x) => sum + Number(leads.find((l) => l.id === x.lead_id)?.editor_pay ?? 0), 0);
+  const penaltyTotal = penalties.reduce((sum, d) => sum + d.penalty, 0);
+
+  async function linkClient(leadId: string) {
+    if (!sheet) return;
+    const lead = leads.find((l) => l.id === leadId) ?? null;
+    const patch = { lead_id: lead?.id ?? null, ...(lead ? { client_name: lead.name } : {}) };
+    setSheets((p) => p.map((x) => (x.id === sheet.id ? { ...x, ...patch } : x)));
+    const { error: err } = await supabase.from("calendar_sheets").update(patch).eq("id", sheet.id);
+    if (err) setError(err.message);
   }
 
   function pickSheet(id: string) {
@@ -433,6 +478,32 @@ export default function ContentCalendar({
                 {canManage && editor && <span className="faint" style={{ marginLeft: 8 }}>{editor.full_name}</span>}
               </div>
 
+              {/* Monthly pay for this editor: what the linked clients pay minus the 17:00 penalties */}
+              <div className="card" style={{ padding: "12px 16px", marginBottom: 14, background: "var(--surface-2)" }}>
+                <div style={{ display: "flex", gap: 18, alignItems: "baseline", flexWrap: "wrap" }}>
+                  <div><div className="faint" style={{ fontSize: 11 }}>PLATĂ EDITOR — {monthLabel(month).toUpperCase()}</div><b style={{ fontSize: 18 }}>{basePay.toLocaleString("ro-RO")} lei</b></div>
+                  <div><div className="faint" style={{ fontSize: 11 }}>PENALIZĂRI</div><b style={{ fontSize: 18, color: penaltyTotal ? "var(--danger)" : undefined }}>{penaltyTotal ? `−${penaltyTotal}` : "0"} lei</b></div>
+                  <div><div className="faint" style={{ fontSize: 11 }}>DE PLĂTIT</div><b style={{ fontSize: 18 }}>{(basePay - penaltyTotal).toLocaleString("ro-RO")} lei</b></div>
+                  {penalties.length > 0 && (
+                    <button type="button" className="btn sm ghost" style={{ marginLeft: "auto" }} onClick={() => setShowPenalties((v) => !v)}>
+                      {showPenalties ? "Ascunde detaliile" : "Vezi detaliile"}
+                    </button>
+                  )}
+                </div>
+                <div className="faint" style={{ fontSize: 11.5, marginTop: 6 }}>
+                  Regulă: pentru fiecare clip planificat și neîncărcat până la ora 17:00 din ziua lui, se scad 25 lei.
+                </div>
+                {showPenalties && (
+                  <div style={{ marginTop: 8, display: "grid", gap: 4, fontSize: 12.5 }}>
+                    {penalties.map((d) => (
+                      <div key={d.day}>
+                        {new Date(d.day + "T00:00:00").toLocaleDateString("ro-RO", { day: "numeric", month: "short" })}: {d.uploaded} din {d.expected} clipuri încărcate până la 17:00 → <b style={{ color: "var(--danger)" }}>−{d.penalty} lei</b>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* One calendar per client: switch, name, add, duplicate, delete */}
               <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 14 }}>
                 {sheets.map((x, i) => (
@@ -447,6 +518,12 @@ export default function ContentCalendar({
               {sheet && (
                 <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 14 }}>
                   <span className="faint" style={{ fontSize: 12 }}>Client:</span>
+                  {canManage && (
+                    <select value={sheet.lead_id ?? ""} onChange={(e) => linkClient(e.target.value)} style={{ maxWidth: 220 }} title="Leagă calendarul de un client din CRM (plata editorului se ia de acolo)">
+                      <option value="">— alege din CRM —</option>
+                      {leads.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                    </select>
+                  )}
                   {canManage ? (
                     <input
                       style={{ minWidth: 220 }}

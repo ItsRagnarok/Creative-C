@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { STAGES, STAGE_LABEL, STAGE_BADGE, formatLei, timeAgo, monthYear, type LeadStage } from "@/lib/pipeline";
+import { formatLei, timeAgo, monthYear } from "@/lib/pipeline";
 import type { LeadRow } from "@/components/PipelineBoard";
 import { OWNER_SELECT } from "@/lib/selects";
 import { useRealtimeRows } from "@/lib/useRealtimeRows";
@@ -16,8 +16,6 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
   const [leads, setLeads] = useState(initialLeads);
   useRealtimeRows({ table: "leads", select: OWNER_SELECT, setRows: setLeads, position: "start" });
   const [search, setSearch] = useState("");
-  const [stageFilter, setStageFilter] = useState<LeadStage | "toate">("toate");
-  const [sourceFilter, setSourceFilter] = useState("toate");
   const [ownerFilter, setOwnerFilter] = useState("toate");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmIds, setConfirmIds] = useState<string[] | null>(null);
@@ -26,10 +24,6 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const sources = useMemo(
-    () => Array.from(new Set(leads.map((l) => l.source))).sort(),
-    [leads],
-  );
   const owners = useMemo(() => {
     const map = new Map<string, string>();
     leads.forEach((l) => {
@@ -38,15 +32,20 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
     return Array.from(map.entries());
   }, [leads]);
 
+  // Admin / manager set clips, editor pay and start date straight in the table.
+  async function patchLead(id: string, values: Partial<Pick<LeadRow, "clips_count" | "editor_pay" | "project_start">>) {
+    setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...values } : l)));
+    const { error } = await supabase.from("leads").update(values).eq("id", id);
+    if (error) window.alert(error.message);
+  }
+
   const filtered = useMemo(() => {
     return leads.filter((l) => {
       if (search && !l.name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (stageFilter !== "toate" && l.stage !== stageFilter) return false;
-      if (sourceFilter !== "toate" && l.source !== sourceFilter) return false;
       if (ownerFilter !== "toate" && l.owner_id !== ownerFilter) return false;
       return true;
     });
-  }, [leads, search, stageFilter, sourceFilter, ownerFilter]);
+  }, [leads, search, ownerFilter]);
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((l) => selected.has(l.id));
 
@@ -145,18 +144,6 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
             style={{ background: "transparent", border: "none", outline: "none", width: "100%", color: "var(--text)" }}
           />
         </div>
-        <select value={stageFilter} onChange={(e) => setStageFilter(e.target.value as LeadStage | "toate")} style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px", fontSize: 12 }}>
-          <option value="toate">Status: Toate</option>
-          {STAGES.map((s) => (
-            <option key={s.key} value={s.key}>{s.label}</option>
-          ))}
-        </select>
-        <select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)} style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px", fontSize: 12 }}>
-          <option value="toate">Sursă: Toate</option>
-          {sources.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
         <select value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)} style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px", fontSize: 12 }}>
           <option value="toate">Responsabil: Toți</option>
           {owners.map(([id, name]) => (
@@ -181,8 +168,9 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
                 </th>
               )}
               <th>Client</th>
-              <th>Sursă</th>
-              <th>Status</th>
+              <th>Nr. clipuri</th>
+              <th>Plată editor</th>
+              <th>Început proiect</th>
               <th>Valoare/lună</th>
               <th>Responsabil</th>
               <th>Ultima activitate</th>
@@ -211,8 +199,50 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
                     </div>
                   </div>
                 </td>
-                <td><span className="tag">{l.source}</span></td>
-                <td><span className={`badge ${STAGE_BADGE[l.stage]}`}>{STAGE_LABEL[l.stage]}</span></td>
+                <td onClick={(e) => e.stopPropagation()}>
+                  {canDelete ? (
+                    <input
+                      style={{ width: 70 }}
+                      inputMode="numeric"
+                      placeholder="—"
+                      defaultValue={l.clips_count ?? ""}
+                      onBlur={(e) => {
+                        const v = e.target.value.trim() === "" ? null : Math.max(0, Math.round(Number(e.target.value)) || 0);
+                        if (v !== l.clips_count) patchLead(l.id, { clips_count: v });
+                      }}
+                    />
+                  ) : (
+                    l.clips_count ?? <span className="faint">—</span>
+                  )}
+                </td>
+                <td onClick={(e) => e.stopPropagation()}>
+                  {canDelete ? (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <input
+                        style={{ width: 90 }}
+                        inputMode="decimal"
+                        placeholder="0"
+                        defaultValue={l.editor_pay || ""}
+                        onBlur={(e) => {
+                          const v = Math.max(0, Number(e.target.value.replace(",", ".")) || 0);
+                          if (v !== Number(l.editor_pay)) patchLead(l.id, { editor_pay: v });
+                        }}
+                      />
+                      <span className="faint">lei</span>
+                    </span>
+                  ) : (
+                    <span className="faint">—</span>
+                  )}
+                </td>
+                <td onClick={(e) => e.stopPropagation()}>
+                  {canDelete ? (
+                    <input type="date" value={l.project_start ?? ""} onChange={(e) => patchLead(l.id, { project_start: e.target.value || null })} />
+                  ) : l.project_start ? (
+                    new Date(l.project_start + "T00:00:00").toLocaleDateString("ro-RO")
+                  ) : (
+                    <span className="faint">—</span>
+                  )}
+                </td>
                 <td className="mono">{l.value_monthly > 0 ? formatLei(l.value_monthly) : <span className="faint">—</span>}</td>
                 <td>
                   {l.owner ? (
@@ -239,7 +269,7 @@ export default function ClientsTable({ initialLeads, canDelete }: { initialLeads
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={canDelete ? 8 : 6}>
+                <td colSpan={canDelete ? 9 : 7}>
                   <div className="empty-note">Niciun client nu corespunde filtrelor alese.</div>
                 </td>
               </tr>

@@ -18,6 +18,9 @@ export type LeadRow = {
   notes: string | null;
   created_at: string;
   last_activity_at: string;
+  clips_count: number | null;
+  editor_pay: number;
+  project_start: string | null;
   owner: Owner | null;
 };
 
