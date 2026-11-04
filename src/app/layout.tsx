@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Inter, IBM_Plex_Mono } from "next/font/google";
+import { WebAnalytics } from "./web-analytics";
 import "./globals.css";
 
 // Same type family as the public CS Studio site (public/landing.html):
@@ -31,7 +32,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ro" className={`${bebasNeue.variable} ${inter.variable} ${plexMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <WebAnalytics />
+      </body>
     </html>
   );
 }
